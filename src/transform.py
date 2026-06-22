@@ -2,6 +2,8 @@
 # Responsável por limpar e tratar os dados extraídos
 
 import pandas as pd
+from src.categorization import categorizar_dataframe
+from src.categorias import obter_regras_categorizacao_do_banco, inicializar_categorias_padrao
 
 
 def tratar_transacoes(df):
@@ -12,7 +14,7 @@ def tratar_transacoes(df):
         df (pd.DataFrame): DataFrame com dados brutos
         
     Returns:
-        pd.DataFrame: DataFrame com dados tratados
+        tuple: (pd.DataFrame, int) - DataFrame com dados tratados e contador de transações categorizadas
     """
     # Remove linhas duplicadas
     df = df.drop_duplicates()
@@ -42,8 +44,17 @@ def tratar_transacoes(df):
         'concluido': 'confirmado'
     })
     
-    # Preenche categorias vazias como "outros"
+    # Preenche categorias vazias como "outros" temporariamente
     df['categoria'] = df['categoria'].fillna('outros')
+    
+    # Inicializa categorias padrão se necessário
+    inicializar_categorias_padrao()
+    
+    # Obtém regras de categorização do banco
+    regras_categorizacao = obter_regras_categorizacao_do_banco()
+    
+    # Aplica categorização automática
+    df, contador_categorizadas = categorizar_dataframe(df, regras_categorizacao)
     
     # Remove linhas sem valor
     df = df.dropna(subset=['valor'])
@@ -51,4 +62,4 @@ def tratar_transacoes(df):
     # Remove linhas sem data
     df = df.dropna(subset=['data'])
     
-    return df
+    return df, contador_categorizadas
