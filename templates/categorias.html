@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Flow - Categorias</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/categorias.css') }}">
+</head>
+<body class="theme-blue">
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">↗</div>
+                <div>
+                    <h1>Personal</h1>
+                    <h1>Finance Flow</h1>
+                </div>
+            </div>
+
+            <nav class="menu">
+                <a href="/dashboard" class="menu-item">Dashboard</a>
+                <a href="/transacoes" class="menu-item">Transações</a>
+                <a href="/categorias" class="menu-item active">Categorias</a>
+                <a href="#" class="menu-item">Relatórios</a>
+                <a href="/metas" class="menu-item">Metas</a>
+                <a href="#" class="menu-item">Investimentos</a>
+                <a href="#" class="menu-item">Configurações</a>
+            </nav>
+
+            <div class="goal-card">
+                <span>Meta de Economia</span>
+
+                <div class="goal-values" id="goal-values">
+                    <strong id="goal-valor-atual">R$ 0,00</strong>
+                    <small id="goal-valor-meta">de R$ 0,00</small>
+                </div>
+
+                <div class="progress">
+                    <div class="progress-bar" id="goal-progress-bar"></div>
+                </div>
+
+                <strong class="progress-text" id="goal-percentual">0%</strong>
+
+                <p id="goal-restante">Nenhuma meta cadastrada.</p>
+            </div>
+
+            <div class="user-card">
+                <div class="avatar">M</div>
+                <div>
+                    <strong>Mayara</strong>
+                    <span>Usuária local</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section class="hero">
+                <div>
+                    <span class="welcome">Organização</span>
+                    <h2>Categorias</h2>
+                    <p>Gerencie as categorias de suas transações.</p>
+                </div>
+
+                <div class="hero-actions">
+                    <button class="btn-primary" onclick="abrirModalCategoria()">Nova categoria</button>
+                    <button class="btn-outline" onclick="buscarCategorias()">Atualizar</button>
+                </div>
+            </section>
+
+            <section class="categorias-section">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Todas as Categorias</h3>
+                        <span>Gerencie suas categorias e palavras-chave</span>
+                    </div>
+
+                    <div class="categorias-grid" id="categorias-grid">
+                        <div class="categorias-empty" id="categorias-empty">
+                            <p>Nenhuma categoria cadastrada.</p>
+                            <button class="btn-primary" onclick="abrirModalCategoria()">Criar primeira categoria</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de Categoria -->
+    <div class="modal" id="modal-categoria">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-categoria-titulo">Criar Categoria</h3>
+                <button class="modal-close" onclick="fecharModalCategoria()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="categoria-nome">Nome</label>
+                    <input type="text" id="categoria-nome" placeholder="Ex: Transporte">
+                </div>
+                <div class="form-group">
+                    <label for="categoria-palavras-chave">Palavras-chave (separadas por vírgula)</label>
+                    <input type="text" id="categoria-palavras-chave" placeholder="Ex: uber, 99, ônibus, metro">
+                </div>
+                <div class="form-group">
+                    <label for="categoria-cor">Cor</label>
+                    <select id="categoria-cor">
+                        <option value="">Padrão</option>
+                        <option value="#2563eb">Azul</option>
+                        <option value="#ec4899">Rosa</option>
+                        <option value="#16a34a">Verde</option>
+                        <option value="#ef4444">Vermelho</option>
+                        <option value="#f59e0b">Amarelo</option>
+                        <option value="#8b5cf6">Roxo</option>
+                        <option value="#06b6d4">Ciano</option>
+                    </select>
+                </div>
+                <input type="hidden" id="categoria-nome-atual">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="fecharModalCategoria()">Cancelar</button>
+                <button class="btn-primary" onclick="salvarCategoria()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/temas.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/categorias.js') }}"></script>
+</body>
+</html>
