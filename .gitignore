@@ -1,0 +1,30 @@
+
+# Ambiente virtual
+.venv/
+venv/
+
+# Variáveis de ambiente
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+
+# macOS
+.DS_Store
+._*
+
+# IDE
+.vscode/
+.idea/
+
+# Arquivos enviados pelo usuário
+uploads/*
+
+# Mantém a pasta uploads no projeto
+!uploads/.gitkeep
+
+# Logs
+*.log

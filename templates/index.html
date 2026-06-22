@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Flow</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+<body>
+    <main class="home-page">
+        <section class="home-hero">
+            <div class="home-content">
+                <div class="brand">
+                    <div class="brand-icon">↗</div>
+                    <span>Personal Finance Flow</span>
+                </div>
+
+                <h1>Controle suas finanças com mais clareza</h1>
+
+                <p>
+                    Acompanhe entradas, saídas, saldo, investimentos e gastos por categoria
+                    em uma dashboard simples, visual e fácil de usar.
+                </p>
+
+                <div class="home-actions">
+                    <a href="/dashboard" class="btn btn-primary">Acessar Dashboard</a>
+                </div>
+            </div>
+
+           <div class="preview-card">
+         <img
+             src="{{ url_for('static', filename='images/dashboard.png') }}"
+             class="dashboard-image"
+         >
+</div>
+        </section>
+
+        <section class="benefits" id="beneficios">
+            <article class="benefit-card">
+                <div class="benefit-icon">💰</div>
+                <h3>Organize seus gastos</h3>
+                <p>Veja suas despesas separadas por categoria e entenda para onde seu dinheiro está indo.</p>
+            </article>
+
+            <article class="benefit-card">
+                <div class="benefit-icon">📊</div>
+                <h3>Visualize seu saldo</h3>
+                <p>Acompanhe entradas, saídas e saldo final em cards claros e objetivos.</p>
+            </article>
+
+            <article class="benefit-card">
+                <div class="benefit-icon">🎯</div>
+                <h3>Acompanhe suas metas</h3>
+                <p>Tenha uma visão simples do progresso das suas metas financeiras.</p>
+            </article>
+
+            <article class="benefit-card">
+                <div class="benefit-icon">✨</div>
+                <h3>Tome melhores decisões</h3>
+                <p>Use os indicadores da dashboard para melhorar seu controle financeiro.</p>
+            </article>
+        </section>
+
+        <footer class="footer">
+            <p>© 2024 Personal Finance Flow</p>
+        </footer>
+    </main>
+</body>
+</html>
