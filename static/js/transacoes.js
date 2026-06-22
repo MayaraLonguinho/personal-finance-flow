@@ -104,6 +104,60 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("filtro-status").addEventListener("change", buscarTransacoes);
 });
 
+// Funções para gerenciar meta na sidebar
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    }).format(valor || 0);
+}
+
+async function buscarMeta() {
+    try {
+        const resposta = await fetch("/api/meta");
+
+        if (!resposta.ok) {
+            if (resposta.status === 404) {
+                exibirMetaVazia();
+                return;
+            }
+            throw new Error("Erro ao buscar meta");
+        }
+
+        const meta = await resposta.json();
+        exibirMeta(meta);
+
+    } catch (erro) {
+        console.error("Erro ao carregar meta:", erro);
+        exibirMetaVazia();
+    }
+}
+
+function exibirMeta(meta) {
+    document.getElementById("goal-valor-atual").textContent = formatarMoeda(meta.valor_atual);
+    document.getElementById("goal-valor-meta").textContent = `de ${formatarMoeda(meta.valor_meta)}`;
+    document.getElementById("goal-percentual").textContent = `${meta.percentual}%`;
+    document.getElementById("goal-progress-bar").style.width = `${meta.percentual}%`;
+    
+    const valorRestante = meta.valor_restante;
+    if (valorRestante > 0) {
+        document.getElementById("goal-restante").textContent = `Faltam ${formatarMoeda(valorRestante)} para alcançar sua meta.`;
+    } else {
+        document.getElementById("goal-restante").textContent = "Parabéns! Você alcançou sua meta!";
+    }
+}
+
+function exibirMetaVazia() {
+    document.getElementById("goal-valor-atual").textContent = "R$ 0,00";
+    document.getElementById("goal-valor-meta").textContent = "de R$ 0,00";
+    document.getElementById("goal-percentual").textContent = "0%";
+    document.getElementById("goal-progress-bar").style.width = "0%";
+    document.getElementById("goal-restante").textContent = "Nenhuma meta cadastrada.";
+}
+
+// Carregar meta ao abrir a página
+buscarMeta();
+
 function preencherTabela(transacoes) {
     const corpoTabela = document.getElementById("corpo-tabela");
 

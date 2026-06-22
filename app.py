@@ -3,6 +3,7 @@ from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, ger
 from src.transform import tratar_transacoes
 from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql
 from src.transacoes import buscar_todas_transacoes, criar_transacao, editar_transacao, excluir_transacao
+from src.metas import buscar_meta_ativa, criar_meta, atualizar_meta, excluir_meta
 
 import os
 import pandas as pd
@@ -25,6 +26,11 @@ def dashboard():
 @app.route('/transacoes')
 def transacoes():
     return render_template('transacoes.html')
+
+# Rota de metas - exibe a página de metas
+@app.route('/metas')
+def metas():
+    return render_template('metas.html')
 
 # Rota de API - retorna métricas financeiras em JSON
 @app.route('/api/metricas')
@@ -265,6 +271,151 @@ def api_limpar_transacoes():
             "erro": "Não foi possível limpar os dados.",
             "detalhe": str(erro)
         }), 500
+
+# Rota de API - retorna a meta ativa
+@app.route('/api/meta')
+def api_meta():
+    try:
+        meta = buscar_meta_ativa()
+        
+        if meta is None:
+            return jsonify({'meta': None})
+        
+        # Calcula percentual e valor restante
+        valor_meta = meta['valor_meta']
+        valor_atual = meta['valor_atual']
+        
+        # Calcula percentual (máximo 100%)
+        if valor_meta > 0:
+            percentual = (valor_atual / valor_meta) * 100
+            percentual = min(percentual, 100)  # Limita a 100%
+        else:
+            percentual = 0
+        
+        # Calcula valor restante
+        valor_restante = max(valor_meta - valor_atual, 0)
+        
+        # Adiciona campos calculados
+        meta['percentual'] = round(percentual, 1)
+        meta['valor_restante'] = round(valor_restante, 2)
+        
+        return jsonify(meta)
+        
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao buscar meta', 'detalhes': str(e)}), 500
+
+# Rota de API - cria uma nova meta
+@app.route('/api/meta', methods=['POST'])
+def api_criar_meta():
+    try:
+        dados = request.get_json()
+        
+        # Valida campos obrigatórios
+        if 'titulo' not in dados or not dados['titulo']:
+            return jsonify({'erro': 'Campo título é obrigatório'}), 400
+        
+        if 'valor_meta' not in dados:
+            return jsonify({'erro': 'Campo valor_meta é obrigatório'}), 400
+        
+        # Valida valor_meta
+        try:
+            valor_meta = float(dados['valor_meta'])
+            if valor_meta <= 0:
+                return jsonify({'erro': 'Valor da meta deve ser maior que zero'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'erro': 'Valor da meta deve ser um número válido'}), 400
+        
+        # Valida valor_atual se fornecido
+        valor_atual = 0.0
+        if 'valor_atual' in dados:
+            try:
+                valor_atual = float(dados['valor_atual'])
+                if valor_atual < 0:
+                    return jsonify({'erro': 'Valor atual não pode ser negativo'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'erro': 'Valor atual deve ser um número válido'}), 400
+        
+        # Valida status se fornecido
+        status = dados.get('status', 'ativa')
+        if status not in ['ativa', 'concluida', 'cancelada']:
+            return jsonify({'erro': 'Status deve ser ativa, concluida ou cancelada'}), 400
+        
+        # Cria meta
+        id_meta = criar_meta(
+            titulo=dados['titulo'],
+            valor_meta=valor_meta,
+            valor_atual=valor_atual,
+            data_limite=dados.get('data_limite'),
+            status=status
+        )
+        
+        return jsonify({'mensagem': 'Meta criada com sucesso', 'id': id_meta}), 201
+        
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao criar meta', 'detalhes': str(e)}), 500
+
+# Rota de API - atualiza uma meta existente
+@app.route('/api/meta/<int:id>', methods=['PUT'])
+def api_atualizar_meta(id):
+    try:
+        dados = request.get_json()
+        
+        # Valida valor_meta se fornecido
+        if 'valor_meta' in dados:
+            try:
+                valor_meta = float(dados['valor_meta'])
+                if valor_meta <= 0:
+                    return jsonify({'erro': 'Valor da meta deve ser maior que zero'}), 400
+                dados['valor_meta'] = valor_meta
+            except (ValueError, TypeError):
+                return jsonify({'erro': 'Valor da meta deve ser um número válido'}), 400
+        
+        # Valida valor_atual se fornecido
+        if 'valor_atual' in dados:
+            try:
+                valor_atual = float(dados['valor_atual'])
+                if valor_atual < 0:
+                    return jsonify({'erro': 'Valor atual não pode ser negativo'}), 400
+                dados['valor_atual'] = valor_atual
+            except (ValueError, TypeError):
+                return jsonify({'erro': 'Valor atual deve ser um número válido'}), 400
+        
+        # Valida status se fornecido
+        if 'status' in dados:
+            if dados['status'] not in ['ativa', 'concluida', 'cancelada']:
+                return jsonify({'erro': 'Status deve ser ativa, concluida ou cancelada'}), 400
+        
+        # Atualiza meta
+        sucesso = atualizar_meta(
+            id_meta=id,
+            titulo=dados.get('titulo'),
+            valor_meta=dados.get('valor_meta'),
+            valor_atual=dados.get('valor_atual'),
+            data_limite=dados.get('data_limite'),
+            status=dados.get('status')
+        )
+        
+        if sucesso:
+            return jsonify({'mensagem': 'Meta atualizada com sucesso'}), 200
+        else:
+            return jsonify({'erro': 'Meta não encontrada'}), 404
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao atualizar meta', 'detalhes': str(e)}), 500
+
+# Rota de API - exclui uma meta
+@app.route('/api/meta/<int:id>', methods=['DELETE'])
+def api_excluir_meta(id):
+    try:
+        sucesso = excluir_meta(id)
+        
+        if sucesso:
+            return jsonify({'mensagem': 'Meta excluída com sucesso'}), 200
+        else:
+            return jsonify({'erro': 'Meta não encontrada'}), 404
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao excluir meta', 'detalhes': str(e)}), 500
         
 if __name__ == '__main__':
     app.run(debug=True)
