@@ -4,6 +4,9 @@ from src.transform import tratar_transacoes
 from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql
 from src.transacoes import buscar_todas_transacoes, criar_transacao, editar_transacao, excluir_transacao
 from src.metas import buscar_meta_ativa, criar_meta, atualizar_meta, excluir_meta
+from src.categorias import buscar_todas_categorias, criar_categoria, atualizar_categoria, excluir_categoria, obter_estatisticas_categoria, inicializar_categorias_padrao
+from src.financial_agent import responder_pergunta as responder_pergunta_local
+from src.ai_financial_agent import responder_pergunta_openai
 
 import os
 import pandas as pd
@@ -31,6 +34,16 @@ def transacoes():
 @app.route('/metas')
 def metas():
     return render_template('metas.html')
+
+# Rota de categorias - exibe a página de categorias
+@app.route('/categorias')
+def categorias():
+    return render_template('categorias.html')
+
+# Rota de assistente - exibe a página do assistente financeiro
+@app.route('/assistente')
+def assistente():
+    return render_template('assistente.html')
 
 # Rota de API - retorna métricas financeiras em JSON
 @app.route('/api/metricas')
@@ -240,14 +253,15 @@ def api_upload():
         arquivo.save(caminho_arquivo)
 
         df = pd.read_csv(caminho_arquivo)
-        df_tratado = tratar_transacoes(df)
+        df_tratado, contador_categorizadas = tratar_transacoes(df)
         resultado_carga = carregar_transacoes_mysql(df_tratado)
 
         return {
             "mensagem": "Planilha processada com sucesso.",
             "recebidos": resultado_carga["recebidos"],
             "importados": resultado_carga["importados"],
-            "ignorados": resultado_carga["ignorados"]
+            "ignorados": resultado_carga["ignorados"],
+            "categorizadas_automaticamente": contador_categorizadas
         }
 
     except Exception as erro:
@@ -416,6 +430,127 @@ def api_excluir_meta(id):
             
     except Exception as e:
         return jsonify({'erro': 'Falha ao excluir meta', 'detalhes': str(e)}), 500
+
+# Rota de API - retorna todas as categorias
+@app.route('/api/categorias')
+def api_categorias():
+    try:
+        # Inicializa categorias padrão se necessário
+        inicializar_categorias_padrao()
+        
+        categorias = buscar_todas_categorias()
+        
+        # Adiciona estatísticas para cada categoria
+        for categoria in categorias:
+            estatisticas = obter_estatisticas_categoria(categoria['nome'])
+            categoria['quantidade_transacoes'] = estatisticas['quantidade']
+            categoria['valor_total'] = estatisticas['valor_total']
+        
+        return jsonify(categorias)
+        
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao buscar categorias', 'detalhes': str(e)}), 500
+
+# Rota de API - cria uma nova categoria
+@app.route('/api/categorias', methods=['POST'])
+def api_criar_categoria():
+    try:
+        dados = request.get_json()
+        
+        # Valida campos obrigatórios
+        if not dados.get('nome'):
+            return jsonify({'erro': 'Nome da categoria é obrigatório'}), 400
+        
+        # Cria categoria
+        resultado = criar_categoria(
+            nome=dados['nome'],
+            palavras_chave=dados.get('palavras_chave', []),
+            cor=dados.get('cor')
+        )
+        
+        if resultado['sucesso']:
+            return jsonify({'mensagem': resultado['mensagem']}), 201
+        else:
+            return jsonify({'erro': resultado['erro']}), 500
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao criar categoria', 'detalhes': str(e)}), 500
+
+# Rota de API - atualiza uma categoria
+@app.route('/api/categorias/<nome>', methods=['PUT'])
+def api_atualizar_categoria(nome):
+    try:
+        dados = request.get_json()
+        
+        # Atualiza categoria
+        resultado = atualizar_categoria(
+            nome_atual=nome,
+            novo_nome=dados.get('nome'),
+            palavras_chave=dados.get('palavras_chave'),
+            cor=dados.get('cor')
+        )
+        
+        if resultado['sucesso']:
+            return jsonify({'mensagem': resultado['mensagem']}), 200
+        elif 'não encontrada' in resultado['erro']:
+            return jsonify({'erro': resultado['erro']}), 404
+        else:
+            return jsonify({'erro': resultado['erro']}), 500
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao atualizar categoria', 'detalhes': str(e)}), 500
+
+# Rota de API - exclui uma categoria
+@app.route('/api/categorias/<nome>', methods=['DELETE'])
+def api_excluir_categoria(nome):
+    try:
+        resultado = excluir_categoria(nome)
+        
+        if resultado['sucesso']:
+            return jsonify({'mensagem': resultado['mensagem']}), 200
+        elif 'não encontrada' in resultado['erro']:
+            return jsonify({'erro': resultado['erro']}), 404
+        else:
+            return jsonify({'erro': resultado['erro']}), 500
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao excluir categoria', 'detalhes': str(e)}), 500
+
+# Rota de API - processa pergunta do assistente financeiro
+@app.route('/api/assistente', methods=['POST'])
+def api_assistente():
+    try:
+        dados = request.get_json()
+        
+        # Validação
+        if not dados or 'pergunta' not in dados:
+            return jsonify({'erro': 'Pergunta é obrigatória'}), 400
+        
+        pergunta = dados['pergunta'].strip()
+        
+        if not pergunta:
+            return jsonify({'erro': 'Pergunta não pode estar vazia'}), 400
+        
+        if len(pergunta) > 500:
+            return jsonify({'erro': 'Pergunta muito longa (máximo 500 caracteres)'}), 400
+        
+        # Tenta usar OpenAI primeiro
+        try:
+            resultado = responder_pergunta_openai(pergunta)
+            print(f"[API] Resposta OpenAI obtida com sucesso")
+            return jsonify(resultado), 200
+        except Exception as e:
+            print(f"[API] Fallback para agente local devido a erro: {e}")
+            # Fallback para agente local
+            resultado_local = responder_pergunta_local(pergunta)
+            # Adiciona origem local
+            resultado_local['origem'] = 'local'
+            resultado_local['ferramenta'] = resultado_local.get('tipo')
+            return jsonify(resultado_local), 200
+        
+    except Exception as e:
+        print(f"Erro ao processar pergunta do assistente: {e}")
+        return jsonify({'erro': 'Erro ao processar pergunta', 'resposta': 'Ocorreu um erro ao processar sua pergunta. Tente novamente.'}), 500
         
 if __name__ == '__main__':
     app.run(debug=True)
