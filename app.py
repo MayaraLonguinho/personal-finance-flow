@@ -1,12 +1,13 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, render_template, request
 from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, gerar_insights
 from src.transform import tratar_transacoes
-from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql
+from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine
 from src.transacoes import buscar_todas_transacoes, criar_transacao, editar_transacao, excluir_transacao
 from src.metas import buscar_meta_ativa, criar_meta, atualizar_meta, excluir_meta
 from src.categorias import buscar_todas_categorias, criar_categoria, atualizar_categoria, excluir_categoria, obter_estatisticas_categoria, inicializar_categorias_padrao
 from src.financial_agent import responder_pergunta as responder_pergunta_local
 from src.ai_financial_agent import responder_pergunta_openai
+from src.relatorios import obter_relatorio
 
 import os
 import pandas as pd
@@ -44,6 +45,10 @@ def categorias():
 @app.route('/assistente')
 def assistente():
     return render_template('assistente.html')
+
+@app.route("/relatorios")
+def pagina_relatorios():
+    return render_template("relatorios.html")   
 
 # Rota de API - retorna métricas financeiras em JSON
 @app.route('/api/metricas')
@@ -552,6 +557,33 @@ def api_assistente():
         print(f"Erro ao processar pergunta do assistente: {e}")
         return jsonify({'erro': 'Erro ao processar pergunta', 'resposta': 'Ocorreu um erro ao processar sua pergunta. Tente novamente.'}), 500
         
+@app.route("/api/relatorios", methods=["GET"])
+def api_relatorios():
+    try:
+        data_inicio = request.args.get("data_inicio")
+        data_fim = request.args.get("data_fim")
+
+        relatorio = obter_relatorio(
+            data_inicio=data_inicio,
+            data_fim=data_fim
+        )
+
+        return jsonify(relatorio), 200
+
+    except ValueError as erro:
+        return jsonify({
+            "erro": str(erro)
+        }), 400
+
+    except Exception as erro:
+        print(f"Erro ao gerar relatório: {erro}")
+
+        return jsonify({
+            "erro": "Não foi possível gerar o relatório."
+        }), 500
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

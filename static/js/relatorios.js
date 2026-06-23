@@ -1,0 +1,481 @@
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    }).format(Number(valor) || 0);
+}
+
+function formatarData(dataTexto) {
+    if (!dataTexto) {
+        return "-";
+    }
+
+    const texto = String(dataTexto).substring(0, 10);
+    const partes = texto.split("-");
+
+    if (partes.length !== 3) {
+        return dataTexto;
+    }
+
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function capitalizarTexto(texto) {
+    if (!texto) {
+        return "-";
+    }
+
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+function escaparHtml(texto) {
+    const elemento = document.createElement("div");
+    elemento.textContent = texto ?? "-";
+    return elemento.innerHTML;
+}
+
+function mostrarErroFiltro(mensagem) {
+    const erro = document.getElementById("filtro-erro");
+
+    if (!erro) {
+        return;
+    }
+
+    if (!mensagem) {
+        erro.hidden = true;
+        erro.textContent = "";
+        return;
+    }
+
+    erro.textContent = mensagem;
+    erro.hidden = false;
+}
+
+function validarFiltros() {
+    const dataInicio = document.getElementById("data-inicio").value;
+    const dataFim = document.getElementById("data-fim").value;
+
+    if (dataInicio && dataFim && dataInicio > dataFim) {
+        mostrarErroFiltro(
+            "A data inicial não pode ser maior que a data final."
+        );
+
+        return false;
+    }
+
+    mostrarErroFiltro("");
+    return true;
+}
+
+function montarUrlRelatorio() {
+    const dataInicio = document.getElementById("data-inicio").value;
+    const dataFim = document.getElementById("data-fim").value;
+
+    const parametros = new URLSearchParams();
+
+    if (dataInicio) {
+        parametros.set("data_inicio", dataInicio);
+    }
+
+    if (dataFim) {
+        parametros.set("data_fim", dataFim);
+    }
+
+    const queryString = parametros.toString();
+
+    return queryString
+        ? `/api/relatorios?${queryString}`
+        : "/api/relatorios";
+}
+
+function preencherResumo(resumo) {
+    document.getElementById(
+        "relatorio-entradas"
+    ).textContent = formatarMoeda(resumo.total_entradas);
+
+    document.getElementById(
+        "relatorio-saidas"
+    ).textContent = formatarMoeda(resumo.total_saidas);
+
+    const saldoElemento = document.getElementById(
+        "relatorio-saldo"
+    );
+
+    saldoElemento.textContent = formatarMoeda(resumo.saldo);
+
+    if (Number(resumo.saldo) < 0) {
+        saldoElemento.style.color = "#ef4444";
+    } else {
+        saldoElemento.style.color = "#16a34a";
+    }
+
+    document.getElementById(
+        "relatorio-investimentos"
+    ).textContent = formatarMoeda(resumo.total_investido);
+
+    document.getElementById(
+        "relatorio-quantidade"
+    ).textContent = resumo.quantidade_transacoes || 0;
+}
+
+function preencherPeriodo(periodo) {
+    const dataInicio = periodo.data_inicio;
+    const dataFim = periodo.data_fim;
+
+    document.getElementById(
+        "periodo-data-inicio"
+    ).textContent = dataInicio
+            ? formatarData(dataInicio)
+            : "Todas";
+
+    document.getElementById(
+        "periodo-data-fim"
+    ).textContent = dataFim
+            ? formatarData(dataFim)
+            : "Todas";
+
+    let periodoTexto = "Todos os registros";
+
+    if (dataInicio && dataFim) {
+        periodoTexto = (
+            `De ${formatarData(dataInicio)} ` +
+            `até ${formatarData(dataFim)}`
+        );
+    } else if (dataInicio) {
+        periodoTexto = `A partir de ${formatarData(dataInicio)}`;
+    } else if (dataFim) {
+        periodoTexto = `Até ${formatarData(dataFim)}`;
+    }
+
+    document.getElementById(
+        "relatorio-periodo"
+    ).textContent = periodoTexto;
+
+    document.getElementById(
+        "relatorio-gerado-em"
+    ).textContent = new Intl.DateTimeFormat(
+        "pt-BR",
+        {
+            dateStyle: "short",
+            timeStyle: "short"
+        }
+    ).format(new Date());
+}
+
+function preencherCategorias(categorias) {
+    const container = document.getElementById(
+        "relatorio-categorias"
+    );
+
+    if (!categorias || categorias.length === 0) {
+        container.innerHTML = `
+            <p class="empty-text">
+                Nenhuma despesa encontrada no período.
+            </p>
+        `;
+
+        return;
+    }
+
+    const maiorValor = Math.max(
+        ...categorias.map(
+            categoria => Number(categoria.valor) || 0
+        ),
+        1
+    );
+
+    container.innerHTML = categorias.map(categoria => {
+        const valor = Number(categoria.valor) || 0;
+        const percentual = Math.min(
+            Math.max((valor / maiorValor) * 100, 0),
+            100
+        );
+
+        return `
+            <div class="categoria-relatorio-item">
+                <div class="categoria-relatorio-conteudo">
+                    <div class="categoria-relatorio-topo">
+                        <strong>
+                            ${escaparHtml(categoria.categoria)}
+                        </strong>
+
+                        <span>
+                            ${categoria.quantidade || 0}
+                            transação(ões)
+                        </span>
+                    </div>
+
+                    <div class="categoria-relatorio-barra">
+                        <div
+                            class="categoria-relatorio-progresso"
+                            style="width: ${percentual}%"
+                        ></div>
+                    </div>
+                </div>
+
+                <strong class="categoria-relatorio-valor">
+                    ${formatarMoeda(valor)}
+                </strong>
+            </div>
+        `;
+    }).join("");
+}
+
+function obterClasseTipo(tipo) {
+    if (tipo === "entrada") {
+        return "tipo-entrada";
+    }
+
+    if (tipo === "investimento") {
+        return "tipo-investimento";
+    }
+
+    return "tipo-saida";
+}
+
+function obterClasseValor(tipo) {
+    if (tipo === "entrada") {
+        return "valor-entrada";
+    }
+
+    if (tipo === "investimento") {
+        return "valor-investimento";
+    }
+
+    return "valor-saida";
+}
+
+function preencherTransacoes(transacoes) {
+    const corpoTabela = document.getElementById(
+        "relatorio-transacoes"
+    );
+
+    const contador = document.getElementById(
+        "contador-registros"
+    );
+
+    contador.textContent = (
+        `${transacoes.length} ` +
+        `${transacoes.length === 1 ? "registro" : "registros"}`
+    );
+
+    if (!transacoes || transacoes.length === 0) {
+        corpoTabela.innerHTML = `
+            <tr>
+                <td colspan="7">
+                    Nenhuma transação encontrada no período.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    corpoTabela.innerHTML = transacoes.map(transacao => {
+        const tipo = transacao.tipo || "saida";
+
+        return `
+            <tr>
+                <td>
+                    ${formatarData(transacao.data_transacao)}
+                </td>
+
+                <td>
+                    ${escaparHtml(transacao.descricao)}
+                </td>
+
+                <td>
+                    ${escaparHtml(transacao.categoria)}
+                </td>
+
+                <td class="${obterClasseTipo(tipo)}">
+                    ${capitalizarTexto(tipo)}
+                </td>
+
+                <td>
+                    ${escaparHtml(transacao.conta)}
+                </td>
+
+                <td>
+                    ${escaparHtml(transacao.instituicao)}
+                </td>
+
+                <td class="${obterClasseValor(tipo)}">
+                    ${formatarMoeda(transacao.valor)}
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+async function buscarRelatorio() {
+    if (!validarFiltros()) {
+        return;
+    }
+
+    const botao = document.getElementById(
+        "btn-gerar-relatorio"
+    );
+
+    const textoOriginal = botao.textContent;
+
+    botao.disabled = true;
+    botao.textContent = "Gerando...";
+
+    try {
+        const resposta = await fetch(montarUrlRelatorio());
+
+        const contentType = resposta.headers.get("content-type") || "";
+
+        if (!contentType.includes("application/json")) {
+            throw new Error(`A API de relatórios não retornou JSON. Status: ${resposta.status}.`
+            );
+        }
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(
+                dados.erro || "Não foi possível gerar o relatório."
+            );
+        }
+
+        preencherResumo(dados.resumo);
+        preencherPeriodo(dados.periodo);
+        preencherCategorias(dados.categorias || []);
+        preencherTransacoes(dados.transacoes || []);
+
+    } catch (erro) {
+        console.error("Erro ao buscar relatório:", erro);
+        mostrarErroFiltro(erro.message);
+
+    } finally {
+        botao.disabled = false;
+        botao.textContent = textoOriginal;
+    }
+}
+
+function limparFiltros() {
+    document.getElementById("data-inicio").value = "";
+    document.getElementById("data-fim").value = "";
+
+    mostrarErroFiltro("");
+    buscarRelatorio();
+}
+
+function imprimirRelatorio() {
+    window.print();
+}
+
+/* ==========================
+   META DA SIDEBAR
+========================== */
+
+async function buscarMetaSidebar() {
+    try {
+        const resposta = await fetch("/api/meta");
+
+        if (!resposta.ok) {
+            if (resposta.status === 404) {
+                exibirMetaSidebarVazia();
+                return;
+            }
+
+            throw new Error("Erro ao buscar meta.");
+        }
+
+        const meta = await resposta.json();
+
+        if (!meta || !meta.id) {
+            exibirMetaSidebarVazia();
+            return;
+        }
+
+        exibirMetaSidebar(meta);
+
+    } catch (erro) {
+        console.error(
+            "Erro ao carregar meta da sidebar:",
+            erro
+        );
+
+        exibirMetaSidebarVazia();
+    }
+}
+
+function exibirMetaSidebar(meta) {
+    const valorAtual = Number(meta.valor_atual) || 0;
+    const valorMeta = Number(meta.valor_meta) || 0;
+
+    const percentualCalculado = valorMeta > 0
+        ? (valorAtual / valorMeta) * 100
+        : 0;
+
+    const percentual = Number(
+        meta.percentual ?? percentualCalculado
+    );
+
+    const percentualBarra = Math.min(
+        Math.max(percentual, 0),
+        100
+    );
+
+    const valorRestante = Math.max(
+        Number(
+            meta.valor_restante ?? valorMeta - valorAtual
+        ),
+        0
+    );
+
+    document.getElementById(
+        "goal-valor-atual"
+    ).textContent = formatarMoeda(valorAtual);
+
+    document.getElementById(
+        "goal-valor-meta"
+    ).textContent = `de ${formatarMoeda(valorMeta)}`;
+
+    document.getElementById(
+        "goal-percentual"
+    ).textContent = `${percentual.toFixed(0)}%`;
+
+    document.getElementById(
+        "goal-progress-bar"
+    ).style.width = `${percentualBarra}%`;
+
+    document.getElementById(
+        "goal-restante"
+    ).textContent = valorRestante > 0
+            ? (
+                `Faltam ${formatarMoeda(valorRestante)} ` +
+                "para alcançar sua meta."
+            )
+            : "Parabéns! Você alcançou sua meta!";
+}
+
+function exibirMetaSidebarVazia() {
+    document.getElementById(
+        "goal-valor-atual"
+    ).textContent = "R$ 0,00";
+
+    document.getElementById(
+        "goal-valor-meta"
+    ).textContent = "de R$ 0,00";
+
+    document.getElementById(
+        "goal-percentual"
+    ).textContent = "0%";
+
+    document.getElementById(
+        "goal-progress-bar"
+    ).style.width = "0%";
+
+    document.getElementById(
+        "goal-restante"
+    ).textContent = "Nenhuma meta cadastrada.";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    buscarRelatorio();
+    buscarMetaSidebar();
+});
