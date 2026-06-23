@@ -3,6 +3,7 @@
 
 import pandas as pd
 from src.load import obter_engine
+from src.utils import formatar_moeda
 
 
 def buscar_transacoes():
@@ -170,7 +171,7 @@ def gerar_insights():
     gastos_categoria = calcular_gastos_por_categoria()
     if not gastos_categoria.empty:
         maior_gasto = gastos_categoria.loc[gastos_categoria['valor'].idxmax()]
-        valor_formatado = f"R$ {maior_gasto['valor']:.2f}"
+        valor_formatado = formatar_moeda(maior_gasto['valor'])
         insights.append({
             'tipo': 'alerta',
             'titulo': 'Maior gasto',
@@ -192,7 +193,7 @@ def gerar_insights():
         insights.append({
             'tipo': 'alerta',
             'titulo': 'Sem entradas',
-            'mensagem': f"Você tem R$ {total_saidas:.2f} em saídas, mas nenhuma entrada registrada."
+            'mensagem': f"Você tem {formatar_moeda(total_saidas)} em saídas, mas nenhuma entrada registrada."
         })
     
     # 3. Informar se o saldo está positivo, negativo ou zerado
@@ -201,13 +202,13 @@ def gerar_insights():
         insights.append({
             'tipo': 'positivo',
             'titulo': 'Saldo positivo',
-            'mensagem': f"Seu saldo está positivo em R$ {saldo_final:.2f}."
+            'mensagem': f"Seu saldo está positivo em {formatar_moeda(saldo_final)}."
         })
     elif saldo_final < 0:
         insights.append({
             'tipo': 'negativo',
             'titulo': 'Saldo negativo',
-            'mensagem': f"Seu saldo está negativo em R$ {saldo_final:.2f}."
+            'mensagem': f"Seu saldo está negativo em {formatar_moeda(saldo_final)}."
         })
     else:
         insights.append({
@@ -222,7 +223,7 @@ def gerar_insights():
         insights.append({
             'tipo': 'positivo',
             'titulo': 'Investimentos',
-            'mensagem': f"Você tem R$ {total_investido:.2f} em investimentos registrados."
+            'mensagem': f"Você tem {formatar_moeda(total_investido)} em investimentos registrados."
         })
     else:
         insights.append({

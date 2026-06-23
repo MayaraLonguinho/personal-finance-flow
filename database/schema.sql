@@ -14,3 +14,25 @@ CREATE TABLE IF NOT EXISTS transacoes (
     status ENUM('confirmado', 'pendente', 'cancelado') DEFAULT 'pendente',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Tabela de metas
+CREATE TABLE IF NOT EXISTS metas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    valor_meta DECIMAL(10, 2) NOT NULL,
+    valor_atual DECIMAL(10, 2) DEFAULT 0.00,
+    data_limite DATE,
+    status ENUM('ativa', 'concluida', 'cancelada') DEFAULT 'ativa',
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabela de categorias
+CREATE TABLE IF NOT EXISTS categorias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    palavras_chave TEXT,
+    cor VARCHAR(20),
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

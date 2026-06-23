@@ -3,6 +3,8 @@
 
 import pandas as pd
 from src.load import obter_engine
+from src.categorization import categorizar_transacao
+from src.categorias import obter_regras_categorizacao_do_banco, inicializar_categorias_padrao
 from sqlalchemy import text
 
 
@@ -51,6 +53,8 @@ def criar_transacao(data_transacao, descricao, categoria, tipo, valor, conta, in
     """
     Insere uma nova transação na tabela transacoes do MySQL.
     
+    Aplica categorização automática se a categoria estiver vazia ou for "outros".
+    
     Args:
         data_transacao (str): Data da transação
         descricao (str): Descrição da transação
@@ -65,6 +69,16 @@ def criar_transacao(data_transacao, descricao, categoria, tipo, valor, conta, in
         dict: Dicionário com sucesso ou erro
     """
     try:
+        # Inicializa categorias padrão se necessário
+        inicializar_categorias_padrao()
+        
+        # Aplica categorização automática se categoria estiver vazia ou for "outros"
+        if not categoria or categoria.lower() == 'outros':
+            # Obtém regras de categorização do banco
+            regras_categorizacao = obter_regras_categorizacao_do_banco()
+            categoria_sugerida, _ = categorizar_transacao(descricao, categoria, regras_categorizacao)
+            categoria = categoria_sugerida
+        
         # Obtém o engine de conexão
         engine = obter_engine()
         
