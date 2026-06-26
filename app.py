@@ -8,6 +8,8 @@ from src.categorias import buscar_todas_categorias, criar_categoria, atualizar_c
 from src.financial_agent import responder_pergunta as responder_pergunta_local
 from src.ai_financial_agent import responder_pergunta_openai
 from src.relatorios import obter_relatorio
+from src.investimentos import atualizar_investimento, buscar_investimento_por_id, criar_investimento, excluir_investimento, listar_investimentos, obter_resumo_investimentos
+
 
 import os
 import pandas as pd
@@ -49,6 +51,11 @@ def assistente():
 @app.route("/relatorios")
 def pagina_relatorios():
     return render_template("relatorios.html")   
+
+
+@app.route("/investimentos")
+def pagina_investimentos():
+    return render_template("investimentos.html")
 
 # Rota de API - retorna métricas financeiras em JSON
 @app.route('/api/metricas')
@@ -583,6 +590,183 @@ def api_relatorios():
         }), 500
 
 
+@app.route("/api/investimentos", methods=["GET"])
+def api_listar_investimentos():
+    try:
+        status = request.args.get("status")
+
+        investimentos = listar_investimentos(
+            status=status
+        )
+
+        return jsonify(investimentos), 200
+
+    except ValueError as erro:
+        return jsonify({
+            "erro": str(erro)
+        }), 400
+
+    except Exception as erro:
+        print(
+            f"Erro ao listar investimentos: {erro}"
+        )
+
+        return jsonify({
+            "erro": "Não foi possível listar os investimentos."
+        }), 500
+
+
+@app.route(
+    "/api/investimentos/<int:investimento_id>",
+    methods=["GET"],
+)
+def api_buscar_investimento(investimento_id):
+    try:
+        investimento = buscar_investimento_por_id(
+            investimento_id
+        )
+
+        if not investimento:
+            return jsonify({
+                "erro": "Investimento não encontrado."
+            }), 404
+
+        return jsonify(investimento), 200
+
+    except Exception as erro:
+        print(
+            f"Erro ao buscar investimento: {erro}"
+        )
+
+        return jsonify({
+            "erro": "Não foi possível buscar o investimento."
+        }), 500
+
+
+@app.route("/api/investimentos", methods=["POST"])
+def api_criar_investimento():
+    try:
+        dados = request.get_json(silent=True)
+
+        if not dados:
+            return jsonify({
+                "erro": "O corpo da requisição é obrigatório."
+            }), 400
+
+        investimento = criar_investimento(
+            dados
+        )
+
+        return jsonify({
+            "mensagem": "Investimento criado com sucesso.",
+            "investimento": investimento,
+        }), 201
+
+    except ValueError as erro:
+        return jsonify({
+            "erro": str(erro)
+        }), 400
+
+    except Exception as erro:
+        print(
+            f"Erro ao criar investimento: {erro}"
+        )
+
+        return jsonify({
+            "erro": "Não foi possível criar o investimento."
+        }), 500
+
+
+@app.route(
+    "/api/investimentos/<int:investimento_id>",
+    methods=["PUT"],
+)
+def api_atualizar_investimento(investimento_id):
+    try:
+        dados = request.get_json(silent=True)
+
+        if not dados:
+            return jsonify({
+                "erro": "O corpo da requisição é obrigatório."
+            }), 400
+
+        investimento = atualizar_investimento(
+            investimento_id,
+            dados,
+        )
+
+        if not investimento:
+            return jsonify({
+                "erro": "Investimento não encontrado."
+            }), 404
+
+        return jsonify({
+            "mensagem": "Investimento atualizado com sucesso.",
+            "investimento": investimento,
+        }), 200
+
+    except ValueError as erro:
+        return jsonify({
+            "erro": str(erro)
+        }), 400
+
+    except Exception as erro:
+        print(
+            f"Erro ao atualizar investimento: {erro}"
+        )
+
+        return jsonify({
+            "erro": "Não foi possível atualizar o investimento."
+        }), 500
+
+
+@app.route(
+    "/api/investimentos/<int:investimento_id>",
+    methods=["DELETE"],
+)
+def api_excluir_investimento(investimento_id):
+    try:
+        investimento_excluido = excluir_investimento(
+            investimento_id
+        )
+
+        if not investimento_excluido:
+            return jsonify({
+                "erro": "Investimento não encontrado."
+            }), 404
+
+        return jsonify({
+            "mensagem": "Investimento excluído com sucesso."
+        }), 200
+
+    except Exception as erro:
+        print(
+            f"Erro ao excluir investimento: {erro}"
+        )
+
+        return jsonify({
+            "erro": "Não foi possível excluir o investimento."
+        }), 500
+
+
+@app.route(
+    "/api/investimentos/resumo",
+    methods=["GET"],
+)
+def api_resumo_investimentos():
+    try:
+        resumo = obter_resumo_investimentos()
+
+        return jsonify(resumo), 200
+
+    except Exception as erro:
+        print(
+            f"Erro ao gerar resumo de investimentos: {erro}"
+        )
+
+        return jsonify({
+            "erro": "Não foi possível gerar o resumo dos investimentos."
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

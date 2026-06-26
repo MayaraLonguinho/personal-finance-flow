@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/metas.css') }}">
 </head>
+
 <body class="theme-blue">
     <div class="app-layout">
         <aside class="sidebar">
@@ -25,7 +27,9 @@
                 <a href="/categorias" class="menu-item">Categorias</a>
                 <a href="/relatorios" class="menu-item">Relatórios</a>
                 <a href="/metas" class="menu-item active">Metas</a>
-                <a href="#" class="menu-item">Investimentos</a>
+                <a href="/investimentos" class="menu-item">
+                    Investimentos
+                </a>
                 <a href="/assistente" class="menu-item">Assistente</a>
                 <a href="#" class="menu-item">Configurações</a>
             </nav>
@@ -169,4 +173,5 @@
     <script src="{{ url_for('static', filename='js/temas.js') }}"></script>
     <script src="{{ url_for('static', filename='js/metas.js') }}"></script>
 </body>
+
 </html>
