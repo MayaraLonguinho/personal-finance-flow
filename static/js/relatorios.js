@@ -1,8 +1,18 @@
 function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(Number(valor) || 0);
+    return new Intl.NumberFormat(
+        "pt-BR",
+        {
+            style: "currency",
+            currency: "BRL"
+        }
+    ).format(
+        Number(valor) || 0
+    );
+}
+
+function formatarPercentual(valor) {
+    return `${(Number(valor) || 0).toFixed(2)
+        }%`;
 }
 
 function formatarData(dataTexto) {
@@ -10,14 +20,21 @@ function formatarData(dataTexto) {
         return "-";
     }
 
-    const texto = String(dataTexto).substring(0, 10);
+    const texto = String(
+        dataTexto
+    ).substring(0, 10);
+
     const partes = texto.split("-");
 
     if (partes.length !== 3) {
         return dataTexto;
     }
 
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    return (
+        `${partes[2]}/` +
+        `${partes[1]}/` +
+        `${partes[0]}`
+    );
 }
 
 function capitalizarTexto(texto) {
@@ -25,17 +42,26 @@ function capitalizarTexto(texto) {
         return "-";
     }
 
-    return texto.charAt(0).toUpperCase() + texto.slice(1);
+    return (
+        texto.charAt(0).toUpperCase()
+        + texto.slice(1)
+    );
 }
 
 function escaparHtml(texto) {
-    const elemento = document.createElement("div");
+    const elemento = document.createElement(
+        "div"
+    );
+
     elemento.textContent = texto ?? "-";
+
     return elemento.innerHTML;
 }
 
 function mostrarErroFiltro(mensagem) {
-    const erro = document.getElementById("filtro-erro");
+    const erro = document.getElementById(
+        "filtro-erro"
+    );
 
     if (!erro) {
         return;
@@ -44,6 +70,7 @@ function mostrarErroFiltro(mensagem) {
     if (!mensagem) {
         erro.hidden = true;
         erro.textContent = "";
+
         return;
     }
 
@@ -52,33 +79,55 @@ function mostrarErroFiltro(mensagem) {
 }
 
 function validarFiltros() {
-    const dataInicio = document.getElementById("data-inicio").value;
-    const dataFim = document.getElementById("data-fim").value;
+    const dataInicio = document.getElementById(
+        "data-inicio"
+    ).value;
 
-    if (dataInicio && dataFim && dataInicio > dataFim) {
+    const dataFim = document.getElementById(
+        "data-fim"
+    ).value;
+
+    if (
+        dataInicio
+        && dataFim
+        && dataInicio > dataFim
+    ) {
         mostrarErroFiltro(
-            "A data inicial não pode ser maior que a data final."
+            "A data inicial não pode ser maior "
+            + "que a data final."
         );
 
         return false;
     }
 
     mostrarErroFiltro("");
+
     return true;
 }
 
 function montarUrlRelatorio() {
-    const dataInicio = document.getElementById("data-inicio").value;
-    const dataFim = document.getElementById("data-fim").value;
+    const dataInicio = document.getElementById(
+        "data-inicio"
+    ).value;
+
+    const dataFim = document.getElementById(
+        "data-fim"
+    ).value;
 
     const parametros = new URLSearchParams();
 
     if (dataInicio) {
-        parametros.set("data_inicio", dataInicio);
+        parametros.set(
+            "data_inicio",
+            dataInicio
+        );
     }
 
     if (dataFim) {
-        parametros.set("data_fim", dataFim);
+        parametros.set(
+            "data_fim",
+            dataFim
+        );
     }
 
     const queryString = parametros.toString();
@@ -89,38 +138,147 @@ function montarUrlRelatorio() {
 }
 
 function preencherResumo(resumo) {
+    const dados = resumo || {};
+
     document.getElementById(
         "relatorio-entradas"
-    ).textContent = formatarMoeda(resumo.total_entradas);
+    ).textContent = formatarMoeda(
+        dados.total_entradas
+    );
 
     document.getElementById(
         "relatorio-saidas"
-    ).textContent = formatarMoeda(resumo.total_saidas);
+    ).textContent = formatarMoeda(
+        dados.total_saidas
+    );
 
     const saldoElemento = document.getElementById(
         "relatorio-saldo"
     );
 
-    saldoElemento.textContent = formatarMoeda(resumo.saldo);
+    const saldo = Number(
+        dados.saldo
+    ) || 0;
 
-    if (Number(resumo.saldo) < 0) {
-        saldoElemento.style.color = "#ef4444";
-    } else {
-        saldoElemento.style.color = "#16a34a";
-    }
+    saldoElemento.textContent = formatarMoeda(
+        saldo
+    );
+
+    saldoElemento.style.color = saldo < 0
+        ? "#ef4444"
+        : "#16a34a";
 
     document.getElementById(
         "relatorio-investimentos"
-    ).textContent = formatarMoeda(resumo.total_investido);
+    ).textContent = formatarMoeda(
+        dados.total_investido
+    );
 
     document.getElementById(
         "relatorio-quantidade"
-    ).textContent = resumo.quantidade_transacoes || 0;
+    ).textContent = (
+            Number(
+                dados.quantidade_transacoes
+            )
+            || 0
+        );
+}
+
+function preencherResumoCarteira(
+    investimentos
+) {
+    const carteira = investimentos || {};
+
+    const totalAplicado = Number(
+        carteira.total_aplicado
+    ) || 0;
+
+    const valorAtual = Number(
+        carteira.valor_atual_total
+    ) || 0;
+
+    const resultado = Number(
+        carteira.lucro_prejuizo
+    ) || 0;
+
+    const rentabilidade = Number(
+        carteira.rentabilidade_total
+    ) || 0;
+
+    const quantidadeAtivos = Number(
+        carteira.quantidade_ativos
+    ) || 0;
+
+    const aplicadoElemento = document.getElementById(
+        "relatorio-carteira-aplicado"
+    );
+
+    const atualElemento = document.getElementById(
+        "relatorio-carteira-atual"
+    );
+
+    const resultadoElemento = document.getElementById(
+        "relatorio-carteira-resultado"
+    );
+
+    const rentabilidadeElemento = document.getElementById(
+        "relatorio-carteira-rentabilidade"
+    );
+
+    const ativosElemento = document.getElementById(
+        "relatorio-carteira-ativos"
+    );
+
+    if (aplicadoElemento) {
+        aplicadoElemento.textContent = formatarMoeda(
+            totalAplicado
+        );
+    }
+
+    if (atualElemento) {
+        atualElemento.textContent = formatarMoeda(
+            valorAtual
+        );
+    }
+
+    if (resultadoElemento) {
+        resultadoElemento.textContent = formatarMoeda(
+            resultado
+        );
+
+        resultadoElemento.style.color = resultado < 0
+            ? "#ef4444"
+            : "#16a34a";
+    }
+
+    if (rentabilidadeElemento) {
+        rentabilidadeElemento.textContent =
+            formatarPercentual(
+                rentabilidade
+            );
+
+        rentabilidadeElemento.style.color =
+            rentabilidade < 0
+                ? "#ef4444"
+                : "#16a34a";
+    }
+
+    if (ativosElemento) {
+        ativosElemento.textContent =
+            quantidadeAtivos;
+    }
 }
 
 function preencherPeriodo(periodo) {
-    const dataInicio = periodo.data_inicio;
-    const dataFim = periodo.data_fim;
+    const dadosPeriodo = periodo || {};
+
+    const dataInicio = (
+        dadosPeriodo.data_inicio
+    );
+
+    const dataFim = (
+        dadosPeriodo.data_fim
+    );
 
     document.getElementById(
         "periodo-data-inicio"
@@ -134,17 +292,24 @@ function preencherPeriodo(periodo) {
             ? formatarData(dataFim)
             : "Todas";
 
-    let periodoTexto = "Todos os registros";
+    let periodoTexto = (
+        "Todos os registros"
+    );
 
     if (dataInicio && dataFim) {
         periodoTexto = (
-            `De ${formatarData(dataInicio)} ` +
-            `até ${formatarData(dataFim)}`
+            `De ${formatarData(dataInicio)} `
+            + `até ${formatarData(dataFim)}`
         );
     } else if (dataInicio) {
-        periodoTexto = `A partir de ${formatarData(dataInicio)}`;
+        periodoTexto = (
+            `A partir de ${formatarData(dataInicio)
+            }`
+        );
     } else if (dataFim) {
-        periodoTexto = `Até ${formatarData(dataFim)}`;
+        periodoTexto = (
+            `Até ${formatarData(dataFim)}`
+        );
     }
 
     document.getElementById(
@@ -159,7 +324,9 @@ function preencherPeriodo(periodo) {
             dateStyle: "short",
             timeStyle: "short"
         }
-    ).format(new Date());
+    ).format(
+        new Date()
+    );
 }
 
 function preencherCategorias(categorias) {
@@ -167,7 +334,10 @@ function preencherCategorias(categorias) {
         "relatorio-categorias"
     );
 
-    if (!categorias || categorias.length === 0) {
+    if (
+        !categorias
+        || categorias.length === 0
+    ) {
         container.innerHTML = `
             <p class="empty-text">
                 Nenhuma despesa encontrada no período.
@@ -179,46 +349,58 @@ function preencherCategorias(categorias) {
 
     const maiorValor = Math.max(
         ...categorias.map(
-            categoria => Number(categoria.valor) || 0
+            categoria =>
+                Number(categoria.valor)
+                || 0
         ),
         1
     );
 
-    container.innerHTML = categorias.map(categoria => {
-        const valor = Number(categoria.valor) || 0;
-        const percentual = Math.min(
-            Math.max((valor / maiorValor) * 100, 0),
-            100
-        );
+    container.innerHTML = categorias.map(
+        categoria => {
+            const valor = Number(
+                categoria.valor
+            ) || 0;
 
-        return `
-            <div class="categoria-relatorio-item">
-                <div class="categoria-relatorio-conteudo">
-                    <div class="categoria-relatorio-topo">
-                        <strong>
-                            ${escaparHtml(categoria.categoria)}
-                        </strong>
+            const percentual = Math.min(
+                Math.max(
+                    (valor / maiorValor) * 100,
+                    0
+                ),
+                100
+            );
 
-                        <span>
-                            ${categoria.quantidade || 0}
-                            transação(ões)
-                        </span>
+            return `
+                <div class="categoria-relatorio-item">
+                    <div class="categoria-relatorio-conteudo">
+                        <div class="categoria-relatorio-topo">
+                            <strong>
+                                ${escaparHtml(
+                categoria.categoria
+            )}
+                            </strong>
+
+                            <span>
+                                ${categoria.quantidade || 0}
+                                transação(ões)
+                            </span>
+                        </div>
+
+                        <div class="categoria-relatorio-barra">
+                            <div
+                                class="categoria-relatorio-progresso"
+                                style="width: ${percentual}%"
+                            ></div>
+                        </div>
                     </div>
 
-                    <div class="categoria-relatorio-barra">
-                        <div
-                            class="categoria-relatorio-progresso"
-                            style="width: ${percentual}%"
-                        ></div>
-                    </div>
+                    <strong class="categoria-relatorio-valor">
+                        ${formatarMoeda(valor)}
+                    </strong>
                 </div>
-
-                <strong class="categoria-relatorio-valor">
-                    ${formatarMoeda(valor)}
-                </strong>
-            </div>
-        `;
-    }).join("");
+            `;
+        }
+    ).join("");
 }
 
 function obterClasseTipo(tipo) {
@@ -246,6 +428,8 @@ function obterClasseValor(tipo) {
 }
 
 function preencherTransacoes(transacoes) {
+    const lista = transacoes || [];
+
     const corpoTabela = document.getElementById(
         "relatorio-transacoes"
     );
@@ -255,11 +439,14 @@ function preencherTransacoes(transacoes) {
     );
 
     contador.textContent = (
-        `${transacoes.length} ` +
-        `${transacoes.length === 1 ? "registro" : "registros"}`
+        `${lista.length} `
+        + `${lista.length === 1
+            ? "registro"
+            : "registros"
+        }`
     );
 
-    if (!transacoes || transacoes.length === 0) {
+    if (lista.length === 0) {
         corpoTabela.innerHTML = `
             <tr>
                 <td colspan="7">
@@ -271,41 +458,58 @@ function preencherTransacoes(transacoes) {
         return;
     }
 
-    corpoTabela.innerHTML = transacoes.map(transacao => {
-        const tipo = transacao.tipo || "saida";
+    corpoTabela.innerHTML = lista.map(
+        transacao => {
+            const tipo = (
+                transacao.tipo
+                || "saida"
+            );
 
-        return `
-            <tr>
-                <td>
-                    ${formatarData(transacao.data_transacao)}
-                </td>
+            return `
+                <tr>
+                    <td>
+                        ${formatarData(
+                transacao.data_transacao
+            )}
+                    </td>
 
-                <td>
-                    ${escaparHtml(transacao.descricao)}
-                </td>
+                    <td>
+                        ${escaparHtml(
+                transacao.descricao
+            )}
+                    </td>
 
-                <td>
-                    ${escaparHtml(transacao.categoria)}
-                </td>
+                    <td>
+                        ${escaparHtml(
+                transacao.categoria
+            )}
+                    </td>
 
-                <td class="${obterClasseTipo(tipo)}">
-                    ${capitalizarTexto(tipo)}
-                </td>
+                    <td class="${obterClasseTipo(tipo)}">
+                        ${capitalizarTexto(tipo)}
+                    </td>
 
-                <td>
-                    ${escaparHtml(transacao.conta)}
-                </td>
+                    <td>
+                        ${escaparHtml(
+                transacao.conta
+            )}
+                    </td>
 
-                <td>
-                    ${escaparHtml(transacao.instituicao)}
-                </td>
+                    <td>
+                        ${escaparHtml(
+                transacao.instituicao
+            )}
+                    </td>
 
-                <td class="${obterClasseValor(tipo)}">
-                    ${formatarMoeda(transacao.valor)}
-                </td>
-            </tr>
-        `;
-    }).join("");
+                    <td class="${obterClasseValor(tipo)}">
+                        ${formatarMoeda(
+                transacao.valor
+            )}
+                    </td>
+                </tr>
+            `;
+        }
+    ).join("");
 }
 
 async function buscarRelatorio() {
@@ -323,12 +527,28 @@ async function buscarRelatorio() {
     botao.textContent = "Gerando...";
 
     try {
-        const resposta = await fetch(montarUrlRelatorio());
+        const resposta = await fetch(
+            montarUrlRelatorio(),
+            {
+                cache: "no-store"
+            }
+        );
 
-        const contentType = resposta.headers.get("content-type") || "";
+        const contentType = (
+            resposta.headers.get(
+                "content-type"
+            )
+            || ""
+        );
 
-        if (!contentType.includes("application/json")) {
-            throw new Error(`A API de relatórios não retornou JSON. Status: ${resposta.status}.`
+        if (
+            !contentType.includes(
+                "application/json"
+            )
+        ) {
+            throw new Error(
+                "A API de relatórios não retornou JSON. "
+                + `Status: ${resposta.status}.`
             );
         }
 
@@ -336,18 +556,42 @@ async function buscarRelatorio() {
 
         if (!resposta.ok) {
             throw new Error(
-                dados.erro || "Não foi possível gerar o relatório."
+                dados.erro
+                || "Não foi possível gerar o relatório."
             );
         }
 
-        preencherResumo(dados.resumo);
-        preencherPeriodo(dados.periodo);
-        preencherCategorias(dados.categorias || []);
-        preencherTransacoes(dados.transacoes || []);
+        preencherResumo(
+            dados.resumo
+        );
+
+        preencherResumoCarteira(
+            dados.investimentos
+        );
+
+        preencherPeriodo(
+            dados.periodo
+        );
+
+        preencherCategorias(
+            dados.categorias || []
+        );
+
+        preencherTransacoes(
+            dados.transacoes || []
+        );
+
+        mostrarErroFiltro("");
 
     } catch (erro) {
-        console.error("Erro ao buscar relatório:", erro);
-        mostrarErroFiltro(erro.message);
+        console.error(
+            "Erro ao buscar relatório:",
+            erro
+        );
+
+        mostrarErroFiltro(
+            erro.message
+        );
 
     } finally {
         botao.disabled = false;
@@ -356,10 +600,16 @@ async function buscarRelatorio() {
 }
 
 function limparFiltros() {
-    document.getElementById("data-inicio").value = "";
-    document.getElementById("data-fim").value = "";
+    document.getElementById(
+        "data-inicio"
+    ).value = "";
+
+    document.getElementById(
+        "data-fim"
+    ).value = "";
 
     mostrarErroFiltro("");
+
     buscarRelatorio();
 }
 
@@ -373,21 +623,30 @@ function imprimirRelatorio() {
 
 async function buscarMetaSidebar() {
     try {
-        const resposta = await fetch("/api/meta");
+        const resposta = await fetch(
+            "/api/meta",
+            {
+                cache: "no-store"
+            }
+        );
 
         if (!resposta.ok) {
             if (resposta.status === 404) {
                 exibirMetaSidebarVazia();
+
                 return;
             }
 
-            throw new Error("Erro ao buscar meta.");
+            throw new Error(
+                "Erro ao buscar meta."
+            );
         }
 
         const meta = await resposta.json();
 
         if (!meta || !meta.id) {
             exibirMetaSidebarVazia();
+
             return;
         }
 
@@ -404,51 +663,69 @@ async function buscarMetaSidebar() {
 }
 
 function exibirMetaSidebar(meta) {
-    const valorAtual = Number(meta.valor_atual) || 0;
-    const valorMeta = Number(meta.valor_meta) || 0;
+    const valorAtual = Number(
+        meta.valor_atual
+    ) || 0;
+
+    const valorMeta = Number(
+        meta.valor_meta
+    ) || 0;
 
     const percentualCalculado = valorMeta > 0
         ? (valorAtual / valorMeta) * 100
         : 0;
 
     const percentual = Number(
-        meta.percentual ?? percentualCalculado
+        meta.percentual
+        ?? percentualCalculado
     );
 
     const percentualBarra = Math.min(
-        Math.max(percentual, 0),
+        Math.max(
+            percentual,
+            0
+        ),
         100
     );
 
     const valorRestante = Math.max(
         Number(
-            meta.valor_restante ?? valorMeta - valorAtual
+            meta.valor_restante
+            ?? valorMeta - valorAtual
         ),
         0
     );
 
     document.getElementById(
         "goal-valor-atual"
-    ).textContent = formatarMoeda(valorAtual);
+    ).textContent = formatarMoeda(
+        valorAtual
+    );
 
     document.getElementById(
         "goal-valor-meta"
-    ).textContent = `de ${formatarMoeda(valorMeta)}`;
+    ).textContent = (
+            `de ${formatarMoeda(valorMeta)}`
+        );
 
     document.getElementById(
         "goal-percentual"
-    ).textContent = `${percentual.toFixed(0)}%`;
+    ).textContent = (
+            `${percentual.toFixed(0)}%`
+        );
 
     document.getElementById(
         "goal-progress-bar"
-    ).style.width = `${percentualBarra}%`;
+    ).style.width = (
+            `${percentualBarra}%`
+        );
 
     document.getElementById(
         "goal-restante"
     ).textContent = valorRestante > 0
             ? (
-                `Faltam ${formatarMoeda(valorRestante)} ` +
-                "para alcançar sua meta."
+                `Faltam ${formatarMoeda(valorRestante)
+                } para alcançar sua meta.`
             )
             : "Parabéns! Você alcançou sua meta!";
 }
@@ -472,10 +749,15 @@ function exibirMetaSidebarVazia() {
 
     document.getElementById(
         "goal-restante"
-    ).textContent = "Nenhuma meta cadastrada.";
+    ).textContent = (
+            "Nenhuma meta cadastrada."
+        );
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    buscarRelatorio();
-    buscarMetaSidebar();
-});
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        buscarRelatorio();
+        buscarMetaSidebar();
+    }
+);

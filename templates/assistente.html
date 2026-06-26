@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/assistente.css') }}">
 </head>
+
 <body class="theme-blue">
     <div class="app-layout">
         <aside class="sidebar">
@@ -25,7 +27,9 @@
                 <a href="/categorias" class="menu-item">Categorias</a>
                 <a href="/relatorios" class="menu-item">Relatórios</a>
                 <a href="/metas" class="menu-item">Metas</a>
-                <a href="#" class="menu-item">Investimentos</a>
+                <a href="/investimentos" class="menu-item">
+                    Investimentos
+                </a>
                 <a href="/assistente" class="menu-item active">Assistente</a>
                 <a href="#" class="menu-item">Configurações</a>
             </nav>
@@ -61,39 +65,46 @@
                 <div>
                     <span class="welcome">Assistente Financeiro</span>
                     <h2>Pergunte sobre suas finanças</h2>
-                    <p>Consulte saldo, entradas, saídas, categorias e muito mais.</p>
+                    <p></p>
                 </div>
             </section>
 
             <section class="assistente-section">
                 <div class="panel">
                     <div class="panel-header">
-                        <h3>Conversa</h3>
-                        <span>Faça perguntas sobre suas finanças</span>
-                    </div>
+                        <h3>Conversa</h3 </div>
 
-                    <div class="chat-container" id="chat-container">
-                        <div class="chat-message assistant">
-                            <div class="message-content">
-                                <p>Olá! Sou seu assistente financeiro. Posso ajudá-lo a consultar informações sobre suas finanças. Você pode perguntar sobre saldo, entradas, saídas, categorias, investimentos, metas ou pedir um resumo geral.</p>
+                        <div class="chat-container" id="chat-container">
+                            <div class="chat-message assistant">
+                                <div class="message-content">
+                                    <p>Olá! Sou seu assistente financeiro. Te ajudo com saldo, entradas, saídas,
+                                        categorias e muito mais.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="suggestions" id="suggestions">
-                        <button class="suggestion-btn" onclick="enviarSugestao('Qual é meu saldo?')">Qual é meu saldo?</button>
-                        <button class="suggestion-btn" onclick="enviarSugestao('Qual minha maior categoria de gasto?')">Qual minha maior categoria de gasto?</button>
-                        <button class="suggestion-btn" onclick="enviarSugestao('Como está minha meta?')">Como está minha meta?</button>
-                        <button class="suggestion-btn" onclick="enviarSugestao('Faça um resumo financeiro.')">Faça um resumo financeiro.</button>
-                    </div>
+                        <div class="suggestions" id="suggestions">
+                            <button class="suggestion-btn" onclick="enviarSugestao('Qual é meu saldo?')">Qual é meu
+                                saldo?</button>
+                            <button class="suggestion-btn"
+                                onclick="enviarSugestao('Qual minha maior categoria de gasto?')">Qual minha maior
+                                categoria
+                                de gasto?</button>
+                            <button class="suggestion-btn" onclick="enviarSugestao('Como está minha meta?')">Como está
+                                minha
+                                meta?</button>
+                            <button class="suggestion-btn" onclick="enviarSugestao('Faça um resumo financeiro.')">Faça
+                                um
+                                resumo financeiro.</button>
+                        </div>
 
-                    <div class="chat-input-container">
-                        <input type="text" id="chat-input" placeholder="Digite sua pergunta..." maxlength="500">
-                        <button class="btn-send" id="btn-send" onclick="enviarPergunta()">
-                            <span>Enviar</span>
-                        </button>
+                        <div class="chat-input-container">
+                            <input type="text" id="chat-input" placeholder="Digite sua pergunta..." maxlength="500">
+                            <button class="btn-send" id="btn-send" onclick="enviarPergunta()">
+                                <span>Enviar</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
             </section>
         </main>
     </div>
@@ -101,4 +112,5 @@
     <script src="{{ url_for('static', filename='js/temas.js') }}"></script>
     <script src="{{ url_for('static', filename='js/assistente.js') }}"></script>
 </body>
+
 </html>

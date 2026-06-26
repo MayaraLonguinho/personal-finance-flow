@@ -36,3 +36,19 @@ CREATE TABLE IF NOT EXISTS categorias (
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- tabela de investimentos
+CREATE TABLE IF NOT EXISTS investimentos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    tipo VARCHAR(80) NOT NULL,
+    instituicao VARCHAR(120),
+    valor_aplicado DECIMAL(12,2) NOT NULL,
+    valor_atual DECIMAL(12,2) NOT NULL,
+    rentabilidade_percentual DECIMAL(8,2) DEFAULT 0,
+    data_aplicacao DATE NOT NULL,
+    data_vencimento DATE NULL,
+    status ENUM('ativo', 'resgatado', 'cancelado') NOT NULL DEFAULT 'ativo',
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

@@ -1,7 +1,3 @@
-/* ==========================
-   TEMAS
-========================== */
-
 .theme-blue {
     --primary: #2563eb;
     --primary-dark: #0f172a;
@@ -37,10 +33,6 @@
     --accent: #374151;
 }
 
-/* ==========================
-   BASE
-========================== */
-
 * {
     margin: 0;
     padding: 0;
@@ -54,13 +46,10 @@ body {
 }
 
 button,
-input {
+input,
+select {
     font-family: inherit;
 }
-
-/* ==========================
-   LAYOUT
-========================== */
 
 .app-layout {
     display: grid;
@@ -75,7 +64,6 @@ input {
     display: flex;
     flex-direction: column;
     gap: 16px;
-
     position: sticky;
     top: 0;
     height: 100vh;
@@ -89,10 +77,6 @@ input {
     overflow-x: hidden;
 }
 
-/* ==========================
-   MARCA
-========================== */
-
 .brand {
     display: flex;
     align-items: center;
@@ -104,19 +88,15 @@ input {
     width: 34px;
     height: 34px;
     border-radius: 10px;
-
     background: linear-gradient(135deg,
             var(--primary-dark),
             var(--primary));
-
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-
-    box-shadow:
-        0 10px 24px rgba(15, 23, 42, 0.18);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
 }
 
 .brand h1 {
@@ -124,10 +104,6 @@ input {
     line-height: 1.15;
     color: #0f172a;
 }
-
-/* ==========================
-   MENU
-========================== */
 
 .menu {
     display: flex;
@@ -161,22 +137,13 @@ input {
     opacity: 0.7;
 }
 
-/* ==========================
-   META DA SIDEBAR
-========================== */
-
 .goal-card {
     margin-top: auto;
-    background: linear-gradient(180deg,
-            #ffffff,
-            #f8fafc);
-
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
     border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 12px;
-
-    box-shadow:
-        0 10px 24px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
 .goal-card>span {
@@ -215,11 +182,9 @@ input {
 
 .progress-bar {
     height: 100%;
-
     background: linear-gradient(90deg,
             var(--primary),
             var(--accent));
-
     border-radius: 999px;
     transition: width 0.3s ease;
 }
@@ -237,10 +202,6 @@ input {
     color: #64748b;
 }
 
-/* ==========================
-   USUÁRIO
-========================== */
-
 .user-card {
     display: flex;
     align-items: center;
@@ -256,11 +217,9 @@ input {
     border-radius: 50%;
     background: var(--primary-light);
     color: var(--primary);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     font-weight: bold;
     flex-shrink: 0;
     font-size: 13px;
@@ -269,7 +228,6 @@ input {
 .user-card strong {
     display: block;
     font-size: 12px;
-    color: #0f172a;
 }
 
 .user-card span {
@@ -277,24 +235,17 @@ input {
     color: #64748b;
 }
 
-/* ==========================
-   HERO
-========================== */
-
 .hero {
     background: radial-gradient(circle at top left,
             var(--accent),
             var(--primary-dark) 62%);
-
     color: #ffffff;
     border-radius: 0 0 18px 18px;
     padding: 18px 26px;
-
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 18px;
-
     margin-bottom: 12px;
 }
 
@@ -303,12 +254,10 @@ input {
     font-weight: 700;
     margin-bottom: 6px;
     font-size: 13px;
-    color: #ffffff;
 }
 
 .hero h2 {
     font-size: 26px;
-    color: #ffffff;
     margin-bottom: 5px;
 }
 
@@ -321,10 +270,6 @@ input {
     display: flex;
     gap: 9px;
 }
-
-/* ==========================
-   BOTÕES
-========================== */
 
 button {
     border: none;
@@ -353,25 +298,98 @@ button {
 .btn-outline {
     background: transparent;
     color: #ffffff;
-
-    border:
-        1px solid rgba(255, 255, 255, 0.42);
-
-    transition: 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.42);
 }
 
 .btn-outline:hover {
-    background:
-        rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
-/* ==========================
-   CONTEÚDO
-========================== */
+.btn-secondary {
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
 
-.relatorios-section {
+.btn-secondary:hover {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.btn-danger {
+    background: #fffafa;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.btn-danger:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+.investimentos-section {
     display: flex;
     flex-direction: column;
+    gap: 10px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.summary-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.summary-card span {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.summary-card strong {
+    display: block;
+    color: #0f172a;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.summary-card small {
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+.summary-card.aplicado {
+    border-top: 3px solid var(--primary);
+}
+
+.summary-card.atual {
+    border-top: 3px solid #16a34a;
+}
+
+.summary-card.resultado {
+    border-top: 3px solid #f59e0b;
+}
+
+.summary-card.rentabilidade {
+    border-top: 3px solid #8b5cf6;
+}
+
+.summary-card.quantidade {
+    border-top: 3px solid #06b6d4;
+}
+
+.investimentos-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
     gap: 10px;
 }
 
@@ -380,9 +398,7 @@ button {
     border: 1px solid #e5e7eb;
     border-radius: 14px;
     padding: 13px;
-
-    box-shadow:
-        0 10px 24px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
 .panel-header {
@@ -407,15 +423,87 @@ button {
     font-size: 11px;
 }
 
-/* ==========================
-   FILTROS
-========================== */
+.contador-registros {
+    color: var(--primary);
+    font-size: 11px;
+}
 
-.filtros-grid {
+.distribuicao-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.distribuicao-item {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.distribuicao-conteudo {
+    min-width: 0;
+}
+
+.distribuicao-topo {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 7px;
+}
+
+.distribuicao-topo strong {
+    font-size: 12px;
+    color: #0f172a;
+}
+
+.distribuicao-topo span {
+    font-size: 10px;
+    color: #64748b;
+}
+
+.distribuicao-barra {
+    height: 6px;
+    background: var(--primary-light);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.distribuicao-progresso {
+    height: 100%;
+    background: linear-gradient(90deg,
+            var(--primary),
+            var(--accent));
+    border-radius: 999px;
+}
+
+.distribuicao-valor {
+    font-size: 12px;
+    color: #0f172a;
+    white-space: nowrap;
+}
+
+.filtros-conteudo {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    align-items: end;
+}
+
+.filtros-acoes {
+    display: flex;
+    gap: 8px;
+}
+
+.filtros-acoes button {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 14px;
 }
 
 .form-group label {
@@ -426,13 +514,11 @@ button {
     color: #334155;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 10px 12px;
-
-    border:
-        1px solid #e5e7eb;
-
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
     font-size: 13px;
     color: #0f172a;
@@ -440,301 +526,168 @@ button {
     transition: 0.2s;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: var(--primary);
-
-    box-shadow:
-        0 0 0 3px var(--primary-light);
+    box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.filtro-acao {
-    display: flex;
-}
-
-.filtro-acao button {
-    min-height: 38px;
-}
-
-.filtro-erro {
-    color: #dc2626;
-    font-size: 12px;
-    margin-top: 10px;
-}
-
-/* ==========================
-   RESUMO TRANSACIONAL
-========================== */
-
-.summary-grid {
+.investimentos-cards {
     display: grid;
-
-    grid-template-columns:
-        repeat(5, minmax(0, 1fr));
-
+    grid-template-columns: repeat(auto-fill,
+            minmax(280px, 1fr));
     gap: 10px;
 }
 
-.summary-card {
+.investimento-card {
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 14px;
-    padding: 14px;
-
-    box-shadow:
-        0 10px 24px rgba(15, 23, 42, 0.05);
+    padding: 15px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    transition: 0.2s;
 }
 
-.summary-card span {
-    display: block;
-    color: #64748b;
-    font-size: 11px;
-    margin-bottom: 5px;
+.investimento-card:hover {
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
 }
 
-.summary-card strong {
-    display: block;
-    color: #0f172a;
-    font-size: 16px;
-    margin-bottom: 5px;
-}
-
-.summary-card small {
-    color: #94a3b8;
-    font-size: 10px;
-}
-
-.summary-card.entrada {
-    border-top:
-        3px solid #16a34a;
-}
-
-.summary-card.saida {
-    border-top:
-        3px solid #ef4444;
-}
-
-.summary-card.saldo {
-    border-top:
-        3px solid var(--primary);
-}
-
-.summary-card.investimento {
-    border-top:
-        3px solid #8b5cf6;
-}
-
-.summary-card.transacoes {
-    border-top:
-        3px solid #f59e0b;
-}
-
-/* ==========================
-   CARTEIRA DE INVESTIMENTOS
-========================== */
-
-.link-action {
-    color: var(--primary);
-    text-decoration: none;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.link-action:hover {
-    color: var(--accent);
-    text-decoration: underline;
-}
-
-.patrimonio-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(5, minmax(0, 1fr));
-
+.investimento-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     gap: 10px;
+    margin-bottom: 13px;
 }
 
-.patrimonio-item {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 12px;
-}
-
-.patrimonio-item span {
-    display: block;
-    color: #64748b;
-    font-size: 10px;
-    margin-bottom: 6px;
-}
-
-.patrimonio-item strong {
-    display: block;
+.investimento-card-header h4 {
     color: #0f172a;
     font-size: 14px;
+    margin-bottom: 4px;
 }
 
-/* ==========================
-   CATEGORIAS E INFORMAÇÕES
-========================== */
-
-.relatorios-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 10px;
-}
-
-.categorias-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.categoria-relatorio-item {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
-    align-items: center;
-
-    padding: 9px 10px;
-    background: #f8fafc;
-
-    border:
-        1px solid #e5e7eb;
-
-    border-radius: 10px;
-}
-
-.categoria-relatorio-conteudo {
-    min-width: 0;
-}
-
-.categoria-relatorio-topo {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 6px;
-}
-
-.categoria-relatorio-topo strong {
-    color: #0f172a;
-    font-size: 12px;
-    text-transform: capitalize;
-}
-
-.categoria-relatorio-topo span {
+.investimento-card-header span {
     color: #64748b;
     font-size: 10px;
 }
 
-.categoria-relatorio-barra {
-    height: 6px;
-    background: var(--primary-light);
+.investimento-status {
+    display: inline-block;
     border-radius: 999px;
-    overflow: hidden;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 700;
 }
 
-.categoria-relatorio-progresso {
-    height: 100%;
-
-    background: linear-gradient(90deg,
-            var(--primary),
-            var(--accent));
-
-    border-radius: 999px;
+.investimento-status.ativo {
+    background: #dcfce7;
+    color: #15803d;
 }
 
-.categoria-relatorio-valor {
+.investimento-status.resgatado {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.investimento-status.cancelado {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.investimento-valores {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.investimento-valor {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 9px;
+}
+
+.investimento-valor span {
+    display: block;
+    color: #64748b;
+    font-size: 9px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.investimento-valor strong {
     color: #0f172a;
     font-size: 12px;
-    white-space: nowrap;
 }
 
-.informacoes-lista {
+.investimento-informacoes {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
-.informacao-item {
+.investimento-info {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
-
-    padding: 10px;
-    background: #f8fafc;
-
-    border:
-        1px solid #e5e7eb;
-
-    border-radius: 10px;
+    gap: 10px;
+    font-size: 10px;
 }
 
-.informacao-item span {
+.investimento-info span {
     color: #64748b;
+}
+
+.investimento-info strong {
+    color: #334155;
+    text-align: right;
+}
+
+.investimento-resultado {
+    padding: 9px;
+    border-radius: 10px;
+    margin-bottom: 12px;
     font-size: 11px;
+    font-weight: 700;
 }
 
-.informacao-item strong {
-    color: #0f172a;
-    font-size: 11px;
+.investimento-resultado.positivo {
+    background: #dcfce7;
+    color: #15803d;
 }
 
-/* ==========================
-   TABELA
-========================== */
-
-.contador-registros {
-    color: var(--primary);
-    font-size: 11px;
+.investimento-resultado.negativo {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
-.table-wrapper {
-    overflow-x: auto;
-}
-
-.transactions-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.transactions-table th,
-.transactions-table td {
-    padding: 9px 10px;
-
-    border-bottom:
-        1px solid #e5e7eb;
-
-    text-align: left;
-    font-size: 11px;
-}
-
-.transactions-table th {
-    background: #f8fafc;
+.investimento-resultado.neutro {
+    background: #f1f5f9;
     color: #475569;
-    font-weight: 700;
 }
 
-.transactions-table td {
-    color: #0f172a;
+.investimento-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 7px;
 }
 
-.tipo-entrada,
-.valor-entrada {
-    color: #16a34a;
-    font-weight: 700;
+.investimento-acoes button {
+    padding: 6px 10px;
+    font-size: 10px;
 }
 
-.tipo-saida,
-.valor-saida {
-    color: #ef4444;
-    font-weight: 700;
-}
-
-.tipo-investimento,
-.valor-investimento {
-    color: #7c3aed;
-    font-weight: 700;
+.investimentos-empty {
+    grid-column: 1 / -1;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #64748b;
+    font-size: 12px;
 }
 
 .empty-text {
@@ -742,90 +695,89 @@ button {
     font-size: 12px;
 }
 
-/* ==========================
-   IMPRESSÃO
-========================== */
-
-@media print {
-    @page {
-        size: A4 landscape;
-        margin: 10mm;
-    }
-
-    body {
-        background: #ffffff;
-        color: #000000;
-    }
-
-    .sidebar,
-    .hero-actions,
-    .filtros-panel,
-    .link-action {
-        display: none !important;
-    }
-
-    .app-layout {
-        display: block;
-    }
-
-    .main-content {
-        padding: 0;
-    }
-
-    .hero {
-        background: #ffffff;
-        color: #0f172a;
-
-        border-radius: 0;
-        border-bottom:
-            2px solid #e5e7eb;
-
-        padding: 0 0 14px;
-    }
-
-    .hero h2 {
-        color: #0f172a;
-    }
-
-    .welcome,
-    .hero .welcome {
-        color: #0f172a;
-    }
-
-    .hero p {
-        color: #64748b;
-    }
-
-    .panel,
-    .summary-card {
-        box-shadow: none;
-        break-inside: avoid;
-    }
-
-    .patrimonio-panel {
-        break-inside: avoid;
-    }
-
-    .transactions-table th,
-    .transactions-table td {
-        font-size: 9px;
-        padding: 6px;
-    }
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.56);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
 
-/* ==========================
-   RESPONSIVO
-========================== */
+.modal-content {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 24px;
+    max-width: 720px;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-top: 4px solid var(--primary);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    color: #0f172a;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #64748b;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 14px;
+}
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.form-error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 18px;
+    margin-top: 10px;
+}
 
 @media (max-width: 1350px) {
     .summary-grid {
-        grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-    }
-
-    .patrimonio-grid {
-        grid-template-columns:
-            repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -856,25 +808,8 @@ button {
         flex: 1;
     }
 
-    .filtros-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .filtro-acao {
-        grid-column: 1 / -1;
-    }
-
-    .filtro-acao button {
-        width: 100%;
-    }
-
-    .relatorios-grid {
+    .investimentos-grid {
         grid-template-columns: 1fr;
-    }
-
-    .patrimonio-grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -891,14 +826,37 @@ button {
         width: 100%;
     }
 
-    .filtros-grid,
     .summary-grid,
-    .patrimonio-grid {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group-full {
+        grid-column: auto;
+    }
+
+    .investimentos-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .investimento-valores {
         grid-template-columns: 1fr;
     }
 
     .panel-header.row {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .modal-content {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    .modal-footer button {
+        width: 100%;
     }
 }

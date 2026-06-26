@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Personal Finance Flow</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body class="theme-pink">
     <div class="app-layout">
         <aside class="sidebar">
             <div class="brand">
-                <div class="brand-icon">↗</div>
+                <div class="brand-icon">
+                    ↗
+                </div>
+
                 <div>
                     <h1>Personal</h1>
                     <h1>Finance Flow</h1>
@@ -21,38 +26,80 @@
             </div>
 
             <nav class="menu">
-                <a href="/dashboard" class="menu-item active">Dashboard</a>
-                <a href="/transacoes" class="menu-item">Transações</a>
-                <a href="/categorias" class="menu-item">Categorias</a>
-                <a href="/relatorios" class="menu-item">Relatórios</a>
-                <a href="/metas" class="menu-item">Metas</a>
-                <a href="#" class="menu-item">Investimentos</a>
-                <a href="/assistente" class="menu-item">Assistente</a>
-                <a href="#" class="menu-item">Configurações</a>
+                <a href="/dashboard" class="menu-item active">
+                    Dashboard
+                </a>
+
+                <a href="/transacoes" class="menu-item">
+                    Transações
+                </a>
+
+                <a href="/categorias" class="menu-item">
+                    Categorias
+                </a>
+
+                <a href="/relatorios" class="menu-item">
+                    Relatórios
+                </a>
+
+                <a href="/metas" class="menu-item">
+                    Metas
+                </a>
+
+                <a href="/investimentos" class="menu-item">
+                    Investimentos
+                </a>
+
+                <a href="/assistente" class="menu-item">
+                    Assistente
+                </a>
+
+                <a href="#" class="menu-item" onclick="return false;">
+                    Configurações
+                </a>
             </nav>
 
             <div class="goal-card">
-                <span>Meta de Economia</span>
+                <span>
+                    Meta de Economia
+                </span>
 
                 <div class="goal-values" id="goal-values">
-                    <strong id="goal-valor-atual">R$ 0,00</strong>
-                    <small id="goal-valor-meta">de R$ 0,00</small>
+                    <strong id="goal-valor-atual">
+                        R$ 0,00
+                    </strong>
+
+                    <small id="goal-valor-meta">
+                        de R$ 0,00
+                    </small>
                 </div>
 
                 <div class="progress">
-                    <div class="progress-bar" id="goal-progress-bar"></div>
+                    <div class="progress-bar" id="goal-progress-bar" style="width: 0%;"></div>
                 </div>
 
-                <strong class="progress-text" id="goal-percentual">0%</strong>
+                <strong class="progress-text" id="goal-percentual">
+                    0%
+                </strong>
 
-                <p id="goal-restante">Nenhuma meta cadastrada.</p>
+                <p id="goal-restante">
+                    Nenhuma meta cadastrada.
+                </p>
             </div>
 
             <div class="user-card">
-                <div class="avatar">M</div>
+                <div class="avatar">
+                    M
+                </div>
+
                 <div>
-                    <strong>Mayara</strong>
-                    <span>Usuária local</span>
+                    <strong>
+                        Mayara
+                    </strong>
+
+                    <span>
+                        Usuária local
+                    </span>
                 </div>
             </div>
         </aside>
@@ -60,90 +107,157 @@
         <main class="main-content">
             <section class="hero">
                 <div>
-                    <span class="welcome">Olá, Mayara</span>
-                    <h2>Personal Finance Flow</h2>
-                    <p>Acompanhe seus gastos, receitas e saldo em um só lugar.</p>
+                    <span class="welcome">
+                        Olá, Mayara
+                    </span>
+
+                    <h2>
+                        Personal Finance Flow
+                    </h2>
+
+                    <p>
+                        Acompanhe seus gastos, receitas, investimentos
+                        e saldo em um só lugar.
+                    </p>
                 </div>
 
-               <div class="hero-actions">
-             <select id="theme-selector" class="theme-selector">
-                <option value="theme-blue">Azul</option>
-                <option value="theme-pink">Rosa</option>
-                <option value="theme-green">Verde</option>
-                <option value="theme-red">Vermelho</option>
-                <option value="theme-dark">Preto</option>
-            </select>
+                <div class="hero-actions">
+                    <select id="theme-selector" class="theme-selector">
+                        <option value="theme-blue">
+                            Azul
+                        </option>
 
-           <input 
-         type="file" 
-         id="input-planilha" 
-         accept=".csv" 
-         hidden
-        >
-<input
-    type="file"
-    id="input-planilha"
-    accept=".csv"
-    hidden
->
+                        <option value="theme-pink">
+                            Rosa
+                        </option>
 
-<button class="btn-outline" id="btn-importar-planilha" type="button">
-    Importar planilha
-</button>
+                        <option value="theme-green">
+                            Verde
+                        </option>
 
-<button class="btn-danger" id="btn-limpar-dados" type="button">
-    Limpar dados
-</button>
+                        <option value="theme-red">
+                            Vermelho
+                        </option>
 
-<button class="btn-primary" onclick="window.location.reload()">
-    Atualizar Dados
-</button>
-            </div>
+                        <option value="theme-dark">
+                            Preto
+                        </option>
+                    </select>
+
+                    <input type="file" id="input-planilha" accept=".csv" hidden>
+
+                    <button class="btn-outline" id="btn-importar-planilha" type="button">
+                        Importar planilha
+                    </button>
+
+                    <button class="btn-danger" id="btn-limpar-dados" type="button">
+                        Limpar dados
+                    </button>
+
+                    <button class="btn-primary" type="button" onclick="window.location.reload()">
+                        Atualizar dados
+                    </button>
+                </div>
             </section>
 
             <section class="summary-grid">
                 <div class="summary-card entrada">
-                    <div class="summary-icon">↓</div>
+                    <div class="summary-icon">
+                        ↓
+                    </div>
+
                     <div>
-                        <span>Total de Entradas</span>
-                        <strong id="total-entradas">R$ 0,00</strong>
-                        <small>Receitas confirmadas</small>
+                        <span>
+                            Total de Entradas
+                        </span>
+
+                        <strong id="total-entradas">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Receitas confirmadas
+                        </small>
                     </div>
                 </div>
 
                 <div class="summary-card saida">
-                    <div class="summary-icon">↑</div>
+                    <div class="summary-icon">
+                        ↑
+                    </div>
+
                     <div>
-                        <span>Total de Saídas</span>
-                        <strong id="total-saidas">R$ 0,00</strong>
-                        <small>Gastos confirmados</small>
+                        <span>
+                            Total de Saídas
+                        </span>
+
+                        <strong id="total-saidas">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Gastos confirmados
+                        </small>
                     </div>
                 </div>
 
                 <div class="summary-card saldo">
-                    <div class="summary-icon">◼</div>
+                    <div class="summary-icon">
+                        ◼
+                    </div>
+
                     <div>
-                        <span>Saldo Final</span>
-                        <strong id="saldo-final">R$ 0,00</strong>
-                        <small>Entradas menos saídas</small>
+                        <span>
+                            Saldo Final
+                        </span>
+
+                        <strong id="saldo-final">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Entradas menos saídas
+                        </small>
                     </div>
                 </div>
 
                 <div class="summary-card investimento">
-                    <div class="summary-icon">↗</div>
+                    <div class="summary-icon">
+                        ↗
+                    </div>
+
                     <div>
-                        <span>Total Investido</span>
-                        <strong id="total-investido">R$ 0,00</strong>
-                        <small>Valor destinado a investimentos</small>
+                        <span>
+                            Carteira de Investimentos
+                        </span>
+
+                        <strong id="total-investido">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Valor atual dos investimentos ativos
+                        </small>
                     </div>
                 </div>
 
                 <div class="summary-card transacoes">
-                    <div class="summary-icon">#</div>
+                    <div class="summary-icon">
+                        #
+                    </div>
+
                     <div>
-                        <span>Transações</span>
-                        <strong id="qtd-transacoes">0</strong>
-                        <small>Registros analisados</small>
+                        <span>
+                            Transações
+                        </span>
+
+                        <strong id="qtd-transacoes">
+                            0
+                        </strong>
+
+                        <small>
+                            Registros analisados
+                        </small>
                     </div>
                 </div>
             </section>
@@ -151,8 +265,13 @@
             <section class="dashboard-grid">
                 <div class="panel panel-categorias">
                     <div class="panel-header">
-                        <h3>Gastos por Categoria</h3>
-                        <span>Distribuição das saídas</span>
+                        <h3>
+                            Gastos por Categoria
+                        </h3>
+
+                        <span>
+                            Distribuição das saídas
+                        </span>
                     </div>
 
                     <div class="chart-with-list">
@@ -164,8 +283,13 @@
 
                 <div class="panel panel-tipos">
                     <div class="panel-header">
-                        <h3>Top Categorias de Gastos</h3>
-                        <span>Ranking por valor gasto</span>
+                        <h3>
+                            Top Categorias de Gastos
+                        </h3>
+
+                        <span>
+                            Ranking por valor gasto
+                        </span>
                     </div>
 
                     <div class="chart-box">
@@ -175,8 +299,13 @@
 
                 <div class="panel panel-evolucao">
                     <div class="panel-header">
-                        <h3>Evolução Mensal</h3>
-                        <span>Entradas, saídas e saldo</span>
+                        <h3>
+                            Evolução Mensal
+                        </h3>
+
+                        <span>
+                            Entradas, saídas e saldo
+                        </span>
                     </div>
 
                     <div class="chart-box">
@@ -186,16 +315,30 @@
 
                 <div class="panel panel-insights">
                     <div class="panel-header">
-                        <h3>Insights do Mês</h3>
-                        <span>Análises geradas a partir dos dados</span>
+                        <h3>
+                            Insights do Mês
+                        </h3>
+
+                        <span>
+                            Análises geradas a partir dos dados
+                        </span>
                     </div>
 
                     <div class="insights-list" id="lista-insights">
                         <div class="insight-item">
-                            <div class="insight-icon neutral">↗</div>
+                            <div class="insight-icon neutral">
+                                ↗
+                            </div>
+
                             <div>
-                                <strong>Carregando insights...</strong>
-                                <p>Aguarde enquanto analisamos seus dados.</p>
+                                <strong>
+                                    Carregando insights...
+                                </strong>
+
+                                <p>
+                                    Aguarde enquanto analisamos
+                                    seus dados.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -204,37 +347,64 @@
                 <div class="panel panel-transacoes">
                     <div class="panel-header row">
                         <div>
-                            <h3>Últimas Transações</h3>
-                            <span>Acompanhe suas movimentações mais recentes</span>
+                            <h3>
+                                Últimas Transações
+                            </h3>
+
+                            <span>
+                                Acompanhe suas movimentações
+                                mais recentes
+                            </span>
                         </div>
 
-                        <a href="#" class="link-action">Ver todas</a>
+                        <a href="/transacoes" class="link-action">
+                            Ver todas
+                        </a>
                     </div>
 
-                    <table class="transactions-table">
-    <thead>
-        <tr>
-            <th>Data</th>
-            <th>Descrição</th>
-            <th>Categoria</th>
-            <th>Tipo</th>
-            <th>Valor</th>
-        </tr>
-    </thead>
+                    <div class="table-wrapper">
+                        <table class="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Data
+                                    </th>
 
-    <tbody id="tabela-transacoes">
-        <tr>
-            <td colspan="5">Carregando transações...</td>
-        </tr>
-    </tbody>
-</table>
-                    
+                                    <th>
+                                        Descrição
+                                    </th>
+
+                                    <th>
+                                        Categoria
+                                    </th>
+
+                                    <th>
+                                        Tipo
+                                    </th>
+
+                                    <th>
+                                        Valor
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tabela-transacoes">
+                                <tr>
+                                    <td colspan="5">
+                                        Carregando transações...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=3"></script>
 </body>
+
 </html>
