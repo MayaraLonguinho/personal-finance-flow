@@ -10,6 +10,7 @@ from src.ai_financial_agent import responder_pergunta_openai
 from src.relatorios import obter_relatorio
 from src.investimentos import atualizar_investimento, buscar_investimento_por_id, criar_investimento, excluir_investimento, listar_investimentos, obter_resumo_investimentos
 from src.auth import criar_usuario, buscar_usuario_por_email, verificar_senha
+from src.usuario_contexto import definir_usuario_id, limpar_usuario_id
 
 
 import os
@@ -25,6 +26,19 @@ app.secret_key = os.getenv('SECRET_KEY', 'chave-secreta-desenvolvimento-pff-2026
 # Garante colunas de isolamento por usuário em bancos já existentes
 # antes de processar qualquer rota.
 garantir_colunas_usuario()
+
+@app.before_request
+def definir_contexto_usuario_por_sessao():
+    if 'usuario_id' in session:
+        definir_usuario_id(session['usuario_id'])
+    else:
+        limpar_usuario_id()
+
+
+@app.teardown_request
+def limpar_contexto_usuario_por_sessao(_erro=None):
+    limpar_usuario_id()
+
 
 # Decorator para exigir login
 def login_obrigatorio(f):
@@ -731,6 +745,10 @@ def api_excluir_categoria(nome):
 def api_assistente():
     try:
         dados = request.get_json()
+        usuario_id = session.get("usuario_id")
+
+        if not usuario_id:
+            return jsonify({'erro': 'Autenticação necessária.'}), 401
         
         # Validação
         if not dados or 'pergunta' not in dados:

@@ -17,6 +17,7 @@ from src.metrics import (
     calcular_resumo_financeiro,
 )
 from src.utils import formatar_moeda
+from src.usuario_contexto import obter_usuario_id
 
 
 # Palavras-chave para reconhecimento das intenções gerais.
@@ -138,6 +139,13 @@ TIPOS_INVESTIMENTO_CONHECIDOS = [
     "Renda Fixa",
     "Renda Variável",
 ]
+
+
+def _obter_usuario_id_da_sessao():
+    usuario_id = obter_usuario_id()
+    if usuario_id is None:
+        raise PermissionError("Usuário não autenticado para consultar dados financeiros")
+    return usuario_id
 
 
 def normalizar_texto(texto):
@@ -380,7 +388,8 @@ def extrair_categoria_mencionada(pergunta):
         str: Nome da categoria ou None.
     """
     try:
-        categorias = buscar_todas_categorias()
+        usuario_id = _obter_usuario_id_da_sessao()
+        categorias = buscar_todas_categorias(usuario_id=usuario_id)
         pergunta_normalizada = normalizar_texto(pergunta)
 
         for categoria in categorias:
@@ -413,7 +422,8 @@ def extrair_grupo_categoria_mencionada(pergunta):
         str: Nome da categoria ou None.
     """
     try:
-        categorias = buscar_todas_categorias()
+        usuario_id = _obter_usuario_id_da_sessao()
+        categorias = buscar_todas_categorias(usuario_id=usuario_id)
 
         pergunta_normalizada = (
             normalizar_texto_sem_pontuacao(pergunta)
@@ -480,7 +490,10 @@ def extrair_tipo_investimento_mencionado(pergunta):
     )
 
     try:
-        investimentos = listar_investimentos()
+        usuario_id = _obter_usuario_id_da_sessao()
+        investimentos = listar_investimentos(
+            usuario_id=usuario_id,
+        )
 
         for investimento in investimentos:
             tipo = investimento.get("tipo")
@@ -525,8 +538,10 @@ def responder_categorias_especifica(categoria):
             obter_estatisticas_categoria,
         )
 
+        usuario_id = _obter_usuario_id_da_sessao()
         estatisticas = obter_estatisticas_categoria(
-            categoria
+            categoria,
+            usuario_id=usuario_id,
         )
 
         if estatisticas["quantidade"] == 0:
@@ -582,7 +597,8 @@ def responder_saldo():
         dict: Resposta formatada.
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
         saldo = float(resumo["saldo_final"] or 0)
 
         if saldo > 0:
@@ -634,7 +650,8 @@ def responder_entradas():
         dict: Resposta formatada.
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
 
         total_entradas = float(
             resumo["total_entradas"]
@@ -680,7 +697,8 @@ def responder_saidas():
         dict: Resposta formatada.
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
 
         total_saidas = float(
             resumo["total_saidas"]
@@ -733,8 +751,9 @@ def responder_categorias(pergunta):
             extrair_categoria_mencionada(pergunta)
         )
 
+        usuario_id = _obter_usuario_id_da_sessao()
         gastos_categoria = (
-            calcular_gastos_por_categoria()
+            calcular_gastos_por_categoria(usuario_id=usuario_id)
         )
 
         if categoria_mencionada:
@@ -825,7 +844,8 @@ def responder_resumo_investimentos():
         dict: Resposta formatada.
     """
     try:
-        resumo = obter_resumo_investimentos()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = obter_resumo_investimentos(usuario_id=usuario_id)
 
         quantidade_total = int(
             resumo["quantidade_total"]
@@ -924,7 +944,8 @@ def responder_total_aplicado_investimentos():
         dict: Resposta formatada.
     """
     try:
-        resumo = obter_resumo_investimentos()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = obter_resumo_investimentos(usuario_id=usuario_id)
 
         quantidade_ativos = int(
             resumo["quantidade_ativos"]
@@ -976,7 +997,8 @@ def responder_valor_atual_investimentos():
         dict: Resposta formatada.
     """
     try:
-        resumo = obter_resumo_investimentos()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = obter_resumo_investimentos(usuario_id=usuario_id)
 
         quantidade_ativos = int(
             resumo["quantidade_ativos"]
@@ -1030,7 +1052,8 @@ def responder_resultado_investimentos():
         dict: Resposta formatada.
     """
     try:
-        resumo = obter_resumo_investimentos()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = obter_resumo_investimentos(usuario_id=usuario_id)
 
         quantidade_ativos = int(
             resumo["quantidade_ativos"]
@@ -1103,7 +1126,8 @@ def responder_rentabilidade_investimentos():
         dict: Resposta formatada.
     """
     try:
-        resumo = obter_resumo_investimentos()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = obter_resumo_investimentos(usuario_id=usuario_id)
 
         quantidade_ativos = int(
             resumo["quantidade_ativos"]
@@ -1156,7 +1180,8 @@ def responder_quantidade_investimentos():
         dict: Resposta formatada.
     """
     try:
-        resumo = obter_resumo_investimentos()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = obter_resumo_investimentos(usuario_id=usuario_id)
 
         quantidade_total = int(
             resumo["quantidade_total"]
@@ -1213,8 +1238,10 @@ def responder_investimentos_por_tipo(tipo):
         dict: Resposta formatada.
     """
     try:
+        usuario_id = _obter_usuario_id_da_sessao()
         investimentos = listar_investimentos(
-            status="ativo"
+            status="ativo",
+            usuario_id=usuario_id,
         )
 
         tipo_normalizado = normalizar_texto(tipo)
@@ -1347,7 +1374,8 @@ def responder_metas():
         dict: Resposta formatada.
     """
     try:
-        meta = buscar_meta_ativa()
+        usuario_id = _obter_usuario_id_da_sessao()
+        meta = buscar_meta_ativa(usuario_id=usuario_id)
 
         if not meta:
             return {
@@ -1445,7 +1473,8 @@ def responder_transacoes(pergunta):
             "quantas" in pergunta_normalizada
             or "quantidade" in pergunta_normalizada
         ):
-            resumo = calcular_resumo_financeiro()
+            usuario_id = _obter_usuario_id_da_sessao()
+            resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
 
             quantidade = int(
                 resumo["qtd_transacoes"]
@@ -1467,8 +1496,10 @@ def responder_transacoes(pergunta):
             "ultima" in pergunta_normalizada
             and "ultimas" not in pergunta_normalizada
         ):
+            usuario_id = _obter_usuario_id_da_sessao()
             ultimas = buscar_ultimas_transacoes(
-                limite=1
+                limite=1,
+                usuario_id=usuario_id,
             )
 
             if ultimas:
@@ -1494,8 +1525,10 @@ def responder_transacoes(pergunta):
             }
 
         if "ultimas" in pergunta_normalizada:
+            usuario_id = _obter_usuario_id_da_sessao()
             ultimas = buscar_ultimas_transacoes(
-                limite=5
+                limite=5,
+                usuario_id=usuario_id,
             )
 
             if ultimas:
@@ -1529,7 +1562,8 @@ def responder_transacoes(pergunta):
                 "dados": {},
             }
 
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
 
         quantidade = int(
             resumo["qtd_transacoes"]
@@ -1569,16 +1603,17 @@ def responder_resumo():
         dict: Resposta formatada.
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
 
         gastos_categoria = (
-            calcular_gastos_por_categoria()
+            calcular_gastos_por_categoria(usuario_id=usuario_id)
         )
 
-        meta = buscar_meta_ativa()
+        meta = buscar_meta_ativa(usuario_id=usuario_id)
 
         resumo_investimentos = (
-            obter_resumo_investimentos()
+            obter_resumo_investimentos(usuario_id=usuario_id)
         )
 
         partes = []

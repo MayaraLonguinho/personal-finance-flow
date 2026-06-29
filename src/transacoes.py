@@ -2,10 +2,10 @@
 # Responsável por buscar e inserir transações do MySQL
 
 import pandas as pd
+from sqlalchemy import text
 from src.load import obter_engine
 from src.categorization import categorizar_transacao
 from src.categorias import obter_regras_categorizacao_do_banco, inicializar_categorias_padrao
-from sqlalchemy import text
 
 
 def buscar_todas_transacoes(filtros=None, usuario_id=None):
@@ -48,7 +48,7 @@ def buscar_todas_transacoes(filtros=None, usuario_id=None):
     # Ordena por data_transacao de forma decrescente
     query += " ORDER BY data_transacao DESC"
     
-    df = pd.read_sql(query, engine, params=params)
+    df = pd.read_sql(text(query), engine, params=params)
     
     return df
 

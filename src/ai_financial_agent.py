@@ -13,6 +13,7 @@ from src.metrics import (
 )
 from src.metas import buscar_meta_ativa
 from src.categorias import buscar_todas_categorias, obter_estatisticas_categoria
+from src.usuario_contexto import obter_usuario_id
 
 
 # Configuração do cliente OpenAI
@@ -32,6 +33,13 @@ if OPENAI_API_KEY:
 # FUNÇÕES DE CONSULTA (FERRAMENTAS)
 # ==========================
 
+def _obter_usuario_id_da_sessao() -> Optional[int]:
+    usuario_id = obter_usuario_id()
+    if usuario_id is None:
+        raise PermissionError("Usuário não autenticado para consultar dados financeiros")
+    return usuario_id
+
+
 def consultar_saldo() -> Dict[str, Any]:
     """
     Consulta o saldo atual (entradas - saídas - investimentos).
@@ -40,7 +48,8 @@ def consultar_saldo() -> Dict[str, Any]:
         dict: Dicionário com saldo e detalhes
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
         return {
             "saldo": float(resumo['saldo_final']),
             "entradas": float(resumo['total_entradas']),
@@ -60,7 +69,8 @@ def consultar_total_entradas() -> Dict[str, Any]:
         dict: Dicionário com total de entradas
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
         return {
             "total_entradas": float(resumo['total_entradas'])
         }
@@ -77,7 +87,8 @@ def consultar_total_saidas() -> Dict[str, Any]:
         dict: Dicionário com total de saídas
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
         return {
             "total_saidas": float(resumo['total_saidas'])
         }
@@ -97,8 +108,8 @@ def consultar_gastos_categoria(categoria: str) -> Dict[str, Any]:
         dict: Dicionário com categoria e valor total
     """
     try:
-        # Obtém estatísticas da categoria
-        estatisticas = obter_estatisticas_categoria(categoria)
+        usuario_id = _obter_usuario_id_da_sessao()
+        estatisticas = obter_estatisticas_categoria(categoria, usuario_id=usuario_id)
         
         if estatisticas['quantidade'] == 0:
             return {
@@ -126,7 +137,8 @@ def consultar_maior_categoria() -> Dict[str, Any]:
         dict: Dicionário com categoria de maior gasto e valor
     """
     try:
-        gastos_categoria = calcular_gastos_por_categoria()
+        usuario_id = _obter_usuario_id_da_sessao()
+        gastos_categoria = calcular_gastos_por_categoria(usuario_id=usuario_id)
         
         if gastos_categoria.empty:
             return {
@@ -153,7 +165,8 @@ def consultar_total_investido() -> Dict[str, Any]:
         dict: Dicionário com total de investimentos
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
         return {
             "total_investido": float(resumo['total_investido'])
         }
@@ -170,7 +183,8 @@ def consultar_meta_ativa() -> Dict[str, Any]:
         dict: Dicionário com dados da meta ativa
     """
     try:
-        meta = buscar_meta_ativa()
+        usuario_id = _obter_usuario_id_da_sessao()
+        meta = buscar_meta_ativa(usuario_id=usuario_id)
         
         if not meta:
             return {
@@ -208,7 +222,8 @@ def consultar_quantidade_transacoes() -> Dict[str, Any]:
         dict: Dicionário com quantidade de transações
     """
     try:
-        resumo = calcular_resumo_financeiro()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
         return {
             "quantidade": resumo['qtd_transacoes']
         }
@@ -231,7 +246,8 @@ def consultar_ultimas_transacoes(limite: int = 5) -> Dict[str, Any]:
         # Limita a 10 transações
         limite = min(limite, 10)
         
-        transacoes = buscar_ultimas_transacoes(limite=limite)
+        usuario_id = _obter_usuario_id_da_sessao()
+        transacoes = buscar_ultimas_transacoes(limite=limite, usuario_id=usuario_id)
         
         # Converte valores para float e strings para serialização
         transacoes_serializadas = []
@@ -261,9 +277,10 @@ def consultar_resumo_financeiro() -> Dict[str, Any]:
         dict: Dicionário com resumo financeiro completo
     """
     try:
-        resumo = calcular_resumo_financeiro()
-        gastos_categoria = calcular_gastos_por_categoria()
-        meta = buscar_meta_ativa()
+        usuario_id = _obter_usuario_id_da_sessao()
+        resumo = calcular_resumo_financeiro(usuario_id=usuario_id)
+        gastos_categoria = calcular_gastos_por_categoria(usuario_id=usuario_id)
+        meta = buscar_meta_ativa(usuario_id=usuario_id)
         
         # Processa gastos por categoria
         gastos_lista = []
@@ -308,7 +325,8 @@ def listar_categorias_disponiveis() -> Dict[str, Any]:
         dict: Dicionário com lista de categorias
     """
     try:
-        categorias = buscar_todas_categorias()
+        usuario_id = _obter_usuario_id_da_sessao()
+        categorias = buscar_todas_categorias(usuario_id=usuario_id)
         
         categorias_lista = []
         for cat in categorias:
@@ -375,7 +393,8 @@ def resolver_categoria(pergunta: str) -> Optional[str]:
         str: Nome da categoria ou None
     """
     try:
-        categorias = buscar_todas_categorias()
+        usuario_id = _obter_usuario_id_da_sessao()
+        categorias = buscar_todas_categorias(usuario_id=usuario_id)
         pergunta_normalizada = normalizar_texto_sem_pontuacao(pergunta)
         
         # Divide a pergunta em palavras para correspondência mais precisa

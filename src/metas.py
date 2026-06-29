@@ -3,6 +3,18 @@
 
 from sqlalchemy import text
 from src.load import obter_engine
+from src.usuario_contexto import obter_usuario_id
+
+
+def _resolver_usuario_id(usuario_id=None):
+    if usuario_id is not None:
+        return usuario_id
+
+    contexto_usuario_id = obter_usuario_id()
+    if contexto_usuario_id is not None:
+        return contexto_usuario_id
+
+    raise PermissionError("Usuário não autenticado para consultar dados financeiros")
 
 
 def buscar_meta_ativa(usuario_id=None):
@@ -12,26 +24,17 @@ def buscar_meta_ativa(usuario_id=None):
     Returns:
         dict: Dicionário com os dados da meta ativa ou None se não existir
     """
+    usuario_id = _resolver_usuario_id(usuario_id)
     engine = obter_engine()
     
-    if usuario_id is None:
-        query = """
-            SELECT id, titulo, valor_meta, valor_atual, data_limite, status, criado_em, atualizado_em
-            FROM metas
-            WHERE status = 'ativa'
-            ORDER BY id DESC
-            LIMIT 1
-        """
-        params = {}
-    else:
-        query = """
-            SELECT id, titulo, valor_meta, valor_atual, data_limite, status, criado_em, atualizado_em
-            FROM metas
-            WHERE status = 'ativa' AND usuario_id = :usuario_id
-            ORDER BY id DESC
-            LIMIT 1
-        """
-        params = {'usuario_id': usuario_id}
+    query = """
+        SELECT id, titulo, valor_meta, valor_atual, data_limite, status, criado_em, atualizado_em
+        FROM metas
+        WHERE status = 'ativa' AND usuario_id = :usuario_id
+        ORDER BY id DESC
+        LIMIT 1
+    """
+    params = {'usuario_id': usuario_id}
 
     with engine.connect() as conn:
         result = conn.execute(text(query), params).fetchone()
@@ -64,33 +67,21 @@ def criar_meta(titulo, valor_meta, valor_atual=0.0, data_limite=None, status='at
     Returns:
         int: ID da meta criada
     """
+    usuario_id = _resolver_usuario_id(usuario_id)
     engine = obter_engine()
     
-    if usuario_id is None:
-        query = """
-            INSERT INTO metas (titulo, valor_meta, valor_atual, data_limite, status)
-            VALUES (:titulo, :valor_meta, :valor_atual, :data_limite, :status)
-        """
-        params = {
-            'titulo': titulo,
-            'valor_meta': valor_meta,
-            'valor_atual': valor_atual,
-            'data_limite': data_limite,
-            'status': status
-        }
-    else:
-        query = """
-            INSERT INTO metas (usuario_id, titulo, valor_meta, valor_atual, data_limite, status)
-            VALUES (:usuario_id, :titulo, :valor_meta, :valor_atual, :data_limite, :status)
-        """
-        params = {
-            'usuario_id': usuario_id,
-            'titulo': titulo,
-            'valor_meta': valor_meta,
-            'valor_atual': valor_atual,
-            'data_limite': data_limite,
-            'status': status
-        }
+    query = """
+        INSERT INTO metas (usuario_id, titulo, valor_meta, valor_atual, data_limite, status)
+        VALUES (:usuario_id, :titulo, :valor_meta, :valor_atual, :data_limite, :status)
+    """
+    params = {
+        'usuario_id': usuario_id,
+        'titulo': titulo,
+        'valor_meta': valor_meta,
+        'valor_atual': valor_atual,
+        'data_limite': data_limite,
+        'status': status
+    }
 
     with engine.connect() as conn:
         result = conn.execute(text(query), params)
@@ -113,6 +104,7 @@ def atualizar_meta(id_meta, titulo=None, valor_meta=None, valor_atual=None, data
     Returns:
         bool: True se atualizou com sucesso, False se não encontrou
     """
+    usuario_id = _resolver_usuario_id(usuario_id)
     engine = obter_engine()
     
     # Constrói a query dinamicamente apenas com os campos fornecidos
@@ -142,19 +134,12 @@ def atualizar_meta(id_meta, titulo=None, valor_meta=None, valor_atual=None, data
     if not campos:
         return False
     
-    if usuario_id is None:
-        query = f"""
-            UPDATE metas
-            SET {', '.join(campos)}
-            WHERE id = :id_meta
-        """
-    else:
-        query = f"""
-            UPDATE metas
-            SET {', '.join(campos)}
-            WHERE id = :id_meta AND usuario_id = :usuario_id
-        """
-        params['usuario_id'] = usuario_id
+    query = f"""
+        UPDATE metas
+        SET {', '.join(campos)}
+        WHERE id = :id_meta AND usuario_id = :usuario_id
+    """
+    params['usuario_id'] = usuario_id
 
     with engine.connect() as conn:
         result = conn.execute(text(query), params)
@@ -172,20 +157,14 @@ def excluir_meta(id_meta, usuario_id=None):
     Returns:
         bool: True se excluiu com sucesso, False se não encontrou
     """
+    usuario_id = _resolver_usuario_id(usuario_id)
     engine = obter_engine()
     
-    if usuario_id is None:
-        query = """
-            DELETE FROM metas
-            WHERE id = :id_meta
-        """
-        params = {'id_meta': id_meta}
-    else:
-        query = """
-            DELETE FROM metas
-            WHERE id = :id_meta AND usuario_id = :usuario_id
-        """
-        params = {'id_meta': id_meta, 'usuario_id': usuario_id}
+    query = """
+        DELETE FROM metas
+        WHERE id = :id_meta AND usuario_id = :usuario_id
+    """
+    params = {'id_meta': id_meta, 'usuario_id': usuario_id}
 
     with engine.connect() as conn:
         result = conn.execute(text(query), params)

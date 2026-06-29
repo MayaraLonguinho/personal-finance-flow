@@ -4,6 +4,18 @@
 import json
 from src.load import obter_engine
 from sqlalchemy import text
+from src.usuario_contexto import obter_usuario_id
+
+
+def _resolver_usuario_id(usuario_id=None):
+    if usuario_id is not None:
+        return usuario_id
+
+    contexto_usuario_id = obter_usuario_id()
+    if contexto_usuario_id is not None:
+        return contexto_usuario_id
+
+    raise PermissionError("Usuário não autenticado para consultar dados financeiros")
 
 
 def buscar_todas_categorias(usuario_id=None):
@@ -14,14 +26,11 @@ def buscar_todas_categorias(usuario_id=None):
         list: Lista de dicionários com as categorias
     """
     try:
+        usuario_id = _resolver_usuario_id(usuario_id)
         engine = obter_engine()
         
-        if usuario_id is None:
-            query = text("SELECT * FROM categorias ORDER BY nome")
-            params = {}
-        else:
-            query = text("SELECT * FROM categorias WHERE usuario_id = :usuario_id ORDER BY nome")
-            params = {'usuario_id': usuario_id}
+        query = text("SELECT * FROM categorias WHERE usuario_id = :usuario_id ORDER BY nome")
+        params = {'usuario_id': usuario_id}
         
         with engine.connect() as conn:
             result = conn.execute(query, params) if 'params' in locals() else conn.execute(query)
@@ -54,14 +63,11 @@ def buscar_categoria_por_nome(nome, usuario_id=None):
         dict: Dicionário com a categoria ou None se não encontrada
     """
     try:
+        usuario_id = _resolver_usuario_id(usuario_id)
         engine = obter_engine()
         
-        if usuario_id is None:
-            query = text("SELECT * FROM categorias WHERE nome = :nome")
-            params = {'nome': nome}
-        else:
-            query = text("SELECT * FROM categorias WHERE nome = :nome AND usuario_id = :usuario_id")
-            params = {'nome': nome, 'usuario_id': usuario_id}
+        query = text("SELECT * FROM categorias WHERE nome = :nome AND usuario_id = :usuario_id")
+        params = {'nome': nome, 'usuario_id': usuario_id}
 
         with engine.connect() as conn:
             result = conn.execute(query, params)
@@ -96,32 +102,22 @@ def criar_categoria(nome, palavras_chave=None, cor=None, usuario_id=None):
         dict: Dicionário com sucesso ou erro
     """
     try:
+        usuario_id = _resolver_usuario_id(usuario_id)
         engine = obter_engine()
         
         # Converte lista de palavras-chave para JSON
         palavras_chave_json = json.dumps(palavras_chave) if palavras_chave else None
         
-        if usuario_id is None:
-            query = text("""
-                INSERT INTO categorias (nome, palavras_chave, cor)
-                VALUES (:nome, :palavras_chave, :cor)
-            """)
-            params = {
-                'nome': nome,
-                'palavras_chave': palavras_chave_json,
-                'cor': cor
-            }
-        else:
-            query = text("""
-                INSERT INTO categorias (usuario_id, nome, palavras_chave, cor)
-                VALUES (:usuario_id, :nome, :palavras_chave, :cor)
-            """)
-            params = {
-                'usuario_id': usuario_id,
-                'nome': nome,
-                'palavras_chave': palavras_chave_json,
-                'cor': cor
-            }
+        query = text("""
+            INSERT INTO categorias (usuario_id, nome, palavras_chave, cor)
+            VALUES (:usuario_id, :nome, :palavras_chave, :cor)
+        """)
+        params = {
+            'usuario_id': usuario_id,
+            'nome': nome,
+            'palavras_chave': palavras_chave_json,
+            'cor': cor
+        }
         
         with engine.connect() as conn:
             conn.execute(query, params)
@@ -147,6 +143,7 @@ def atualizar_categoria(nome_atual, novo_nome=None, palavras_chave=None, cor=Non
         dict: Dicionário com sucesso ou erro
     """
     try:
+        usuario_id = _resolver_usuario_id(usuario_id)
         engine = obter_engine()
         
         # Constrói a query dinamicamente
@@ -168,19 +165,12 @@ def atualizar_categoria(nome_atual, novo_nome=None, palavras_chave=None, cor=Non
         if not set_clauses:
             return {'sucesso': False, 'erro': 'Nenhum campo para atualizar'}
         
-        if usuario_id is None:
-            query = f"""
-                UPDATE categorias 
-                SET {', '.join(set_clauses)}
-                WHERE nome = :nome_atual
-            """
-        else:
-            query = f"""
-                UPDATE categorias 
-                SET {', '.join(set_clauses)}
-                WHERE nome = :nome_atual AND usuario_id = :usuario_id
-            """
-            params['usuario_id'] = usuario_id
+        query = f"""
+            UPDATE categorias 
+            SET {', '.join(set_clauses)}
+            WHERE nome = :nome_atual AND usuario_id = :usuario_id
+        """
+        params['usuario_id'] = usuario_id
         
         with engine.connect() as conn:
             result = conn.execute(text(query), params)
@@ -212,34 +202,23 @@ def excluir_categoria(nome, usuario_id=None):
         if nome.lower() == 'outros':
             return {'sucesso': False, 'erro': 'Não é permitido excluir a categoria "outros"'}
         
+        usuario_id = _resolver_usuario_id(usuario_id)
         engine = obter_engine()
         
         # Primeiro, move transações dessa categoria para 'outros'
-        if usuario_id is None:
-            query_update = text("""
-                UPDATE transacoes 
-                SET categoria = 'outros'
-                WHERE categoria = :nome
-            """)
-            params_update = {'nome': nome}
-        else:
-            query_update = text("""
-                UPDATE transacoes 
-                SET categoria = 'outros'
-                WHERE categoria = :nome AND usuario_id = :usuario_id
-            """)
-            params_update = {'nome': nome, 'usuario_id': usuario_id}
+        query_update = text("""
+            UPDATE transacoes 
+            SET categoria = 'outros'
+            WHERE categoria = :nome AND usuario_id = :usuario_id
+        """)
+        params_update = {'nome': nome, 'usuario_id': usuario_id}
         
         with engine.connect() as conn:
             conn.execute(query_update, params_update)
         
         # Depois, exclui a categoria
-        if usuario_id is None:
-            query_delete = text("DELETE FROM categorias WHERE nome = :nome")
-            params_delete = {'nome': nome}
-        else:
-            query_delete = text("DELETE FROM categorias WHERE nome = :nome AND usuario_id = :usuario_id")
-            params_delete = {'nome': nome, 'usuario_id': usuario_id}
+        query_delete = text("DELETE FROM categorias WHERE nome = :nome AND usuario_id = :usuario_id")
+        params_delete = {'nome': nome, 'usuario_id': usuario_id}
 
         with engine.connect() as conn:
             result = conn.execute(query_delete, params_delete)
@@ -313,26 +292,17 @@ def obter_estatisticas_categoria(nome, usuario_id=None):
         dict: Dicionário com quantidade e valor total
     """
     try:
+        usuario_id = _resolver_usuario_id(usuario_id)
         engine = obter_engine()
         
-        if usuario_id is None:
-            query = text("""
-                SELECT 
-                    COUNT(*) as quantidade,
-                    SUM(valor) as valor_total
-                FROM transacoes
-                WHERE categoria = :nome
-            """)
-            params = {'nome': nome}
-        else:
-            query = text("""
-                SELECT 
-                    COUNT(*) as quantidade,
-                    SUM(valor) as valor_total
-                FROM transacoes
-                WHERE categoria = :nome AND usuario_id = :usuario_id
-            """)
-            params = {'nome': nome, 'usuario_id': usuario_id}
+        query = text("""
+            SELECT 
+                COUNT(*) as quantidade,
+                SUM(valor) as valor_total
+            FROM transacoes
+            WHERE categoria = :nome AND usuario_id = :usuario_id
+        """)
+        params = {'nome': nome, 'usuario_id': usuario_id}
 
         with engine.connect() as conn:
             result = conn.execute(query, params)
