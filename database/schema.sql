@@ -66,3 +66,18 @@ CREATE TABLE IF NOT EXISTS usuarios (
     senha_hash VARCHAR(255) NOT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Preferências visuais e de comportamento, isoladas por usuário
+CREATE TABLE IF NOT EXISTS configuracoes_usuario (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL UNIQUE,
+    nome VARCHAR(150) NULL,
+    tema VARCHAR(50) NOT NULL DEFAULT 'theme-blue',
+    moeda VARCHAR(10) NOT NULL DEFAULT 'BRL',
+    formato_data VARCHAR(20) NOT NULL DEFAULT 'DD/MM/YYYY',
+    qtd_transacoes_recentes INT NOT NULL DEFAULT 5,
+    confirmar_exclusao TINYINT(1) NOT NULL DEFAULT 1,
+    cards_visiveis TEXT NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
