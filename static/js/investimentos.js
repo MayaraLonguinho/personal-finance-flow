@@ -625,7 +625,8 @@ async function salvarInvestimento() {
         const resposta = await fetch(url, {
             method: metodo,
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-CSRFToken": window.PFF.csrfToken
             },
             body: JSON.stringify(dados)
         });
@@ -677,7 +678,8 @@ async function excluirInvestimento(
         const resposta = await fetch(
             `/api/investimentos/${investimentoId}`,
             {
-                method: "DELETE"
+                method: "DELETE",
+                headers: { "X-CSRFToken": window.PFF.csrfToken }
             }
         );
 

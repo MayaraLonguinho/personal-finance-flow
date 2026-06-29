@@ -1,4 +1,5 @@
 <script>
     window.PFF_CONFIG = {{ (configuracoes or {}) | tojson }};
+    window.PFF_CSRF_TOKEN = "{{ csrf_token }}";
 </script>
 <script src="{{ url_for('static', filename='js/temas.js') }}"></script>

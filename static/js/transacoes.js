@@ -219,7 +219,10 @@ function excluirTransacao(id) {
     // Pedir confirmação
     if (window.PFF.confirmarExclusao("Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.")) {
         fetch(`/api/transacoes/${id}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: {
+                "X-CSRFToken": window.PFF.csrfToken
+            }
         })
         .then(resposta => {
             if (resposta.ok) {
@@ -291,7 +294,8 @@ async function salvarNovaTransacao(event) {
             resposta = await fetch(`/api/transacoes/${idTransacao}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": window.PFF.csrfToken
                 },
                 body: JSON.stringify(dados)
             });
@@ -300,7 +304,8 @@ async function salvarNovaTransacao(event) {
             resposta = await fetch("/api/transacoes", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": window.PFF.csrfToken
                 },
                 body: JSON.stringify(dados)
             });

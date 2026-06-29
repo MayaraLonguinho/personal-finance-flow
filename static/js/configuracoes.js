@@ -43,7 +43,12 @@
 
     botaoRestaurar.addEventListener("click", async function () {
         try {
-            const resposta = await fetch("/api/configuracoes/restaurar", { method: "POST" });
+            const resposta = await fetch("/api/configuracoes/restaurar", { 
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": window.PFF.csrfToken
+                }
+            });
             const resultado = await resposta.json();
             if (!resposta.ok) throw new Error(resultado.erro);
             window.location.reload();

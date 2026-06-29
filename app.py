@@ -1,4 +1,7 @@
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, gerar_insights
 from src.transform import tratar_transacoes
 from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine, garantir_colunas_usuario
@@ -44,6 +47,17 @@ app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'false'
 
 # Configuração de debug
 DEBUG = os.getenv('FLASK_DEBUG', 'false').lower() == 'true' or os.getenv('APP_ENV') == 'development'
+
+# Inicializa proteção CSRF
+csrf = CSRFProtect(app)
+
+# Inicializa rate limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 # Garante colunas de isolamento por usuário em bancos já existentes
 # antes de processar qualquer rota.
@@ -91,7 +105,13 @@ def disponibilizar_preferencias_usuario():
         'usuario_nome': (
             configuracoes.get('nome') if configuracoes else None
         ) or session.get('usuario_nome'),
+        'csrf_token': generate_csrf(),
     }
+
+# Rota para retornar token CSRF para o frontend
+@app.route('/api/csrf-token', methods=['GET'])
+def get_csrf_token():
+    return jsonify({'csrf_token': generate_csrf()})
 
 # Rota principal - exibe a página inicial
 @app.route('/')
@@ -199,6 +219,7 @@ def pagina_cadastro():
 
 # Rota de API - cadastro de usuário
 @app.route('/api/cadastro', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_cadastro():
     try:
         dados = request.get_json()
@@ -252,6 +273,7 @@ def api_cadastro():
 
 # Rota de API - login de usuário
 @app.route('/api/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_login():
     try:
         dados = request.get_json()
@@ -517,6 +539,7 @@ def api_excluir_transacao(id):
         
 @app.route("/api/upload", methods=["POST"])
 @login_obrigatorio
+@limiter.limit("10 per minute")
 def api_upload():
     try:
         if "arquivo" not in request.files:
@@ -847,6 +870,7 @@ def api_excluir_categoria(nome):
 # Rota de API - processa pergunta do assistente financeiro
 @app.route('/api/assistente', methods=['POST'])
 @login_obrigatorio
+@limiter.limit("30 per minute")
 def api_assistente():
     try:
         dados = request.get_json()

@@ -213,6 +213,7 @@
         <div class="success-message" id="successMessage"></div>
 
         <form id="loginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="form-group">
                 <label for="email">E-mail</label>
                 <input 
@@ -248,6 +249,7 @@
         const submitBtn = document.getElementById('submitBtn');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
+        const csrfToken = "{{ csrf_token }}";
 
         function showError(message) {
             errorMessage.textContent = message;
@@ -272,6 +274,8 @@
 
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
+            // Remove o csrf_token do data que enviamos no JSON
+            delete data.csrf_token;
 
             // Validações adicionais no frontend
             if (!data.email.includes('@') || !data.email.includes('.')) {
@@ -292,6 +296,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
                     },
                     body: JSON.stringify(data),
                 });

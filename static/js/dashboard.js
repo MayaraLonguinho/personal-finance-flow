@@ -547,188 +547,198 @@ async function carregarUltimasTransacoes() {
 }
 
 function configurarUploadPlanilha() {
-    const inputPlanilha = document.getElementById(
-        "input-planilha"
-    );
-
-    const botaoImportar = document.getElementById(
-        "btn-importar-planilha"
-    );
-
-    if (!inputPlanilha || !botaoImportar) {
-        console.error(
-            "Botão ou campo de upload não encontrado."
+        const inputPlanilha = document.getElementById(
+            "input-planilha"
         );
 
-        return;
-    }
+        const botaoImportar = document.getElementById(
+            "btn-importar-planilha"
+        );
 
-    botaoImportar.addEventListener(
-        "click",
-        function () {
-            inputPlanilha.click();
-        }
-    );
-
-    inputPlanilha.addEventListener(
-        "change",
-        async function () {
-            const arquivo = inputPlanilha.files[0];
-
-            if (!arquivo) {
-                return;
-            }
-
-            if (
-                !arquivo.name
-                    .toLowerCase()
-                    .endsWith(".csv")
-            ) {
-                alert("Selecione um arquivo CSV.");
-
-                inputPlanilha.value = "";
-
-                return;
-            }
-
-            const formData = new FormData();
-
-            formData.append(
-                "arquivo",
-                arquivo
+        if (!inputPlanilha || !botaoImportar) {
+            console.error(
+                "Botão ou campo de upload não encontrado."
             );
 
-            const textoOriginal =
-                botaoImportar.textContent;
+            return;
+        }
 
-            botaoImportar.textContent =
-                "Importando...";
+        botaoImportar.addEventListener(
+            "click",
+            function () {
+                inputPlanilha.click();
+            }
+        );
 
-            botaoImportar.disabled = true;
+        inputPlanilha.addEventListener(
+            "change",
+            async function () {
+                const arquivo = inputPlanilha.files[0];
 
-            try {
-                const resposta = await fetch(
-                    "/api/upload",
-                    {
-                        method: "POST",
-                        body: formData
-                    }
-                );
-
-                const resultado =
-                    await resposta.json();
-
-                if (!resposta.ok) {
-                    throw new Error(
-                        resultado.detalhe ||
-                        resultado.erro ||
-                        "Não foi possível importar a planilha."
-                    );
+                if (!arquivo) {
+                    return;
                 }
 
-                alert(
-                    `${resultado.mensagem}\n\n` +
-                    `Registros recebidos: ${resultado.recebidos}\n` +
-                    `Novos registros: ${resultado.importados}\n` +
-                    `Duplicados ignorados: ${resultado.ignorados}`
+                if (
+                    !arquivo.name
+                        .toLowerCase()
+                        .endsWith(".csv")
+                ) {
+                    alert("Selecione um arquivo CSV.");
+
+                    inputPlanilha.value = "";
+
+                    return;
+                }
+
+                const formData = new FormData();
+
+                formData.append(
+                    "arquivo",
+                    arquivo
+                );
+                formData.append(
+                    "csrf_token",
+                    window.PFF.csrfToken
                 );
 
-                window.location.reload();
+                const textoOriginal =
+                    botaoImportar.textContent;
 
-            } catch (erro) {
-                console.error(
-                    "Erro no upload:",
-                    erro
-                );
-
-                alert(
-                    `Erro ao importar planilha: ${erro.message}`
-                );
-
-            } finally {
                 botaoImportar.textContent =
-                    textoOriginal;
+                    "Importando...";
 
-                botaoImportar.disabled = false;
-                inputPlanilha.value = "";
+                botaoImportar.disabled = true;
+
+                try {
+                    const resposta = await fetch(
+                        "/api/upload",
+                        {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": window.PFF.csrfToken
+                            },
+                            body: formData
+                        }
+                    );
+
+                    const resultado =
+                        await resposta.json();
+
+                    if (!resposta.ok) {
+                        throw new Error(
+                            resultado.detalhe ||
+                            resultado.erro ||
+                            "Não foi possível importar a planilha."
+                        );
+                    }
+
+                    alert(
+                        `${resultado.mensagem}\n\n` +
+                        `Registros recebidos: ${resultado.recebidos}\n` +
+                        `Novos registros: ${resultado.importados}\n` +
+                        `Duplicados ignorados: ${resultado.ignorados}`
+                    );
+
+                    window.location.reload();
+
+                } catch (erro) {
+                    console.error(
+                        "Erro no upload:",
+                        erro
+                    );
+
+                    alert(
+                        `Erro ao importar planilha: ${erro.message}`
+                    );
+
+                } finally {
+                    botaoImportar.textContent =
+                        textoOriginal;
+
+                    botaoImportar.disabled = false;
+                    inputPlanilha.value = "";
+                }
             }
-        }
-    );
-}
-
-function configurarLimpezaDeDados() {
-    const botaoLimpar = document.getElementById(
-        "btn-limpar-dados"
-    );
-
-    if (!botaoLimpar) {
-        return;
+        );
     }
 
-    botaoLimpar.addEventListener(
-        "click",
-        async function () {
-            const confirmou = window.PFF.confirmarExclusao(
-                "Tem certeza de que deseja apagar todas as transações? Essa ação não poderá ser desfeita."
-            );
+    function configurarLimpezaDeDados() {
+        const botaoLimpar = document.getElementById(
+            "btn-limpar-dados"
+        );
 
-            if (!confirmou) {
-                return;
-            }
+        if (!botaoLimpar) {
+            return;
+        }
 
-            const textoOriginal =
-                botaoLimpar.textContent;
-
-            botaoLimpar.textContent =
-                "Limpando...";
-
-            botaoLimpar.disabled = true;
-
-            try {
-                const resposta = await fetch(
-                    "/api/transacoes/limpar",
-                    {
-                        method: "DELETE"
-                    }
+        botaoLimpar.addEventListener(
+            "click",
+            async function () {
+                const confirmou = window.PFF.confirmarExclusao(
+                    "Tem certeza de que deseja apagar todas as transações? Essa ação não poderá ser desfeita."
                 );
 
-                const resultado =
-                    await resposta.json();
-
-                if (!resposta.ok) {
-                    throw new Error(
-                        resultado.detalhe ||
-                        resultado.erro ||
-                        "Não foi possível limpar os dados."
-                    );
+                if (!confirmou) {
+                    return;
                 }
 
-                alert(
-                    resultado.mensagem ||
-                    "Dados removidos com sucesso."
-                );
+                const textoOriginal =
+                    botaoLimpar.textContent;
 
-                window.location.reload();
-
-            } catch (erro) {
-                console.error(
-                    "Erro ao limpar dados:",
-                    erro
-                );
-
-                alert(
-                    `Erro ao limpar dados: ${erro.message}`
-                );
-
-            } finally {
                 botaoLimpar.textContent =
-                    textoOriginal;
+                    "Limpando...";
 
-                botaoLimpar.disabled = false;
+                botaoLimpar.disabled = true;
+
+                try {
+                    const resposta = await fetch(
+                        "/api/transacoes/limpar",
+                        {
+                            method: "DELETE",
+                            headers: {
+                                "X-CSRFToken": window.PFF.csrfToken
+                            }
+                        }
+                    );
+
+                    const resultado =
+                        await resposta.json();
+
+                    if (!resposta.ok) {
+                        throw new Error(
+                            resultado.detalhe ||
+                            resultado.erro ||
+                            "Não foi possível limpar os dados."
+                        );
+                    }
+
+                    alert(
+                        resultado.mensagem ||
+                        "Dados removidos com sucesso."
+                    );
+
+                    window.location.reload();
+
+                } catch (erro) {
+                    console.error(
+                        "Erro ao limpar dados:",
+                        erro
+                    );
+
+                    alert(
+                        `Erro ao limpar dados: ${erro.message}`
+                    );
+
+                } finally {
+                    botaoLimpar.textContent =
+                        textoOriginal;
+
+                    botaoLimpar.disabled = false;
+                }
             }
-        }
-    );
-}
+        );
+    }
 
 async function buscarMeta() {
     try {
