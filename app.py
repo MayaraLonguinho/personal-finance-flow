@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, session
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for
 from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, gerar_insights
 from src.transform import tratar_transacoes
 from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine
@@ -14,12 +14,26 @@ from src.auth import criar_usuario, buscar_usuario_por_email, verificar_senha
 
 import os
 import pandas as pd
+from functools import wraps
 
 app = Flask(__name__)
 # Configura Flask para retornar JSON com acentos corretamente
 app.config['JSON_AS_ASCII'] = False
 # Configura secret key para sessões
 app.secret_key = os.getenv('SECRET_KEY', 'chave-secreta-desenvolvimento-pff-2026')
+
+# Decorator para exigir login
+def login_obrigatorio(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'usuario_id' not in session:
+            # Se a rota for uma API (prefixo /api/), retornamos JSON 401
+            if request.path.startswith('/api/'):
+                return jsonify({'erro': 'Autenticação necessária.'}), 401
+            # Para páginas HTML, redirecionamos para a página de login
+            return redirect(url_for('pagina_login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Rota principal - exibe a página inicial
 @app.route('/')
@@ -28,35 +42,42 @@ def index():
 
 # Rota do dashboard - exibe a dashboard
 @app.route('/dashboard')
+@login_obrigatorio
 def dashboard():
     return render_template('dashboard.html')
 
 # Rota de transações - exibe a página de transações
 @app.route('/transacoes')
+@login_obrigatorio
 def transacoes():
     return render_template('transacoes.html')
 
 # Rota de metas - exibe a página de metas
 @app.route('/metas')
+@login_obrigatorio
 def metas():
     return render_template('metas.html')
 
 # Rota de categorias - exibe a página de categorias
 @app.route('/categorias')
+@login_obrigatorio
 def categorias():
     return render_template('categorias.html')
 
 # Rota de assistente - exibe a página do assistente financeiro
 @app.route('/assistente')
+@login_obrigatorio
 def assistente():
     return render_template('assistente.html')
 
 @app.route("/relatorios")
+@login_obrigatorio
 def pagina_relatorios():
     return render_template("relatorios.html")   
 
 
 @app.route("/investimentos")
+@login_obrigatorio
 def pagina_investimentos():
     return render_template("investimentos.html")
 
@@ -184,6 +205,7 @@ def api_logout():
 
 # Rota de API - retorna métricas financeiras em JSON
 @app.route('/api/metricas')
+@login_obrigatorio
 def api_metricas():
     try:
         # Busca e calcula as métricas
@@ -203,6 +225,7 @@ def api_metricas():
         return jsonify({'erro': 'Falha ao buscar métricas', 'detalhes': str(e)}), 500
 
 @app.route("/api/transacoes")
+@login_obrigatorio
 def api_transacoes():
     try:
         transacoes = buscar_ultimas_transacoes()
@@ -215,6 +238,7 @@ def api_transacoes():
 
 # Rota de API - retorna todas as transações em JSON
 @app.route('/api/transacoes/todas')
+@login_obrigatorio
 def api_transacoes_todas():
     try:
         # Obtém filtros dos parâmetros da query
@@ -243,6 +267,7 @@ def api_transacoes_todas():
 
 # Rota de API - cria uma nova transação
 @app.route('/api/transacoes', methods=['POST'])
+@login_obrigatorio
 def api_criar_transacao():
     try:
         # Obtém dados do JSON
@@ -294,6 +319,7 @@ def api_criar_transacao():
 
 # Rota de API - edita uma transação existente
 @app.route('/api/transacoes/<int:id>', methods=['PUT'])
+@login_obrigatorio
 def api_editar_transacao(id):
     try:
         # Obtém dados do JSON
@@ -348,6 +374,7 @@ def api_editar_transacao(id):
 
 # Rota de API - exclui uma transação
 @app.route('/api/transacoes/<int:id>', methods=['DELETE'])
+@login_obrigatorio
 def api_excluir_transacao(id):
     try:
         # Exclui transação
@@ -364,6 +391,7 @@ def api_excluir_transacao(id):
         return jsonify({'erro': 'Falha ao excluir transação', 'detalhes': str(e)}), 500
         
 @app.route("/api/upload", methods=["POST"])
+@login_obrigatorio
 def api_upload():
     try:
         if "arquivo" not in request.files:
@@ -412,6 +440,7 @@ def api_upload():
 
 
 @app.route("/api/transacoes/limpar", methods=["DELETE"])
+@login_obrigatorio
 def api_limpar_transacoes():
     try:
         limpar_transacoes_mysql()
@@ -428,6 +457,7 @@ def api_limpar_transacoes():
 
 # Rota de API - retorna a meta ativa
 @app.route('/api/meta')
+@login_obrigatorio
 def api_meta():
     try:
         meta = buscar_meta_ativa()
@@ -460,6 +490,7 @@ def api_meta():
 
 # Rota de API - cria uma nova meta
 @app.route('/api/meta', methods=['POST'])
+@login_obrigatorio
 def api_criar_meta():
     try:
         dados = request.get_json()
@@ -510,6 +541,7 @@ def api_criar_meta():
 
 # Rota de API - atualiza uma meta existente
 @app.route('/api/meta/<int:id>', methods=['PUT'])
+@login_obrigatorio
 def api_atualizar_meta(id):
     try:
         dados = request.get_json()
@@ -559,6 +591,7 @@ def api_atualizar_meta(id):
 
 # Rota de API - exclui uma meta
 @app.route('/api/meta/<int:id>', methods=['DELETE'])
+@login_obrigatorio
 def api_excluir_meta(id):
     try:
         sucesso = excluir_meta(id)
@@ -573,6 +606,7 @@ def api_excluir_meta(id):
 
 # Rota de API - retorna todas as categorias
 @app.route('/api/categorias')
+@login_obrigatorio
 def api_categorias():
     try:
         # Inicializa categorias padrão se necessário
@@ -593,6 +627,7 @@ def api_categorias():
 
 # Rota de API - cria uma nova categoria
 @app.route('/api/categorias', methods=['POST'])
+@login_obrigatorio
 def api_criar_categoria():
     try:
         dados = request.get_json()
@@ -618,6 +653,7 @@ def api_criar_categoria():
 
 # Rota de API - atualiza uma categoria
 @app.route('/api/categorias/<nome>', methods=['PUT'])
+@login_obrigatorio
 def api_atualizar_categoria(nome):
     try:
         dados = request.get_json()
@@ -642,6 +678,7 @@ def api_atualizar_categoria(nome):
 
 # Rota de API - exclui uma categoria
 @app.route('/api/categorias/<nome>', methods=['DELETE'])
+@login_obrigatorio
 def api_excluir_categoria(nome):
     try:
         resultado = excluir_categoria(nome)
@@ -658,6 +695,7 @@ def api_excluir_categoria(nome):
 
 # Rota de API - processa pergunta do assistente financeiro
 @app.route('/api/assistente', methods=['POST'])
+@login_obrigatorio
 def api_assistente():
     try:
         dados = request.get_json()
@@ -693,6 +731,7 @@ def api_assistente():
         return jsonify({'erro': 'Erro ao processar pergunta', 'resposta': 'Ocorreu um erro ao processar sua pergunta. Tente novamente.'}), 500
         
 @app.route("/api/relatorios", methods=["GET"])
+@login_obrigatorio
 def api_relatorios():
     try:
         data_inicio = request.args.get("data_inicio")
@@ -719,6 +758,7 @@ def api_relatorios():
 
 
 @app.route("/api/investimentos", methods=["GET"])
+@login_obrigatorio
 def api_listar_investimentos():
     try:
         status = request.args.get("status")
@@ -748,6 +788,7 @@ def api_listar_investimentos():
     "/api/investimentos/<int:investimento_id>",
     methods=["GET"],
 )
+@login_obrigatorio
 def api_buscar_investimento(investimento_id):
     try:
         investimento = buscar_investimento_por_id(
@@ -772,6 +813,7 @@ def api_buscar_investimento(investimento_id):
 
 
 @app.route("/api/investimentos", methods=["POST"])
+@login_obrigatorio
 def api_criar_investimento():
     try:
         dados = request.get_json(silent=True)
@@ -809,6 +851,7 @@ def api_criar_investimento():
     "/api/investimentos/<int:investimento_id>",
     methods=["PUT"],
 )
+@login_obrigatorio
 def api_atualizar_investimento(investimento_id):
     try:
         dados = request.get_json(silent=True)
@@ -852,6 +895,7 @@ def api_atualizar_investimento(investimento_id):
     "/api/investimentos/<int:investimento_id>",
     methods=["DELETE"],
 )
+@login_obrigatorio
 def api_excluir_investimento(investimento_id):
     try:
         investimento_excluido = excluir_investimento(
@@ -881,6 +925,7 @@ def api_excluir_investimento(investimento_id):
     "/api/investimentos/resumo",
     methods=["GET"],
 )
+@login_obrigatorio
 def api_resumo_investimentos():
     try:
         resumo = obter_resumo_investimentos()
