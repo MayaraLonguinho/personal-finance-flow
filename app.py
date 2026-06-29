@@ -11,6 +11,11 @@ from src.relatorios import obter_relatorio
 from src.investimentos import atualizar_investimento, buscar_investimento_por_id, criar_investimento, excluir_investimento, listar_investimentos, obter_resumo_investimentos
 from src.auth import criar_usuario, buscar_usuario_por_email, verificar_senha
 from src.usuario_contexto import definir_usuario_id, limpar_usuario_id
+from src.configuracoes import (
+    obter_configuracoes_usuario,
+    restaurar_configuracoes_padrao,
+    salvar_configuracoes_usuario,
+)
 
 
 import os
@@ -52,6 +57,24 @@ def login_obrigatorio(f):
             return redirect(url_for('pagina_login'))
         return f(*args, **kwargs)
     return decorated_function
+
+
+def _configuracoes_da_sessao():
+    usuario_id = session.get('usuario_id')
+    if usuario_id is None:
+        return None
+    return obter_configuracoes_usuario(usuario_id)
+
+
+@app.context_processor
+def disponibilizar_preferencias_usuario():
+    configuracoes = _configuracoes_da_sessao()
+    return {
+        'configuracoes': configuracoes or {},
+        'usuario_nome': (
+            configuracoes.get('nome') if configuracoes else None
+        ) or session.get('usuario_nome'),
+    }
 
 # Rota principal - exibe a página inicial
 @app.route('/')
@@ -98,6 +121,53 @@ def pagina_relatorios():
 @login_obrigatorio
 def pagina_investimentos():
     return render_template("investimentos.html")
+
+
+@app.route("/configuracoes")
+@login_obrigatorio
+def pagina_configuracoes():
+    return render_template("configuracoes.html")
+
+
+@app.route("/api/configuracoes", methods=["GET", "PUT"])
+@login_obrigatorio
+def api_configuracoes():
+    usuario_id = session['usuario_id']
+    try:
+        if request.method == "GET":
+            return jsonify(obter_configuracoes_usuario(usuario_id)), 200
+
+        dados = request.get_json(silent=True) or {}
+        configuracoes = salvar_configuracoes_usuario(usuario_id, dados)
+        session['usuario_nome'] = configuracoes['nome'] or session.get('usuario_nome')
+        return jsonify({
+            "mensagem": "Configurações salvas com sucesso.",
+            "configuracoes": configuracoes,
+        }), 200
+    except ValueError as erro:
+        return jsonify({"erro": str(erro)}), 400
+    except Exception as erro:
+        return jsonify({
+            "erro": "Não foi possível salvar as configurações.",
+            "detalhes": str(erro),
+        }), 500
+
+
+@app.route("/api/configuracoes/restaurar", methods=["POST"])
+@login_obrigatorio
+def api_restaurar_configuracoes():
+    try:
+        configuracoes = restaurar_configuracoes_padrao(session['usuario_id'])
+        session['usuario_nome'] = configuracoes['nome'] or session.get('usuario_nome')
+        return jsonify({
+            "mensagem": "Configurações padrão restauradas.",
+            "configuracoes": configuracoes,
+        }), 200
+    except Exception as erro:
+        return jsonify({
+            "erro": "Não foi possível restaurar as configurações.",
+            "detalhes": str(erro),
+        }), 500
 
 
 @app.route("/login")
@@ -248,7 +318,11 @@ def api_metricas():
 def api_transacoes():
     try:
         usuario_id = session.get('usuario_id')
-        transacoes = buscar_ultimas_transacoes(usuario_id=usuario_id)
+        configuracoes = obter_configuracoes_usuario(usuario_id)
+        transacoes = buscar_ultimas_transacoes(
+            limite=configuracoes['qtd_transacoes_recentes'],
+            usuario_id=usuario_id,
+        )
         return jsonify(transacoes)
     except Exception as erro:
         return jsonify({
