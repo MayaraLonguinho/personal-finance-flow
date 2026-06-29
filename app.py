@@ -25,8 +25,25 @@ from functools import wraps
 app = Flask(__name__)
 # Configura Flask para retornar JSON com acentos corretamente
 app.config['JSON_AS_ASCII'] = False
-# Configura secret key para sessões
-app.secret_key = os.getenv('SECRET_KEY', 'chave-secreta-desenvolvimento-pff-2026')
+
+# Carrega variáveis de ambiente
+from dotenv import load_dotenv
+load_dotenv()
+
+# Configura secret key para sessões (exigida)
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("A variável de ambiente SECRET_KEY é obrigatória")
+app.secret_key = SECRET_KEY
+
+# Configurações de segurança de sessão
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+# SESSION_COOKIE_SECURE: ativo apenas em produção (HTTPS)
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+
+# Configuração de debug
+DEBUG = os.getenv('FLASK_DEBUG', 'false').lower() == 'true' or os.getenv('APP_ENV') == 'development'
 
 # Garante colunas de isolamento por usuário em bancos já existentes
 # antes de processar qualquer rota.
@@ -147,9 +164,9 @@ def api_configuracoes():
     except ValueError as erro:
         return jsonify({"erro": str(erro)}), 400
     except Exception as erro:
+        print(f"[ERRO] Não foi possível salvar as configurações: {erro}")
         return jsonify({
             "erro": "Não foi possível salvar as configurações.",
-            "detalhes": str(erro),
         }), 500
 
 
@@ -164,9 +181,9 @@ def api_restaurar_configuracoes():
             "configuracoes": configuracoes,
         }), 200
     except Exception as erro:
+        print(f"[ERRO] Não foi possível restaurar as configurações: {erro}")
         return jsonify({
             "erro": "Não foi possível restaurar as configurações.",
-            "detalhes": str(erro),
         }), 500
 
 
@@ -229,7 +246,8 @@ def api_cadastro():
             return jsonify({'erro': resultado['erro']}), 400
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar usuário', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar usuário: {e}")
+        return jsonify({'erro': 'Falha ao criar usuário'}), 500
 
 
 # Rota de API - login de usuário
@@ -273,7 +291,8 @@ def api_login():
         }), 200
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao realizar login', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao realizar login: {e}")
+        return jsonify({'erro': 'Falha ao realizar login'}), 500
 
 
 # Rota de API - logout de usuário
@@ -288,7 +307,8 @@ def api_logout():
         return jsonify({'mensagem': 'Logout realizado com sucesso'}), 200
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao realizar logout', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao realizar logout: {e}")
+        return jsonify({'erro': 'Falha ao realizar logout'}), 500
 
 
 # Rota de API - retorna métricas financeiras em JSON
@@ -310,8 +330,8 @@ def api_metricas():
         return jsonify(metricas)
         
     except Exception as e:
-        # Em caso de erro, retorna mensagem de falha
-        return jsonify({'erro': 'Falha ao buscar métricas', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao buscar métricas: {e}")
+        return jsonify({'erro': 'Falha ao buscar métricas'}), 500
 
 @app.route("/api/transacoes")
 @login_obrigatorio
@@ -325,9 +345,9 @@ def api_transacoes():
         )
         return jsonify(transacoes)
     except Exception as erro:
+        print(f"[ERRO] Não foi possível buscar as últimas transações: {erro}")
         return jsonify({
-            "erro": "Não foi possível buscar as últimas transações.",
-            "detalhe": str(erro)
+            "erro": "Não foi possível buscar as últimas transações."
         }), 500
 
 # Rota de API - retorna todas as transações em JSON
@@ -357,8 +377,8 @@ def api_transacoes_todas():
         return jsonify(transacoes)
         
     except Exception as e:
-        # Em caso de erro, retorna mensagem de falha
-        return jsonify({'erro': 'Falha ao buscar transações', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao buscar transações: {e}")
+        return jsonify({'erro': 'Falha ao buscar transações'}), 500
 
 # Rota de API - cria uma nova transação
 @app.route('/api/transacoes', methods=['POST'])
@@ -413,7 +433,8 @@ def api_criar_transacao():
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar transação', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar transação: {e}")
+        return jsonify({'erro': 'Falha ao criar transação'}), 500
 
 # Rota de API - edita uma transação existente
 @app.route('/api/transacoes/<int:id>', methods=['PUT'])
@@ -471,7 +492,8 @@ def api_editar_transacao(id):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao editar transação', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao editar transação: {e}")
+        return jsonify({'erro': 'Falha ao editar transação'}), 500
 
 # Rota de API - exclui uma transação
 @app.route('/api/transacoes/<int:id>', methods=['DELETE'])
@@ -490,7 +512,8 @@ def api_excluir_transacao(id):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao excluir transação', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao excluir transação: {e}")
+        return jsonify({'erro': 'Falha ao excluir transação'}), 500
         
 @app.route("/api/upload", methods=["POST"])
 @login_obrigatorio
@@ -536,9 +559,9 @@ def api_upload():
         }
 
     except Exception as erro:
+        print(f"[ERRO] Não foi possível importar a planilha: {erro}")
         return jsonify({
-            "erro": "Não foi possível importar a planilha.",
-            "detalhe": str(erro)
+            "erro": "Não foi possível importar a planilha."
         }), 500
 
 
@@ -555,9 +578,9 @@ def api_limpar_transacoes():
         })
 
     except Exception as erro:
+        print(f"[ERRO] Não foi possível limpar os dados: {erro}")
         return jsonify({
-            "erro": "Não foi possível limpar os dados.",
-            "detalhe": str(erro)
+            "erro": "Não foi possível limpar os dados."
         }), 500
 
 # Rota de API - retorna a meta ativa
@@ -592,7 +615,8 @@ def api_meta():
         return jsonify(meta)
         
     except Exception as e:
-        return jsonify({'erro': 'Falha ao buscar meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao buscar meta: {e}")
+        return jsonify({'erro': 'Falha ao buscar meta'}), 500
 
 # Rota de API - cria uma nova meta
 @app.route('/api/meta', methods=['POST'])
@@ -646,7 +670,8 @@ def api_criar_meta():
         return jsonify({'mensagem': 'Meta criada com sucesso', 'id': id_meta}), 201
         
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar meta: {e}")
+        return jsonify({'erro': 'Falha ao criar meta'}), 500
 
 # Rota de API - atualiza uma meta existente
 @app.route('/api/meta/<int:id>', methods=['PUT'])
@@ -699,7 +724,8 @@ def api_atualizar_meta(id):
             return jsonify({'erro': 'Meta não encontrada'}), 404
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao atualizar meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao atualizar meta: {e}")
+        return jsonify({'erro': 'Falha ao atualizar meta'}), 500
 
 # Rota de API - exclui uma meta
 @app.route('/api/meta/<int:id>', methods=['DELETE'])
@@ -715,7 +741,8 @@ def api_excluir_meta(id):
             return jsonify({'erro': 'Meta não encontrada'}), 404
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao excluir meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao excluir meta: {e}")
+        return jsonify({'erro': 'Falha ao excluir meta'}), 500
 
 # Rota de API - retorna todas as categorias
 @app.route('/api/categorias')
@@ -737,7 +764,8 @@ def api_categorias():
         return jsonify(categorias)
         
     except Exception as e:
-        return jsonify({'erro': 'Falha ao buscar categorias', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao buscar categorias: {e}")
+        return jsonify({'erro': 'Falha ao buscar categorias'}), 500
 
 # Rota de API - cria uma nova categoria
 @app.route('/api/categorias', methods=['POST'])
@@ -766,7 +794,8 @@ def api_criar_categoria():
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar categoria', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar categoria: {e}")
+        return jsonify({'erro': 'Falha ao criar categoria'}), 500
 
 # Rota de API - atualiza uma categoria
 @app.route('/api/categorias/<nome>', methods=['PUT'])
@@ -793,7 +822,8 @@ def api_atualizar_categoria(nome):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao atualizar categoria', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao atualizar categoria: {e}")
+        return jsonify({'erro': 'Falha ao atualizar categoria'}), 500
 
 # Rota de API - exclui uma categoria
 @app.route('/api/categorias/<nome>', methods=['DELETE'])
@@ -811,7 +841,8 @@ def api_excluir_categoria(nome):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao excluir categoria', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao excluir categoria: {e}")
+        return jsonify({'erro': 'Falha ao excluir categoria'}), 500
 
 # Rota de API - processa pergunta do assistente financeiro
 @app.route('/api/assistente', methods=['POST'])
@@ -851,7 +882,7 @@ def api_assistente():
             return jsonify(resultado_local), 200
         
     except Exception as e:
-        print(f"Erro ao processar pergunta do assistente: {e}")
+        print(f"[ERRO] Erro ao processar pergunta do assistente: {e}")
         return jsonify({'erro': 'Erro ao processar pergunta', 'resposta': 'Ocorreu um erro ao processar sua pergunta. Tente novamente.'}), 500
         
 @app.route("/api/relatorios", methods=["GET"])
@@ -876,8 +907,7 @@ def api_relatorios():
         }), 400
 
     except Exception as erro:
-        print(f"Erro ao gerar relatório: {erro}")
-
+        print(f"[ERRO] Erro ao gerar relatório: {erro}")
         return jsonify({
             "erro": "Não foi possível gerar o relatório."
         }), 500
@@ -903,10 +933,7 @@ def api_listar_investimentos():
         }), 400
 
     except Exception as erro:
-        print(
-            f"Erro ao listar investimentos: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao listar investimentos: {erro}")
         return jsonify({
             "erro": "Não foi possível listar os investimentos."
         }), 500
@@ -933,10 +960,7 @@ def api_buscar_investimento(investimento_id):
         return jsonify(investimento), 200
 
     except Exception as erro:
-        print(
-            f"Erro ao buscar investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao buscar investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível buscar o investimento."
         }), 500
@@ -970,10 +994,7 @@ def api_criar_investimento():
         }), 400
 
     except Exception as erro:
-        print(
-            f"Erro ao criar investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao criar investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível criar o investimento."
         }), 500
@@ -1016,10 +1037,7 @@ def api_atualizar_investimento(investimento_id):
         }), 400
 
     except Exception as erro:
-        print(
-            f"Erro ao atualizar investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao atualizar investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível atualizar o investimento."
         }), 500
@@ -1048,10 +1066,7 @@ def api_excluir_investimento(investimento_id):
         }), 200
 
     except Exception as erro:
-        print(
-            f"Erro ao excluir investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao excluir investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível excluir o investimento."
         }), 500
@@ -1070,10 +1085,7 @@ def api_resumo_investimentos():
         return jsonify(resumo), 200
 
     except Exception as erro:
-        print(
-            f"Erro ao gerar resumo de investimentos: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao gerar resumo de investimentos: {erro}")
         return jsonify({
             "erro": "Não foi possível gerar o resumo dos investimentos."
         }), 500
@@ -1082,5 +1094,5 @@ if __name__ == "__main__":
     app.run(
         host="127.0.0.1",
         port=5001,
-        debug=True,
+        debug=DEBUG,
     )
