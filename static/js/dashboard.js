@@ -1,19 +1,10 @@
 
 function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(Number(valor) || 0);
+    return window.PFF.formatarMoeda(valor);
 }
 
 function formatarData(dataTexto) {
-    if (!dataTexto) {
-        return "-";
-    }
-
-    const data = new Date(`${dataTexto}T00:00:00`);
-
-    return new Intl.DateTimeFormat("pt-BR").format(data);
+    return window.PFF.formatarData(dataTexto);
 }
 
 async function buscarMetricas() {
@@ -397,22 +388,23 @@ function configurarTrocaDeTema() {
         return;
     }
 
-    const temaSalvo =
-        localStorage.getItem("tema-dashboard") ||
-        "theme-blue";
+    const temaSalvo = window.PFF.configuracoes.tema || "theme-blue";
 
     document.body.className = temaSalvo;
     seletorTema.value = temaSalvo;
 
     seletorTema.addEventListener(
         "change",
-        function () {
-            document.body.className = this.value;
-
-            localStorage.setItem(
-                "tema-dashboard",
-                this.value
-            );
+        async function () {
+            const temaAnterior = window.PFF.configuracoes.tema;
+            window.PFF.aplicarTema(this.value);
+            try {
+                await window.PFF.salvarPreferencias({ tema: this.value });
+            } catch (erro) {
+                window.PFF.aplicarTema(temaAnterior);
+                this.value = temaAnterior;
+                alert(erro.message);
+            }
         }
     );
 }
@@ -676,7 +668,7 @@ function configurarLimpezaDeDados() {
     botaoLimpar.addEventListener(
         "click",
         async function () {
-            const confirmou = confirm(
+            const confirmou = window.PFF.confirmarExclusao(
                 "Tem certeza de que deseja apagar todas as transações? Essa ação não poderá ser desfeita."
             );
 

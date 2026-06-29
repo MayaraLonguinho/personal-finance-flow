@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 
-<body class="theme-pink">
+<body class="theme-blue">
     <div class="app-layout">
         <aside class="sidebar">
             <div class="brand">
@@ -59,7 +59,7 @@
                 </a>
             </nav>
 
-            <div class="goal-card">
+            <div class="goal-card" data-config-card="meta_economia">
                 <span>
                     Meta de Economia
                 </span>
@@ -89,12 +89,12 @@
 
             <div class="user-card">
                 <div class="avatar">
-                    M
+                    {{ (usuario_nome or 'U')[:1].upper() }}
                 </div>
 
                 <div>
                     <strong>
-                        Mayara
+                        {{ usuario_nome or 'Usuário' }}
                     </strong>
 
                     <span>
@@ -108,7 +108,7 @@
             <section class="hero">
                 <div>
                     <span class="welcome">
-                        Olá, Mayara
+                        Olá, {{ usuario_nome or 'Usuário' }}
                     </span>
 
                     <h2>
@@ -161,7 +161,7 @@
             </section>
 
             <section class="summary-grid">
-                <div class="summary-card entrada">
+                <div class="summary-card entrada" data-config-card="resumo_financeiro">
                     <div class="summary-icon">
                         ↓
                     </div>
@@ -181,7 +181,7 @@
                     </div>
                 </div>
 
-                <div class="summary-card saida">
+                <div class="summary-card saida" data-config-card="resumo_financeiro">
                     <div class="summary-icon">
                         ↑
                     </div>
@@ -201,7 +201,7 @@
                     </div>
                 </div>
 
-                <div class="summary-card saldo">
+                <div class="summary-card saldo" data-config-card="resumo_financeiro">
                     <div class="summary-icon">
                         ◼
                     </div>
@@ -221,7 +221,7 @@
                     </div>
                 </div>
 
-                <div class="summary-card investimento">
+                <div class="summary-card investimento" data-config-card="investimentos">
                     <div class="summary-icon">
                         ↗
                     </div>
@@ -241,7 +241,7 @@
                     </div>
                 </div>
 
-                <div class="summary-card transacoes">
+                <div class="summary-card transacoes" data-config-card="resumo_financeiro">
                     <div class="summary-icon">
                         #
                     </div>
@@ -344,7 +344,7 @@
                     </div>
                 </div>
 
-                <div class="panel panel-transacoes">
+                <div class="panel panel-transacoes" data-config-card="transacoes_recentes">
                     <div class="panel-header row">
                         <div>
                             <h3>
@@ -404,6 +404,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    {% include '_preferencias_usuario.html' %}
     <script src="{{ url_for('static', filename='js/dashboard.js') }}?v=3"></script>
 </body>
 

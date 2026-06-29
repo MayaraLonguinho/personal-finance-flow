@@ -2,16 +2,11 @@
 // Responsável por buscar e exibir todas as transações
 
 function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(valor || 0);
+    return window.PFF.formatarMoeda(valor);
 }
 
 function formatarData(data) {
-    if (!data) return "-";
-    const dataObj = new Date(data);
-    return dataObj.toLocaleDateString("pt-BR");
+    return window.PFF.formatarData(data);
 }
 
 function getStatusClass(status) {
@@ -106,10 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Funções para gerenciar meta na sidebar
 function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(valor || 0);
+    return window.PFF.formatarMoeda(valor);
 }
 
 async function buscarMeta() {
@@ -148,8 +140,8 @@ function exibirMeta(meta) {
 }
 
 function exibirMetaVazia() {
-    document.getElementById("goal-valor-atual").textContent = "R$ 0,00";
-    document.getElementById("goal-valor-meta").textContent = "de R$ 0,00";
+    document.getElementById("goal-valor-atual").textContent = formatarMoeda(0);
+    document.getElementById("goal-valor-meta").textContent = `de ${formatarMoeda(0)}`;
     document.getElementById("goal-percentual").textContent = "0%";
     document.getElementById("goal-progress-bar").style.width = "0%";
     document.getElementById("goal-restante").textContent = "Nenhuma meta cadastrada.";
@@ -225,7 +217,7 @@ function editarTransacao(id) {
 
 function excluirTransacao(id) {
     // Pedir confirmação
-    if (confirm("Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.")) {
+    if (window.PFF.confirmarExclusao("Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.")) {
         fetch(`/api/transacoes/${id}`, {
             method: "DELETE"
         })
@@ -336,22 +328,5 @@ window.onclick = function(event) {
         fecharModalNovaTransacao();
     }
 }
-function aplicarTemaSalvo() {
-    const temaSalvo = localStorage.getItem("tema-dashboard") || "theme-blue";
-
-    document.body.classList.remove(
-        "theme-blue",
-        "theme-pink",
-        "theme-green",
-        "theme-red",
-        "theme-dark"
-    );
-
-    document.body.classList.add(temaSalvo);
-}
-
-
-// ajusta o tema ao carregar a página
-aplicarTemaSalvo();
 // Carregar transações ao abrir a página
 buscarTransacoes();

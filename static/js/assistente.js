@@ -124,10 +124,7 @@ function enviarSugestao(sugestao) {
 }
 
 function formatarMoedaMeta(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(Number(valor) || 0);
+    return window.PFF.formatarMoeda(valor);
 }
 
 async function buscarMetaSidebar() {
@@ -217,11 +214,11 @@ function exibirMetaSidebarVazia() {
     const goalRestante = document.getElementById("goal-restante");
 
     if (goalValorAtual) {
-        goalValorAtual.textContent = "R$ 0,00";
+        goalValorAtual.textContent = formatarMoedaMeta(0);
     }
 
     if (goalValorMeta) {
-        goalValorMeta.textContent = "de R$ 0,00";
+        goalValorMeta.textContent = `de ${formatarMoedaMeta(0)}`;
     }
 
     if (goalPercentual) {
