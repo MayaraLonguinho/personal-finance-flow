@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session
 from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, gerar_insights
 from src.transform import tratar_transacoes
 from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine
@@ -9,7 +9,7 @@ from src.financial_agent import responder_pergunta as responder_pergunta_local
 from src.ai_financial_agent import responder_pergunta_openai
 from src.relatorios import obter_relatorio
 from src.investimentos import atualizar_investimento, buscar_investimento_por_id, criar_investimento, excluir_investimento, listar_investimentos, obter_resumo_investimentos
-from src.auth import criar_usuario
+from src.auth import criar_usuario, buscar_usuario_por_email, verificar_senha
 
 
 import os
@@ -18,6 +18,8 @@ import pandas as pd
 app = Flask(__name__)
 # Configura Flask para retornar JSON com acentos corretamente
 app.config['JSON_AS_ASCII'] = False
+# Configura secret key para sessões
+app.secret_key = os.getenv('SECRET_KEY', 'chave-secreta-desenvolvimento-pff-2026')
 
 # Rota principal - exibe a página inicial
 @app.route('/')
@@ -119,6 +121,65 @@ def api_cadastro():
             
     except Exception as e:
         return jsonify({'erro': 'Falha ao criar usuário', 'detalhes': str(e)}), 500
+
+
+# Rota de API - login de usuário
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    try:
+        dados = request.get_json()
+        
+        # Valida campos obrigatórios
+        if 'email' not in dados or not dados['email']:
+            return jsonify({'erro': 'Email é obrigatório'}), 400
+        
+        if 'senha' not in dados or not dados['senha']:
+            return jsonify({'erro': 'Senha é obrigatória'}), 400
+        
+        email = dados['email'].strip().lower()
+        senha = dados['senha']
+        
+        # Busca usuário por email
+        usuario = buscar_usuario_por_email(email)
+        
+        if not usuario:
+            return jsonify({'erro': 'Email ou senha incorretos'}), 401
+        
+        # Verifica senha
+        if not verificar_senha(usuario['senha_hash'], senha):
+            return jsonify({'erro': 'Email ou senha incorretos'}), 401
+        
+        # Cria sessão com dados do usuário
+        session['usuario_id'] = usuario['id']
+        session['usuario_nome'] = usuario['nome']
+        session['usuario_email'] = usuario['email']
+        
+        return jsonify({
+            'mensagem': 'Login realizado com sucesso',
+            'usuario': {
+                'id': usuario['id'],
+                'nome': usuario['nome'],
+                'email': usuario['email']
+            }
+        }), 200
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao realizar login', 'detalhes': str(e)}), 500
+
+
+# Rota de API - logout de usuário
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    try:
+        # Remove dados da sessão
+        session.pop('usuario_id', None)
+        session.pop('usuario_nome', None)
+        session.pop('usuario_email', None)
+        
+        return jsonify({'mensagem': 'Logout realizado com sucesso'}), 200
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao realizar logout', 'detalhes': str(e)}), 500
 
 
 # Rota de API - retorna métricas financeiras em JSON
