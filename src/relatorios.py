@@ -80,6 +80,8 @@ def obter_relatorio(
         filtros.append("usuario_id = :usuario_id")
         parametros["usuario_id"] = usuario_id
 
+    filtros.append("status = 'confirmado'")
+
     if data_inicio:
         filtros.append(
             "DATE(data_transacao) >= :data_inicio"
@@ -238,7 +240,7 @@ def obter_relatorio(
         categorias.append(
             {
                 "categoria": (
-                    categoria["categoria"]
+                (categoria["categoria"] or "Outros").strip()
                     or "Outros"
                 ),
                 "valor": float(

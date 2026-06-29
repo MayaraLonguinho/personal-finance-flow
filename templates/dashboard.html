@@ -6,7 +6,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Personal Finance Flow</title>
+    <title>Personal Finance Flow - Visão Geral</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
@@ -27,7 +27,7 @@
 
             <nav class="menu">
                 <a href="/dashboard" class="menu-item active">
-                    Dashboard
+                    Visão Geral
                 </a>
 
                 <a href="/transacoes" class="menu-item">
@@ -108,11 +108,11 @@
             <section class="hero">
                 <div>
                     <span class="welcome">
-                        Olá, {{ usuario_nome or 'Usuário' }}
+                        Visão Geral
                     </span>
 
                     <h2>
-                        Personal Finance Flow
+                        Olá, {{ usuario_nome or 'Usuário' }}
                     </h2>
 
                     <p>

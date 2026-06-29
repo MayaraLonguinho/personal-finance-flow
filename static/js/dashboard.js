@@ -7,6 +7,60 @@ function formatarData(dataTexto) {
     return window.PFF.formatarData(dataTexto);
 }
 
+function obterCorCss(nomeVariavel, fallback) {
+    const valor = getComputedStyle(document.body)
+        .getPropertyValue(nomeVariavel)
+        .trim();
+    return valor || fallback;
+}
+
+function formatarMesAno(mesAno) {
+    if (!mesAno) {
+        return "-";
+    }
+
+    const [ano, mes] = String(mesAno).split("-");
+    if (!ano || !mes) {
+        return String(mesAno);
+    }
+
+    const data = new Date(Number(ano), Number(mes) - 1, 1);
+    return new Intl.DateTimeFormat("pt-BR", {
+        month: "short",
+        year: "2-digit"
+    }).format(data);
+}
+
+function prepararTopCategorias(dados) {
+    return (dados || [])
+        .map(item => ({
+            categoria: item.categoria || "Outros",
+            valor: Number(item.valor) || 0
+        }))
+        .filter(item => item.valor > 0)
+        .sort((a, b) => b.valor - a.valor)
+        .slice(0, 5);
+}
+
+function renderizarEstadoVazioGrafico(canvasId, mensagem) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        return false;
+    }
+
+    const chartBox = canvas.closest(".chart-box");
+    if (!chartBox) {
+        return false;
+    }
+
+    chartBox.innerHTML = `
+        <div class="empty-chart-state">
+            <p class="empty-text">${mensagem}</p>
+        </div>
+    `;
+    return true;
+}
+
 async function buscarMetricas() {
     try {
         const resposta = await fetch("/api/metricas", {
@@ -26,8 +80,8 @@ async function buscarMetricas() {
         preencherInsights(dados.insights || []);
 
     } catch (erro) {
-        console.error("Erro ao carregar dashboard:", erro);
-        alert("Não foi possível carregar os dados da dashboard.");
+        console.error("Erro ao carregar visão geral:", erro);
+        alert("Não foi possível carregar os dados da Visão Geral.");
     }
 }
 
@@ -132,19 +186,37 @@ function criarGraficoCategorias(dados) {
         return;
     }
 
+    const topCategorias = prepararTopCategorias(dados);
+
+    if (topCategorias.length === 0) {
+        renderizarEstadoVazioGrafico(
+            "grafico-categorias",
+            "Nenhum gasto por categoria no período."
+        );
+        return;
+    }
+
     new Chart(contexto, {
         type: "doughnut",
 
         data: {
-            labels: dados.map(
+            labels: topCategorias.map(
                 item => item.categoria
             ),
 
             datasets: [
                 {
-                    data: dados.map(
+                    data: topCategorias.map(
                         item => Number(item.valor) || 0
-                    )
+                    ),
+                    backgroundColor: [
+                        "rgba(244, 63, 94, 0.75)",
+                        "rgba(59, 130, 246, 0.75)",
+                        "rgba(245, 158, 11, 0.75)",
+                        "rgba(20, 184, 166, 0.75)",
+                        "rgba(139, 92, 246, 0.75)"
+                    ],
+                    borderWidth: 0
                 }
             ]
         },
@@ -182,14 +254,15 @@ function criarGraficoTipos(dados) {
         return;
     }
 
-    const topCategorias = dados
-        .slice()
-        .sort(
-            (a, b) =>
-                (Number(b.valor) || 0) -
-                (Number(a.valor) || 0)
-        )
-        .slice(0, 5);
+    const topCategorias = prepararTopCategorias(dados);
+
+    if (topCategorias.length === 0) {
+        renderizarEstadoVazioGrafico(
+            "grafico-tipos",
+            "Nenhum gasto por categoria no período."
+        );
+        return;
+    }
 
     new Chart(contexto, {
         type: "bar",
@@ -271,9 +344,7 @@ function criarGraficoEvolucao(dados) {
 
         data: {
             labels: dados.map(
-                (item, index) =>
-                    item.mes_ano ||
-                    `Mês ${index + 1}`
+                item => formatarMesAno(item.mes_ano)
             ),
 
             datasets: [
@@ -929,7 +1000,7 @@ async function buscarResumoInvestimentosDashboard() {
 
     } catch (erro) {
         console.error(
-            "Erro ao carregar investimentos na Dashboard:",
+            "Erro ao carregar investimentos na Visão Geral:",
             erro
         );
 

@@ -38,6 +38,100 @@ def buscar_transacoes(usuario_id=None):
     return df
 
 
+def _normalizar_categoria(valor):
+    if valor is None:
+        return "Outros"
+
+    texto = str(valor).strip()
+    return texto or "Outros"
+
+
+def _preparar_gastos_por_categoria(df):
+    saidas = df[df['tipo'] == 'saida'].copy()
+    if saidas.empty:
+        return pd.DataFrame(columns=['categoria', 'valor'])
+
+    saidas['categoria'] = saidas['categoria'].apply(_normalizar_categoria)
+    gastos_por_categoria = (
+        saidas.groupby('categoria', as_index=False)['valor']
+        .sum()
+        .sort_values(by='valor', ascending=False, kind='stable')
+        .reset_index(drop=True)
+    )
+    return gastos_por_categoria
+
+
+def _preparar_evolucao_mensal(df):
+    colunas = ['mes_ano', 'entrada', 'saida', 'investimento', 'saldo']
+    periodo_atual = pd.Timestamp.today().to_period('M')
+    periodos = pd.period_range(end=periodo_atual, periods=5, freq='M')
+
+    if df.empty:
+        return pd.DataFrame([
+            {
+                'mes_ano': str(periodo),
+                'entrada': 0.0,
+                'saida': 0.0,
+                'investimento': 0.0,
+                'saldo': 0.0,
+            }
+            for periodo in periodos
+        ], columns=colunas)
+
+    df_local = df.copy()
+    df_local['data_transacao'] = pd.to_datetime(df_local['data_transacao'], errors='coerce')
+    df_local = df_local.dropna(subset=['data_transacao'])
+
+    if df_local.empty:
+        return pd.DataFrame([
+            {
+                'mes_ano': str(periodo),
+                'entrada': 0.0,
+                'saida': 0.0,
+                'investimento': 0.0,
+                'saldo': 0.0,
+            }
+            for periodo in periodos
+        ], columns=colunas)
+
+    df_local['mes_ano'] = df_local['data_transacao'].dt.to_period('M')
+    df_local = df_local[df_local['mes_ano'].isin(periodos)]
+
+    if df_local.empty:
+        return pd.DataFrame([
+            {
+                'mes_ano': str(periodo),
+                'entrada': 0.0,
+                'saida': 0.0,
+                'investimento': 0.0,
+                'saldo': 0.0,
+            }
+            for periodo in periodos
+        ], columns=colunas)
+
+    evolucao = (
+        df_local.groupby(['mes_ano', 'tipo'])['valor']
+        .sum()
+        .unstack(fill_value=0)
+        .reindex(periodos, fill_value=0)
+        .round(2)
+    )
+
+    for coluna in ['entrada', 'saida', 'investimento']:
+        if coluna not in evolucao.columns:
+            evolucao[coluna] = 0.0
+
+    evolucao = evolucao[['entrada', 'saida', 'investimento']]
+    evolucao['saldo'] = (
+        evolucao['entrada']
+        - evolucao['saida']
+        - evolucao['investimento']
+    )
+    evolucao = evolucao.reset_index()
+    evolucao['mes_ano'] = evolucao['mes_ano'].astype(str)
+    return evolucao[colunas]
+
+
 def calcular_resumo_financeiro(usuario_id=None):
     """
     Calcula o resumo financeiro geral.
@@ -78,11 +172,7 @@ def calcular_gastos_por_categoria(usuario_id=None):
     usuario_id = _resolver_usuario_id(usuario_id)
     df = buscar_transacoes(usuario_id=usuario_id)
     
-    # Filtra apenas saídas e agrupa por categoria
-    saidas = df[df['tipo'] == 'saida']
-    gastos_por_categoria = saidas.groupby('categoria')['valor'].sum().reset_index()
-    
-    return gastos_por_categoria
+    return _preparar_gastos_por_categoria(df)
 
 
 def calcular_movimento_por_tipo(usuario_id=None):
@@ -110,28 +200,8 @@ def calcular_evolucao_mensal(usuario_id=None):
     """
     usuario_id = _resolver_usuario_id(usuario_id)
 
-    # Busca as transações do usuário autenticado
     df = buscar_transacoes(usuario_id=usuario_id)
-    
-    # Extrai o mês e ano da data como texto
-    df['mes_ano'] = pd.to_datetime(df['data_transacao']).dt.to_period('M').astype(str)
-    
-    # Agrupa por mês e tipo
-    evolucao = df.groupby(['mes_ano', 'tipo'])['valor'].sum().unstack(fill_value=0)
-    
-    # Arredonda valores financeiros para 2 casas decimais
-    evolucao = evolucao.round(2)
-    
-    # Calcula o saldo mensal
-    if 'entrada' in evolucao.columns:
-        evolucao['saldo'] = evolucao.get('entrada', 0) - evolucao.get('saida', 0) - evolucao.get('investimento', 0)
-    else:
-        evolucao['saldo'] = 0
-    
-    # Reseta o índice para ter mes_ano como coluna
-    evolucao = evolucao.reset_index()
-    
-    return evolucao
+    return _preparar_evolucao_mensal(df)
 
 
 def gerar_metricas_dashboard(usuario_id=None):
@@ -158,26 +228,12 @@ def gerar_metricas_dashboard(usuario_id=None):
         'qtd_transacoes': len(df)
     }
     
-    # Calcula gastos por categoria
-    saidas = df[df['tipo'] == 'saida']
-    gastos_categoria = saidas.groupby('categoria')['valor'].sum().reset_index()
+    gastos_categoria = _preparar_gastos_por_categoria(df)
 
     # Calcula movimento por tipo
     movimento_tipo = df.groupby('tipo')['valor'].sum().reset_index()
 
-    # Calcula evolução mensal
-    if not df.empty:
-        df_local = df.copy()
-        df_local['mes_ano'] = pd.to_datetime(df_local['data_transacao']).dt.to_period('M').astype(str)
-        evolucao_mensal = df_local.groupby(['mes_ano', 'tipo'])['valor'].sum().unstack(fill_value=0)
-        evolucao_mensal = evolucao_mensal.round(2)
-        if 'entrada' in evolucao_mensal.columns:
-            evolucao_mensal['saldo'] = evolucao_mensal.get('entrada', 0) - evolucao_mensal.get('saida', 0) - evolucao_mensal.get('investimento', 0)
-        else:
-            evolucao_mensal['saldo'] = 0
-        evolucao_mensal = evolucao_mensal.reset_index()
-    else:
-        evolucao_mensal = pd.DataFrame()
+    evolucao_mensal = _preparar_evolucao_mensal(df)
     
     return {
         'resumo_financeiro': resumo,
