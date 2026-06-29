@@ -266,7 +266,10 @@ def api_upload():
 
         df = pd.read_csv(caminho_arquivo)
         df_tratado, contador_categorizadas = tratar_transacoes(df)
-        resultado_carga = carregar_transacoes_mysql(df_tratado)
+        resultado_carga = carregar_transacoes_mysql(
+            df_tratado,
+            usuario_id=1,
+        )
 
         return {
             "mensagem": "Planilha processada com sucesso.",
@@ -768,6 +771,9 @@ def api_resumo_investimentos():
             "erro": "Não foi possível gerar o resumo dos investimentos."
         }), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
+if __name__ == "__main__":
+    app.run(
+        host="127.0.0.1",
+        port=5001,
+        debug=True,
+    )

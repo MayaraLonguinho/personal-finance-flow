@@ -1,9 +1,10 @@
 # Módulo de categorização automática
 # Responsável por categorizar transações baseadas na descrição
 
-import unicodedata
 import json
+import unicodedata
 
+import pandas as pd
 
 def normalizar_descricao(descricao):
     """
