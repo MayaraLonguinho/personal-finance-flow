@@ -54,6 +54,7 @@ def obter_regras_categorizacao():
         'casa': ['aluguel', 'condomínio', 'condominio', 'energia', 'água', 'agua', 'internet', 'gás', 'gas', 'luz', 'telefone'],
         'salário': ['salário', 'salario', 'pagamento', 'freelance', 'honorários', 'honorarios', 'proventos'],
         'investimentos': ['tesouro', 'cdb', 'fundo', 'ações', 'acoes', 'renda', 'aplicação', 'aplicacao', 'bolsa'],
+        'educação': ['curso', 'escola', 'faculdade', 'universidade', 'livro', 'livros', 'material', 'bootcamp', 'plataforma'],
         'outros': []
     }
 

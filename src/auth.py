@@ -20,6 +20,8 @@ def criar_usuario(nome, email, telefone, senha):
         dict: Dicionário com sucesso ou erro
     """
     try:
+        from src.categorias import inicializar_categorias_padrao
+        
         engine = obter_engine()
         
         # Verifica se o email já existe
@@ -47,7 +49,14 @@ def criar_usuario(nome, email, telefone, senha):
             })
             conn.commit()
         
-        return {'sucesso': True, 'mensagem': 'Usuário criado com sucesso', 'id': result.lastrowid}
+        usuario_id = result.lastrowid
+        
+        # Inicializa categorias padrão para o novo usuário
+        resultado_categorias = inicializar_categorias_padrao(usuario_id=usuario_id)
+        if not resultado_categorias['sucesso']:
+            return {'sucesso': False, 'erro': f'Usuário criado, mas erro ao inicializar categorias: {resultado_categorias["erro"]}'}
+        
+        return {'sucesso': True, 'mensagem': 'Usuário criado com sucesso', 'id': usuario_id}
         
     except Exception as e:
         return {'sucesso': False, 'erro': str(e)}
