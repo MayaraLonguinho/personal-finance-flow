@@ -1,0 +1,345 @@
+data,descricao,categoria,tipo,valor,conta,instituicao,status
+2026-01-01,Café de confraternização de ano novo,Alimentação,saida,48.50,Carteira digital,Carteira Nuvem,confirmado
+2026-01-02,Pagamento aluguel residencial janeiro,Aluguel,saida,3200.00,Conta corrente,Banco Aurora,confirmado
+2026-01-03,Mercado da semana 1 janeiro,Mercado,saida,326.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-04,Padaria e café da manhã 1 janeiro,Alimentação,saida,38.60,Carteira digital,Carteira Nuvem,confirmado
+2026-01-05,Abastecimento veículo 1 janeiro,Combustível,saida,238.50,Cartão de crédito,Banco Aurora,confirmado
+2026-01-06,Plano de saúde familiar janeiro,Saúde,saida,950.00,Conta corrente,Banco Aurora,confirmado
+2026-01-06,Aplicativo de transporte corrida 1 janeiro,Aplicativos de transporte,saida,29.30,Carteira digital,Carteira Nuvem,confirmado
+2026-01-07,Salário principal janeiro,Salário,entrada,12500.00,Conta corrente,Banco Aurora,confirmado
+2026-01-07,Salário complementar janeiro,Salário,entrada,5000.00,Conta corrente,Banco Horizonte,confirmado
+2026-01-07,Restaurante no fim de semana 1 janeiro,Restaurantes,saida,124.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-08,Condomínio residencial janeiro,Condomínio,saida,720.00,Conta corrente,Banco Aurora,confirmado
+2026-01-08,Delivery jantar 1 janeiro,Delivery,saida,82.20,Carteira digital,Carteira Nuvem,confirmado
+2026-01-09,Mensalidade escolar janeiro,Educação,saida,850.00,Conta corrente,Banco Horizonte,confirmado
+2026-01-09,Mercado da semana 2 janeiro,Mercado,saida,284.70,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-10,Conta de água janeiro,Água,saida,148.30,Conta corrente,Banco Aurora,confirmado
+2026-01-10,Farmácia medicamentos básicos janeiro,Farmácia,saida,94.70,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-10,Parcela anual de IPTU,Impostos,saida,920.00,Conta corrente,Banco Aurora,confirmado
+2026-01-11,Conta de energia elétrica janeiro,Energia elétrica,saida,336.70,Conta corrente,Banco Aurora,confirmado
+2026-01-11,Aplicativo de transporte corrida 2 janeiro,Aplicativos de transporte,saida,38.70,Carteira digital,Carteira Nuvem,confirmado
+2026-01-12,Plano de internet fibra janeiro,Internet,saida,139.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-12,Abastecimento veículo 2 janeiro,Combustível,saida,221.40,Cartão de crédito,Banco Aurora,confirmado
+2026-01-13,Plano de telefone móvel janeiro,Telefone,saida,119.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-13,Restaurante no fim de semana 2 janeiro,Restaurantes,saida,141.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-14,Seguro automotivo janeiro,Seguros,saida,284.60,Conta corrente,Banco Aurora,confirmado
+2026-01-14,Padaria e café da manhã 2 janeiro,Alimentação,saida,44.00,Carteira digital,Carteira Nuvem,confirmado
+2026-01-14,Aporte Tesouro Selic janeiro,Investimentos,investimento,1500.00,Conta investimentos,Corretora Atlas,confirmado
+2026-01-15,Curso de idiomas janeiro,Cursos,saida,149.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-15,Mercado da semana 3 janeiro,Mercado,saida,398.20,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-16,Assinatura de armazenamento em nuvem janeiro,Assinaturas,saida,34.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-16,Cinema em família janeiro,Cinema,saida,99.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-17,Streaming de filmes e séries janeiro,Streaming,saida,55.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-17,Aplicativo de transporte corrida 3 janeiro,Aplicativos de transporte,saida,48.10,Carteira digital,Carteira Nuvem,confirmado
+2026-01-18,Freelance projeto digital janeiro,Freelance,entrada,1450.00,Conta digital,Banco Horizonte,confirmado
+2026-01-18,Assinatura de música janeiro,Assinaturas,saida,21.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-18,Delivery jantar 2 janeiro,Delivery,saida,95.90,Carteira digital,Carteira Nuvem,confirmado
+2026-01-19,Recarga bilhete de transporte janeiro,Transporte,saida,220.00,Conta digital,Banco Horizonte,confirmado
+2026-01-19,Abastecimento veículo 3 janeiro,Combustível,saida,249.80,Cartão de crédito,Banco Aurora,confirmado
+2026-01-19,Aporte CDB janeiro,Investimentos,investimento,850.00,Conta investimentos,Corretora Atlas,confirmado
+2026-01-20,Parcela de empréstimo pessoal janeiro,Empréstimos,saida,480.00,Conta corrente,Banco Aurora,confirmado
+2026-01-20,Restaurante no fim de semana 3 janeiro,Restaurantes,saida,159.10,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-21,Anuidade do cartão de crédito janeiro,Cartão de crédito,saida,39.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-21,Mercado da semana 4 janeiro,Mercado,saida,251.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-22,Restituição de seguro residencial,Restituições,entrada,640.00,Conta corrente,Banco Aurora,confirmado
+2026-01-22,Passeio cultural janeiro,Lazer,saida,139.00,Carteira digital,Carteira Nuvem,confirmado
+2026-01-23,Farmácia itens de cuidado janeiro,Farmácia,saida,60.30,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-24,Padaria e café da manhã 3 janeiro,Alimentação,saida,49.40,Carteira digital,Carteira Nuvem,confirmado
+2026-01-25,Rendimentos de aplicações janeiro,Rendimentos,entrada,214.50,Conta investimentos,Corretora Atlas,confirmado
+2026-01-25,Reparo hidráulico residencial,Moradia,saida,480.00,Conta corrente,Banco Aurora,confirmado
+2026-01-26,Delivery jantar 3 janeiro,Delivery,saida,109.60,Carteira digital,Carteira Nuvem,confirmado
+2026-01-26,Abastecimento veículo 4 janeiro,Combustível,saida,232.70,Cartão de crédito,Banco Aurora,confirmado
+2026-01-26,Aplicativo de transporte corrida 4 janeiro,Aplicativos de transporte,saida,57.50,Carteira digital,Carteira Nuvem,cancelado
+2026-01-26,Aporte reserva de emergência janeiro,Investimentos,investimento,600.00,Conta investimentos,Corretora Atlas,confirmado
+2026-01-27,Mercado da semana 5 janeiro,Mercado,saida,342.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-27,Restaurante no fim de semana 4 janeiro,Restaurantes,saida,176.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-01-27,Compra online aguardando entrega janeiro,Compras,saida,210.00,Cartão de crédito,Banco Horizonte,pendente
+2026-01-28,Cashback de compras janeiro,Cashback,entrada,96.20,Carteira digital,Carteira Nuvem,confirmado
+2026-01-29,Doação comunitária janeiro,Outros,saida,95.00,Conta digital,Banco Horizonte,confirmado
+2026-01-30,Compra de roupas de verão,Vestuário,saida,420.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-02,Pagamento aluguel residencial fevereiro,Aluguel,saida,3200.00,Conta corrente,Banco Aurora,confirmado
+2026-02-03,Mercado da semana 1 fevereiro,Mercado,saida,309.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-04,Padaria e café da manhã 1 fevereiro,Alimentação,saida,40.70,Carteira digital,Carteira Nuvem,confirmado
+2026-02-05,Abastecimento veículo 1 fevereiro,Combustível,saida,225.90,Cartão de crédito,Banco Aurora,confirmado
+2026-02-06,Salário principal fevereiro,Salário,entrada,12500.00,Conta corrente,Banco Aurora,confirmado
+2026-02-06,Salário complementar fevereiro,Salário,entrada,5000.00,Conta corrente,Banco Horizonte,confirmado
+2026-02-06,Plano de saúde familiar fevereiro,Saúde,saida,950.00,Conta corrente,Banco Aurora,confirmado
+2026-02-06,Aplicativo de transporte corrida 1 fevereiro,Aplicativos de transporte,saida,31.10,Carteira digital,Carteira Nuvem,confirmado
+2026-02-07,Restaurante no fim de semana 1 fevereiro,Restaurantes,saida,131.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-08,Condomínio residencial fevereiro,Condomínio,saida,720.00,Conta corrente,Banco Aurora,confirmado
+2026-02-08,Delivery jantar 1 fevereiro,Delivery,saida,86.40,Carteira digital,Carteira Nuvem,confirmado
+2026-02-09,Mensalidade escolar fevereiro,Educação,saida,850.00,Conta corrente,Banco Horizonte,confirmado
+2026-02-09,Mercado da semana 2 fevereiro,Mercado,saida,275.30,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-09,Material escolar complementar,Compras,saida,560.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-10,Conta de água fevereiro,Água,saida,153.80,Conta corrente,Banco Aurora,confirmado
+2026-02-10,Farmácia medicamentos básicos fevereiro,Farmácia,saida,103.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-11,Conta de energia elétrica fevereiro,Energia elétrica,saida,358.40,Conta corrente,Banco Aurora,confirmado
+2026-02-11,Aplicativo de transporte corrida 2 fevereiro,Aplicativos de transporte,saida,40.50,Carteira digital,Carteira Nuvem,confirmado
+2026-02-12,Plano de internet fibra fevereiro,Internet,saida,139.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-12,Abastecimento veículo 2 fevereiro,Combustível,saida,240.30,Cartão de crédito,Banco Aurora,confirmado
+2026-02-13,Plano de telefone móvel fevereiro,Telefone,saida,119.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-13,Restaurante no fim de semana 2 fevereiro,Restaurantes,saida,148.30,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-14,Seguro automotivo fevereiro,Seguros,saida,284.60,Conta corrente,Banco Aurora,confirmado
+2026-02-14,Padaria e café da manhã 2 fevereiro,Alimentação,saida,46.10,Carteira digital,Carteira Nuvem,confirmado
+2026-02-14,Aporte Tesouro Selic fevereiro,Investimentos,investimento,1200.00,Conta investimentos,Corretora Atlas,confirmado
+2026-02-15,Curso de idiomas fevereiro,Cursos,saida,149.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-15,Mercado da semana 3 fevereiro,Mercado,saida,365.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-16,Assinatura de armazenamento em nuvem fevereiro,Assinaturas,saida,34.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-16,Cinema em família fevereiro,Cinema,saida,103.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-17,Streaming de filmes e séries fevereiro,Streaming,saida,55.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-17,Aplicativo de transporte corrida 3 fevereiro,Aplicativos de transporte,saida,49.90,Carteira digital,Carteira Nuvem,confirmado
+2026-02-18,Freelance projeto digital fevereiro,Freelance,entrada,980.00,Conta digital,Banco Horizonte,confirmado
+2026-02-18,Assinatura de música fevereiro,Assinaturas,saida,21.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-18,Delivery jantar 2 fevereiro,Delivery,saida,100.10,Carteira digital,Carteira Nuvem,confirmado
+2026-02-19,Recarga bilhete de transporte fevereiro,Transporte,saida,220.00,Conta digital,Banco Horizonte,confirmado
+2026-02-19,Abastecimento veículo 3 fevereiro,Combustível,saida,218.60,Cartão de crédito,Banco Aurora,confirmado
+2026-02-19,Compra de ETF fevereiro,Investimentos,investimento,1000.00,Conta investimentos,Corretora Atlas,confirmado
+2026-02-20,Parcela de empréstimo pessoal fevereiro,Empréstimos,saida,480.00,Conta corrente,Banco Aurora,confirmado
+2026-02-20,Restaurante no fim de semana 3 fevereiro,Restaurantes,saida,165.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-21,Anuidade do cartão de crédito fevereiro,Cartão de crédito,saida,39.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-21,Mercado da semana 4 fevereiro,Mercado,saida,289.10,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-21,Revisão preventiva do veículo,Manutenção,saida,780.00,Conta corrente,Banco Aurora,confirmado
+2026-02-22,Passeio cultural fevereiro,Lazer,saida,146.00,Carteira digital,Carteira Nuvem,confirmado
+2026-02-23,Farmácia itens de cuidado fevereiro,Farmácia,saida,66.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-24,Venda de móvel usado,Outras entradas,entrada,780.00,Conta digital,Banco Horizonte,confirmado
+2026-02-24,Padaria e café da manhã 3 fevereiro,Alimentação,saida,51.50,Carteira digital,Carteira Nuvem,confirmado
+2026-02-25,Rendimentos de aplicações fevereiro,Rendimentos,entrada,226.80,Conta investimentos,Corretora Atlas,confirmado
+2026-02-26,Delivery jantar 3 fevereiro,Delivery,saida,113.80,Carteira digital,Carteira Nuvem,confirmado
+2026-02-26,Abastecimento veículo 4 fevereiro,Combustível,saida,247.10,Cartão de crédito,Banco Aurora,confirmado
+2026-02-26,Aplicativo de transporte corrida 4 fevereiro,Aplicativos de transporte,saida,59.30,Carteira digital,Carteira Nuvem,cancelado
+2026-02-26,Aporte viagem fevereiro,Investimentos,investimento,650.00,Conta investimentos,Corretora Atlas,confirmado
+2026-02-27,Mercado da semana 5 fevereiro,Mercado,saida,331.70,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-27,Restaurante no fim de semana 4 fevereiro,Restaurantes,saida,182.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-02-27,Compra online aguardando entrega fevereiro,Compras,saida,231.00,Cartão de crédito,Banco Horizonte,pendente
+2026-02-28,Cashback de compras fevereiro,Cashback,entrada,112.40,Carteira digital,Carteira Nuvem,confirmado
+2026-02-28,Doação comunitária fevereiro,Outros,saida,100.00,Conta digital,Banco Horizonte,confirmado
+2026-02-28,Consulta odontológica,Saúde,saida,350.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-02,Pagamento aluguel residencial março,Aluguel,saida,3200.00,Conta corrente,Banco Aurora,confirmado
+2026-03-03,Mercado da semana 1 março,Mercado,saida,347.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-04,Padaria e café da manhã 1 março,Alimentação,saida,42.80,Carteira digital,Carteira Nuvem,confirmado
+2026-03-05,Abastecimento veículo 1 março,Combustível,saida,244.20,Cartão de crédito,Banco Aurora,confirmado
+2026-03-06,Salário principal março,Salário,entrada,12500.00,Conta corrente,Banco Aurora,confirmado
+2026-03-06,Salário complementar março,Salário,entrada,5000.00,Conta corrente,Banco Horizonte,confirmado
+2026-03-06,Plano de saúde familiar março,Saúde,saida,950.00,Conta corrente,Banco Aurora,confirmado
+2026-03-06,Aplicativo de transporte corrida 1 março,Aplicativos de transporte,saida,32.90,Carteira digital,Carteira Nuvem,confirmado
+2026-03-07,Restaurante no fim de semana 1 março,Restaurantes,saida,137.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-08,Condomínio residencial março,Condomínio,saida,720.00,Conta corrente,Banco Aurora,confirmado
+2026-03-08,Delivery jantar 1 março,Delivery,saida,90.60,Carteira digital,Carteira Nuvem,confirmado
+2026-03-09,Mensalidade escolar março,Educação,saida,850.00,Conta corrente,Banco Horizonte,confirmado
+2026-03-09,Mercado da semana 2 março,Mercado,saida,298.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-10,Conta de água março,Água,saida,146.20,Conta corrente,Banco Aurora,confirmado
+2026-03-10,Farmácia medicamentos básicos março,Farmácia,saida,111.30,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-11,Conta de energia elétrica março,Energia elétrica,saida,312.90,Conta corrente,Banco Aurora,confirmado
+2026-03-11,Aplicativo de transporte corrida 2 março,Aplicativos de transporte,saida,42.30,Carteira digital,Carteira Nuvem,confirmado
+2026-03-12,Bônus por desempenho,Bônus,entrada,2500.00,Conta corrente,Banco Aurora,confirmado
+2026-03-12,Plano de internet fibra março,Internet,saida,139.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-12,Abastecimento veículo 2 março,Combustível,saida,229.80,Cartão de crédito,Banco Aurora,confirmado
+2026-03-13,Plano de telefone móvel março,Telefone,saida,119.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-13,Restaurante no fim de semana 2 março,Restaurantes,saida,154.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-14,Seguro automotivo março,Seguros,saida,284.60,Conta corrente,Banco Aurora,confirmado
+2026-03-14,Padaria e café da manhã 2 março,Alimentação,saida,48.20,Carteira digital,Carteira Nuvem,confirmado
+2026-03-14,Aporte Tesouro Selic março,Investimentos,investimento,1800.00,Conta investimentos,Corretora Atlas,confirmado
+2026-03-15,Curso de idiomas março,Cursos,saida,149.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-15,Mercado da semana 3 março,Mercado,saida,382.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-15,Parcela anual de IPVA,Impostos,saida,1280.00,Conta corrente,Banco Aurora,confirmado
+2026-03-16,Assinatura de armazenamento em nuvem março,Assinaturas,saida,34.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-16,Cinema em família março,Cinema,saida,106.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-17,Streaming de filmes e séries março,Streaming,saida,55.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-17,Aplicativo de transporte corrida 3 março,Aplicativos de transporte,saida,51.70,Carteira digital,Carteira Nuvem,confirmado
+2026-03-18,Freelance projeto digital março,Freelance,entrada,1850.00,Conta digital,Banco Horizonte,confirmado
+2026-03-18,Assinatura de música março,Assinaturas,saida,21.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-18,Delivery jantar 2 março,Delivery,saida,104.30,Carteira digital,Carteira Nuvem,confirmado
+2026-03-19,Recarga bilhete de transporte março,Transporte,saida,220.00,Conta digital,Banco Horizonte,confirmado
+2026-03-19,Abastecimento veículo 3 março,Combustível,saida,252.40,Cartão de crédito,Banco Aurora,confirmado
+2026-03-19,Compra de ações março,Investimentos,investimento,700.00,Conta investimentos,Corretora Atlas,confirmado
+2026-03-20,Parcela de empréstimo pessoal março,Empréstimos,saida,480.00,Conta corrente,Banco Aurora,confirmado
+2026-03-20,Restaurante no fim de semana 3 março,Restaurantes,saida,172.10,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-21,Anuidade do cartão de crédito março,Cartão de crédito,saida,39.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-21,Mercado da semana 4 março,Mercado,saida,267.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-22,Passeio cultural março,Lazer,saida,153.00,Carteira digital,Carteira Nuvem,confirmado
+2026-03-23,Farmácia itens de cuidado março,Farmácia,saida,72.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-24,Padaria e café da manhã 3 março,Alimentação,saida,53.60,Carteira digital,Carteira Nuvem,confirmado
+2026-03-24,Compra de vestuário profissional,Vestuário,saida,690.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-25,Rendimentos de aplicações março,Rendimentos,entrada,239.10,Conta investimentos,Corretora Atlas,confirmado
+2026-03-26,Delivery jantar 3 março,Delivery,saida,118.00,Carteira digital,Carteira Nuvem,confirmado
+2026-03-26,Abastecimento veículo 4 março,Combustível,saida,236.90,Cartão de crédito,Banco Aurora,confirmado
+2026-03-26,Aplicativo de transporte corrida 4 março,Aplicativos de transporte,saida,61.10,Carteira digital,Carteira Nuvem,cancelado
+2026-03-26,Aporte entrada do imóvel março,Investimentos,investimento,600.00,Conta investimentos,Corretora Atlas,confirmado
+2026-03-27,Mercado da semana 5 março,Mercado,saida,354.20,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-27,Restaurante no fim de semana 4 março,Restaurantes,saida,189.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-03-27,Compra online aguardando entrega março,Compras,saida,252.00,Cartão de crédito,Banco Horizonte,pendente
+2026-03-28,Cashback de compras março,Cashback,entrada,88.70,Carteira digital,Carteira Nuvem,confirmado
+2026-03-28,Manutenção de eletrodoméstico,Manutenção,saida,420.00,Conta corrente,Banco Aurora,confirmado
+2026-03-29,Doação comunitária março,Outros,saida,105.00,Conta digital,Banco Horizonte,confirmado
+2026-04-02,Pagamento aluguel residencial abril,Aluguel,saida,3200.00,Conta corrente,Banco Aurora,confirmado
+2026-04-03,Mercado da semana 1 abril,Mercado,saida,318.20,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-04,Padaria e café da manhã 1 abril,Alimentação,saida,44.90,Carteira digital,Carteira Nuvem,confirmado
+2026-04-04,Viagem curta de feriado,Viagens,saida,1350.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-05,Abastecimento veículo 1 abril,Combustível,saida,231.70,Cartão de crédito,Banco Aurora,confirmado
+2026-04-06,Plano de saúde familiar abril,Saúde,saida,950.00,Conta corrente,Banco Aurora,confirmado
+2026-04-06,Aplicativo de transporte corrida 1 abril,Aplicativos de transporte,saida,34.70,Carteira digital,Carteira Nuvem,confirmado
+2026-04-07,Salário principal abril,Salário,entrada,12500.00,Conta corrente,Banco Aurora,confirmado
+2026-04-07,Salário complementar abril,Salário,entrada,5000.00,Conta corrente,Banco Horizonte,confirmado
+2026-04-07,Restaurante no fim de semana 1 abril,Restaurantes,saida,144.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-08,Condomínio residencial abril,Condomínio,saida,720.00,Conta corrente,Banco Aurora,confirmado
+2026-04-08,Delivery jantar 1 abril,Delivery,saida,94.80,Carteira digital,Carteira Nuvem,confirmado
+2026-04-09,Mensalidade escolar abril,Educação,saida,850.00,Conta corrente,Banco Horizonte,confirmado
+2026-04-09,Mercado da semana 2 abril,Mercado,saida,286.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-10,Conta de água abril,Água,saida,159.40,Conta corrente,Banco Aurora,confirmado
+2026-04-10,Farmácia medicamentos básicos abril,Farmácia,saida,119.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-11,Conta de energia elétrica abril,Energia elétrica,saida,289.60,Conta corrente,Banco Aurora,confirmado
+2026-04-11,Aplicativo de transporte corrida 2 abril,Aplicativos de transporte,saida,44.10,Carteira digital,Carteira Nuvem,confirmado
+2026-04-12,Plano de internet fibra abril,Internet,saida,139.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-12,Abastecimento veículo 2 abril,Combustível,saida,246.50,Cartão de crédito,Banco Aurora,confirmado
+2026-04-13,Plano de telefone móvel abril,Telefone,saida,119.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-13,Restaurante no fim de semana 2 abril,Restaurantes,saida,161.30,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-14,Seguro automotivo abril,Seguros,saida,284.60,Conta corrente,Banco Aurora,confirmado
+2026-04-14,Padaria e café da manhã 2 abril,Alimentação,saida,50.30,Carteira digital,Carteira Nuvem,confirmado
+2026-04-14,Aporte Tesouro Selic abril,Investimentos,investimento,1300.00,Conta investimentos,Corretora Atlas,confirmado
+2026-04-15,Curso de idiomas abril,Cursos,saida,149.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-15,Mercado da semana 3 abril,Mercado,saida,371.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-16,Assinatura de armazenamento em nuvem abril,Assinaturas,saida,34.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-16,Cinema em família abril,Cinema,saida,110.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-17,Streaming de filmes e séries abril,Streaming,saida,55.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-17,Aplicativo de transporte corrida 3 abril,Aplicativos de transporte,saida,53.50,Carteira digital,Carteira Nuvem,confirmado
+2026-04-18,Freelance projeto digital abril,Freelance,entrada,1200.00,Conta digital,Banco Horizonte,confirmado
+2026-04-18,Assinatura de música abril,Assinaturas,saida,21.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-18,Delivery jantar 2 abril,Delivery,saida,108.50,Carteira digital,Carteira Nuvem,confirmado
+2026-04-18,Consulta médica especializada,Saúde,saida,480.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-19,Recarga bilhete de transporte abril,Transporte,saida,220.00,Conta digital,Banco Horizonte,confirmado
+2026-04-19,Abastecimento veículo 3 abril,Combustível,saida,224.90,Cartão de crédito,Banco Aurora,confirmado
+2026-04-19,Fundo de investimento abril,Investimentos,investimento,1100.00,Conta investimentos,Corretora Atlas,confirmado
+2026-04-20,Parcela de empréstimo pessoal abril,Empréstimos,saida,480.00,Conta corrente,Banco Aurora,confirmado
+2026-04-20,Restaurante no fim de semana 3 abril,Restaurantes,saida,178.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-21,Reembolso de curso profissional,Restituições,entrada,890.00,Conta corrente,Banco Aurora,confirmado
+2026-04-21,Anuidade do cartão de crédito abril,Cartão de crédito,saida,39.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-21,Mercado da semana 4 abril,Mercado,saida,295.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-22,Passeio cultural abril,Lazer,saida,160.00,Carteira digital,Carteira Nuvem,confirmado
+2026-04-23,Farmácia itens de cuidado abril,Farmácia,saida,78.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-24,Padaria e café da manhã 3 abril,Alimentação,saida,55.70,Carteira digital,Carteira Nuvem,confirmado
+2026-04-25,Rendimentos de aplicações abril,Rendimentos,entrada,245.60,Conta investimentos,Corretora Atlas,confirmado
+2026-04-25,Compra de utensílios domésticos,Moradia,saida,390.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-26,Delivery jantar 3 abril,Delivery,saida,122.20,Carteira digital,Carteira Nuvem,confirmado
+2026-04-26,Abastecimento veículo 4 abril,Combustível,saida,250.20,Cartão de crédito,Banco Aurora,confirmado
+2026-04-26,Aplicativo de transporte corrida 4 abril,Aplicativos de transporte,saida,62.90,Carteira digital,Carteira Nuvem,cancelado
+2026-04-26,Aporte educação abril,Investimentos,investimento,700.00,Conta investimentos,Corretora Atlas,confirmado
+2026-04-27,Mercado da semana 5 abril,Mercado,saida,339.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-27,Restaurante no fim de semana 4 abril,Restaurantes,saida,195.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-04-27,Compra online aguardando entrega abril,Compras,saida,273.00,Cartão de crédito,Banco Horizonte,pendente
+2026-04-28,Cashback de compras abril,Cashback,entrada,129.30,Carteira digital,Carteira Nuvem,confirmado
+2026-04-29,Doação comunitária abril,Outros,saida,110.00,Conta digital,Banco Horizonte,confirmado
+2026-05-02,Pagamento aluguel residencial maio,Aluguel,saida,3200.00,Conta corrente,Banco Aurora,confirmado
+2026-05-03,Mercado da semana 1 maio,Mercado,saida,352.70,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-04,Padaria e café da manhã 1 maio,Alimentação,saida,47.00,Carteira digital,Carteira Nuvem,confirmado
+2026-05-05,Abastecimento veículo 1 maio,Combustível,saida,248.30,Cartão de crédito,Banco Aurora,confirmado
+2026-05-06,Plano de saúde familiar maio,Saúde,saida,950.00,Conta corrente,Banco Aurora,confirmado
+2026-05-06,Aplicativo de transporte corrida 1 maio,Aplicativos de transporte,saida,36.50,Carteira digital,Carteira Nuvem,confirmado
+2026-05-07,Salário principal maio,Salário,entrada,12500.00,Conta corrente,Banco Aurora,confirmado
+2026-05-07,Salário complementar maio,Salário,entrada,5000.00,Conta corrente,Banco Horizonte,confirmado
+2026-05-07,Restaurante no fim de semana 1 maio,Restaurantes,saida,150.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-08,Condomínio residencial maio,Condomínio,saida,720.00,Conta corrente,Banco Aurora,confirmado
+2026-05-08,Delivery jantar 1 maio,Delivery,saida,99.00,Carteira digital,Carteira Nuvem,confirmado
+2026-05-09,Mensalidade escolar maio,Educação,saida,850.00,Conta corrente,Banco Horizonte,confirmado
+2026-05-09,Mercado da semana 2 maio,Mercado,saida,307.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-10,Conta de água maio,Água,saida,162.10,Conta corrente,Banco Aurora,confirmado
+2026-05-10,Farmácia medicamentos básicos maio,Farmácia,saida,127.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-11,Conta de energia elétrica maio,Energia elétrica,saida,271.80,Conta corrente,Banco Aurora,confirmado
+2026-05-11,Aplicativo de transporte corrida 2 maio,Aplicativos de transporte,saida,45.90,Carteira digital,Carteira Nuvem,confirmado
+2026-05-11,Presente de data comemorativa,Compras,saida,520.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-12,Plano de internet fibra maio,Internet,saida,139.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-12,Abastecimento veículo 2 maio,Combustível,saida,234.60,Cartão de crédito,Banco Aurora,confirmado
+2026-05-13,Plano de telefone móvel maio,Telefone,saida,119.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-13,Restaurante no fim de semana 2 maio,Restaurantes,saida,167.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-14,Seguro automotivo maio,Seguros,saida,284.60,Conta corrente,Banco Aurora,confirmado
+2026-05-14,Padaria e café da manhã 2 maio,Alimentação,saida,52.40,Carteira digital,Carteira Nuvem,confirmado
+2026-05-14,Aporte Tesouro Selic maio,Investimentos,investimento,2000.00,Conta investimentos,Corretora Atlas,confirmado
+2026-05-15,Curso de idiomas maio,Cursos,saida,149.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-15,Mercado da semana 3 maio,Mercado,saida,389.10,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-16,Assinatura de armazenamento em nuvem maio,Assinaturas,saida,34.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-16,Cinema em família maio,Cinema,saida,113.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-17,Streaming de filmes e séries maio,Streaming,saida,55.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-17,Aplicativo de transporte corrida 3 maio,Aplicativos de transporte,saida,55.30,Carteira digital,Carteira Nuvem,confirmado
+2026-05-18,Freelance projeto digital maio,Freelance,entrada,2100.00,Conta digital,Banco Horizonte,confirmado
+2026-05-18,Assinatura de música maio,Assinaturas,saida,21.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-18,Delivery jantar 2 maio,Delivery,saida,112.70,Carteira digital,Carteira Nuvem,confirmado
+2026-05-19,Recarga bilhete de transporte maio,Transporte,saida,220.00,Conta digital,Banco Horizonte,confirmado
+2026-05-19,Abastecimento veículo 3 maio,Combustível,saida,255.10,Cartão de crédito,Banco Aurora,confirmado
+2026-05-19,Compra de ETF maio,Investimentos,investimento,800.00,Conta investimentos,Corretora Atlas,confirmado
+2026-05-20,Restituição de imposto de renda,Restituições,entrada,1650.00,Conta corrente,Banco Aurora,confirmado
+2026-05-20,Parcela de empréstimo pessoal maio,Empréstimos,saida,480.00,Conta corrente,Banco Aurora,confirmado
+2026-05-20,Restaurante no fim de semana 3 maio,Restaurantes,saida,185.10,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-21,Anuidade do cartão de crédito maio,Cartão de crédito,saida,39.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-21,Mercado da semana 4 maio,Mercado,saida,274.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-22,Passeio cultural maio,Lazer,saida,167.00,Carteira digital,Carteira Nuvem,confirmado
+2026-05-22,Troca de pneus do veículo,Manutenção,saida,1480.00,Conta corrente,Banco Aurora,confirmado
+2026-05-23,Farmácia itens de cuidado maio,Farmácia,saida,84.70,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-24,Padaria e café da manhã 3 maio,Alimentação,saida,57.80,Carteira digital,Carteira Nuvem,confirmado
+2026-05-25,Rendimentos de aplicações maio,Rendimentos,entrada,258.90,Conta investimentos,Corretora Atlas,confirmado
+2026-05-26,Delivery jantar 3 maio,Delivery,saida,126.40,Carteira digital,Carteira Nuvem,confirmado
+2026-05-26,Abastecimento veículo 4 maio,Combustível,saida,241.80,Cartão de crédito,Banco Aurora,confirmado
+2026-05-26,Aplicativo de transporte corrida 4 maio,Aplicativos de transporte,saida,64.70,Carteira digital,Carteira Nuvem,cancelado
+2026-05-26,Aporte compra de veículo maio,Investimentos,investimento,750.00,Conta investimentos,Corretora Atlas,confirmado
+2026-05-27,Mercado da semana 5 maio,Mercado,saida,361.30,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-27,Restaurante no fim de semana 4 maio,Restaurantes,saida,202.40,Cartão de crédito,Banco Horizonte,confirmado
+2026-05-27,Compra online aguardando entrega maio,Compras,saida,294.00,Cartão de crédito,Banco Horizonte,pendente
+2026-05-28,Cashback de compras maio,Cashback,entrada,104.80,Carteira digital,Carteira Nuvem,confirmado
+2026-05-29,Doação comunitária maio,Outros,saida,115.00,Conta digital,Banco Horizonte,confirmado
+2026-05-30,Seguro residencial anual,Seguros,saida,460.00,Conta corrente,Banco Aurora,confirmado
+2026-06-02,Pagamento aluguel residencial junho,Aluguel,saida,3200.00,Conta corrente,Banco Aurora,confirmado
+2026-06-03,Mercado da semana 1 junho,Mercado,saida,329.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-04,Padaria e café da manhã 1 junho,Alimentação,saida,49.10,Carteira digital,Carteira Nuvem,confirmado
+2026-06-05,Salário principal junho,Salário,entrada,12500.00,Conta corrente,Banco Aurora,confirmado
+2026-06-05,Salário complementar junho,Salário,entrada,5000.00,Conta corrente,Banco Horizonte,confirmado
+2026-06-05,Abastecimento veículo 1 junho,Combustível,saida,239.40,Cartão de crédito,Banco Aurora,confirmado
+2026-06-06,Plano de saúde familiar junho,Saúde,saida,950.00,Conta corrente,Banco Aurora,confirmado
+2026-06-06,Aplicativo de transporte corrida 1 junho,Aplicativos de transporte,saida,38.30,Carteira digital,Carteira Nuvem,confirmado
+2026-06-07,Restaurante no fim de semana 1 junho,Restaurantes,saida,157.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-08,Condomínio residencial junho,Condomínio,saida,720.00,Conta corrente,Banco Aurora,confirmado
+2026-06-08,Delivery jantar 1 junho,Delivery,saida,103.20,Carteira digital,Carteira Nuvem,confirmado
+2026-06-08,Passagens para viagem de férias,Viagens,saida,1850.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-09,Mensalidade escolar junho,Educação,saida,850.00,Conta corrente,Banco Horizonte,confirmado
+2026-06-09,Mercado da semana 2 junho,Mercado,saida,291.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-10,Conta de água junho,Água,saida,155.60,Conta corrente,Banco Aurora,confirmado
+2026-06-10,Farmácia medicamentos básicos junho,Farmácia,saida,136.20,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-11,Conta de energia elétrica junho,Energia elétrica,saida,298.50,Conta corrente,Banco Aurora,pendente
+2026-06-11,Aplicativo de transporte corrida 2 junho,Aplicativos de transporte,saida,47.70,Carteira digital,Carteira Nuvem,confirmado
+2026-06-12,Plano de internet fibra junho,Internet,saida,139.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-12,Abastecimento veículo 2 junho,Combustível,saida,251.70,Cartão de crédito,Banco Aurora,confirmado
+2026-06-13,Plano de telefone móvel junho,Telefone,saida,119.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-13,Restaurante no fim de semana 2 junho,Restaurantes,saida,174.30,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-14,Seguro automotivo junho,Seguros,saida,284.60,Conta corrente,Banco Aurora,confirmado
+2026-06-14,Padaria e café da manhã 2 junho,Alimentação,saida,54.50,Carteira digital,Carteira Nuvem,confirmado
+2026-06-14,Aporte Tesouro Selic junho,Investimentos,investimento,1400.00,Conta investimentos,Corretora Atlas,confirmado
+2026-06-15,Curso de idiomas junho,Cursos,saida,149.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-15,Mercado da semana 3 junho,Mercado,saida,376.20,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-16,Assinatura de armazenamento em nuvem junho,Assinaturas,saida,34.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-16,Cinema em família junho,Cinema,saida,117.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-17,Streaming de filmes e séries junho,Streaming,saida,55.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-17,Aplicativo de transporte corrida 3 junho,Aplicativos de transporte,saida,57.10,Carteira digital,Carteira Nuvem,confirmado
+2026-06-18,Freelance projeto digital junho,Freelance,entrada,1650.00,Conta digital,Banco Horizonte,confirmado
+2026-06-18,Assinatura de música junho,Assinaturas,saida,21.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-18,Delivery jantar 2 junho,Delivery,saida,116.90,Carteira digital,Carteira Nuvem,confirmado
+2026-06-18,Hospedagem de viagem de férias,Viagens,saida,1420.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-19,Recarga bilhete de transporte junho,Transporte,saida,220.00,Conta digital,Banco Horizonte,confirmado
+2026-06-19,Abastecimento veículo 3 junho,Combustível,saida,228.50,Cartão de crédito,Banco Aurora,confirmado
+2026-06-19,Aporte CDB junho,Investimentos,investimento,1200.00,Conta investimentos,Corretora Atlas,confirmado
+2026-06-20,Parcela de empréstimo pessoal junho,Empréstimos,saida,480.00,Conta corrente,Banco Aurora,confirmado
+2026-06-20,Restaurante no fim de semana 3 junho,Restaurantes,saida,191.60,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-21,Anuidade do cartão de crédito junho,Cartão de crédito,saida,39.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-21,Mercado da semana 4 junho,Mercado,saida,303.70,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-22,Passeio cultural junho,Lazer,saida,174.00,Carteira digital,Carteira Nuvem,confirmado
+2026-06-23,Bônus semestral,Bônus,entrada,1800.00,Conta corrente,Banco Horizonte,confirmado
+2026-06-23,Farmácia itens de cuidado junho,Farmácia,saida,90.80,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-24,Padaria e café da manhã 3 junho,Alimentação,saida,59.90,Carteira digital,Carteira Nuvem,confirmado
+2026-06-25,Rendimentos de aplicações junho,Rendimentos,entrada,271.40,Conta investimentos,Corretora Atlas,confirmado
+2026-06-26,Delivery jantar 3 junho,Delivery,saida,130.60,Carteira digital,Carteira Nuvem,pendente
+2026-06-26,Abastecimento veículo 4 junho,Combustível,saida,246.90,Cartão de crédito,Banco Aurora,confirmado
+2026-06-26,Aplicativo de transporte corrida 4 junho,Aplicativos de transporte,saida,66.50,Carteira digital,Carteira Nuvem,cancelado
+2026-06-26,Previdência privada junho,Investimentos,investimento,800.00,Conta investimentos,Corretora Atlas,confirmado
+2026-06-27,Mercado da semana 5 junho,Mercado,saida,348.50,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-27,Restaurante no fim de semana 4 junho,Restaurantes,saida,208.90,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-27,Compra online aguardando entrega junho,Compras,saida,315.00,Cartão de crédito,Banco Horizonte,pendente
+2026-06-27,Compra de roupas de inverno,Vestuário,saida,610.00,Cartão de crédito,Banco Horizonte,confirmado
+2026-06-28,Cashback de compras junho,Cashback,entrada,118.60,Carteira digital,Carteira Nuvem,confirmado
+2026-06-29,Doação comunitária junho,Outros,saida,120.00,Conta digital,Banco Horizonte,confirmado
+2026-06-30,Rendimento adicional de fundo DI,Rendimentos,entrada,94.60,Conta investimentos,Corretora Atlas,confirmado
