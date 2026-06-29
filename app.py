@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for
 from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, gerar_insights
 from src.transform import tratar_transacoes
-from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine
+from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine, garantir_colunas_usuario
 from src.transacoes import buscar_todas_transacoes, criar_transacao, editar_transacao, excluir_transacao
 from src.metas import buscar_meta_ativa, criar_meta, atualizar_meta, excluir_meta
 from src.categorias import buscar_todas_categorias, criar_categoria, atualizar_categoria, excluir_categoria, obter_estatisticas_categoria, inicializar_categorias_padrao
@@ -21,6 +21,10 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 # Configura secret key para sessões
 app.secret_key = os.getenv('SECRET_KEY', 'chave-secreta-desenvolvimento-pff-2026')
+
+# Garante colunas de isolamento por usuário em bancos já existentes
+# antes de processar qualquer rota.
+garantir_colunas_usuario()
 
 # Decorator para exigir login
 def login_obrigatorio(f):
@@ -764,10 +768,12 @@ def api_relatorios():
     try:
         data_inicio = request.args.get("data_inicio")
         data_fim = request.args.get("data_fim")
+        usuario_id = session.get("usuario_id")
 
         relatorio = obter_relatorio(
             data_inicio=data_inicio,
-            data_fim=data_fim
+            data_fim=data_fim,
+            usuario_id=usuario_id,
         )
 
         return jsonify(relatorio), 200
@@ -790,9 +796,11 @@ def api_relatorios():
 def api_listar_investimentos():
     try:
         status = request.args.get("status")
+        usuario_id = session.get("usuario_id")
 
         investimentos = listar_investimentos(
-            status=status
+            status=status,
+            usuario_id=usuario_id,
         )
 
         return jsonify(investimentos), 200
@@ -819,8 +827,10 @@ def api_listar_investimentos():
 @login_obrigatorio
 def api_buscar_investimento(investimento_id):
     try:
+        usuario_id = session.get("usuario_id")
         investimento = buscar_investimento_por_id(
-            investimento_id
+            investimento_id,
+            usuario_id=usuario_id,
         )
 
         if not investimento:
@@ -845,6 +855,7 @@ def api_buscar_investimento(investimento_id):
 def api_criar_investimento():
     try:
         dados = request.get_json(silent=True)
+        usuario_id = session.get("usuario_id")
 
         if not dados:
             return jsonify({
@@ -852,7 +863,8 @@ def api_criar_investimento():
             }), 400
 
         investimento = criar_investimento(
-            dados
+            dados,
+            usuario_id=usuario_id,
         )
 
         return jsonify({
@@ -883,6 +895,7 @@ def api_criar_investimento():
 def api_atualizar_investimento(investimento_id):
     try:
         dados = request.get_json(silent=True)
+        usuario_id = session.get("usuario_id")
 
         if not dados:
             return jsonify({
@@ -892,6 +905,7 @@ def api_atualizar_investimento(investimento_id):
         investimento = atualizar_investimento(
             investimento_id,
             dados,
+            usuario_id=usuario_id,
         )
 
         if not investimento:
@@ -926,8 +940,10 @@ def api_atualizar_investimento(investimento_id):
 @login_obrigatorio
 def api_excluir_investimento(investimento_id):
     try:
+        usuario_id = session.get("usuario_id")
         investimento_excluido = excluir_investimento(
-            investimento_id
+            investimento_id,
+            usuario_id=usuario_id,
         )
 
         if not investimento_excluido:
@@ -956,7 +972,8 @@ def api_excluir_investimento(investimento_id):
 @login_obrigatorio
 def api_resumo_investimentos():
     try:
-        resumo = obter_resumo_investimentos()
+        usuario_id = session.get("usuario_id")
+        resumo = obter_resumo_investimentos(usuario_id=usuario_id)
 
         return jsonify(resumo), 200
 

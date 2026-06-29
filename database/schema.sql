@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS transacoes (
 -- Tabela de metas
 CREATE TABLE IF NOT EXISTS metas (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NULL,
     titulo VARCHAR(255) NOT NULL,
     valor_meta DECIMAL(10, 2) NOT NULL,
     valor_atual DECIMAL(10, 2) DEFAULT 0.00,
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS metas (
 -- Tabela de categorias
 CREATE TABLE IF NOT EXISTS categorias (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NULL,
     nome VARCHAR(100) NOT NULL UNIQUE,
     palavras_chave TEXT,
     cor VARCHAR(20),
@@ -41,6 +43,7 @@ CREATE TABLE IF NOT EXISTS categorias (
 -- tabela de investimentos
 CREATE TABLE IF NOT EXISTS investimentos (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NULL,
     nome VARCHAR(150) NOT NULL,
     tipo VARCHAR(80) NOT NULL,
     instituicao VARCHAR(120),

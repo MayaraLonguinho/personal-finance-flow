@@ -44,6 +44,7 @@ def validar_data(
 def obter_relatorio(
     data_inicio: Optional[str] = None,
     data_fim: Optional[str] = None,
+    usuario_id: Optional[int] = None,
 ) -> dict:
     data_inicio = validar_data(data_inicio)
     data_fim = validar_data(data_fim)
@@ -60,6 +61,10 @@ def obter_relatorio(
 
     filtros = []
     parametros = {}
+
+    if usuario_id is not None:
+        filtros.append("usuario_id = :usuario_id")
+        parametros["usuario_id"] = usuario_id
 
     if data_inicio:
         filtros.append(
@@ -245,7 +250,7 @@ def obter_relatorio(
         )
 
     resumo_investimentos = (
-        obter_resumo_investimentos()
+        obter_resumo_investimentos(usuario_id=usuario_id)
     )
 
     return {

@@ -213,6 +213,7 @@ def validar_dados_investimento(
 
 def listar_investimentos(
     status: Optional[str] = None,
+    usuario_id: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     parametros: Dict[str, Any] = {}
 
@@ -231,6 +232,7 @@ def listar_investimentos(
             criado_em,
             atualizado_em
         FROM investimentos
+        WHERE 1=1
     """
 
     if status:
@@ -241,8 +243,12 @@ def listar_investimentos(
                 "O status informado é inválido."
             )
 
-        consulta += " WHERE status = :status"
+        consulta += " AND status = :status"
         parametros["status"] = status_normalizado
+
+    if usuario_id is not None:
+        consulta += " AND usuario_id = :usuario_id"
+        parametros["usuario_id"] = usuario_id
 
     consulta += " ORDER BY data_aplicacao DESC, id DESC"
 
@@ -262,6 +268,7 @@ def listar_investimentos(
 
 def buscar_investimento_por_id(
     investimento_id: int,
+    usuario_id: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     consulta = text(
         """
@@ -280,18 +287,40 @@ def buscar_investimento_por_id(
             atualizado_em
         FROM investimentos
         WHERE id = :id
-        LIMIT 1
         """
     )
+
+    parametros = {"id": investimento_id}
+
+    if usuario_id is not None:
+        consulta = text(
+            """
+            SELECT
+                id,
+                nome,
+                tipo,
+                instituicao,
+                valor_aplicado,
+                valor_atual,
+                rentabilidade_percentual,
+                data_aplicacao,
+                data_vencimento,
+                status,
+                criado_em,
+                atualizado_em
+            FROM investimentos
+            WHERE id = :id AND usuario_id = :usuario_id
+            LIMIT 1
+            """
+        )
+        parametros["usuario_id"] = usuario_id
 
     engine = obter_engine()
 
     with engine.connect() as conexao:
         registro = conexao.execute(
             consulta,
-            {
-                "id": investimento_id,
-            },
+            parametros,
         ).mappings().first()
 
     if not registro:
@@ -302,6 +331,7 @@ def buscar_investimento_por_id(
 
 def criar_investimento(
     dados: Dict[str, Any],
+    usuario_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     investimento = validar_dados_investimento(
         dados
@@ -310,6 +340,7 @@ def criar_investimento(
     consulta = text(
         """
         INSERT INTO investimentos (
+            usuario_id,
             nome,
             tipo,
             instituicao,
@@ -321,6 +352,7 @@ def criar_investimento(
             status
         )
         VALUES (
+            :usuario_id,
             :nome,
             :tipo,
             :instituicao,
@@ -336,16 +368,24 @@ def criar_investimento(
 
     engine = obter_engine()
 
+    parametros_investimento = dict(investimento)
+
+    if usuario_id is not None:
+        parametros_investimento["usuario_id"] = usuario_id
+    else:
+        raise ValueError("usuario_id é obrigatório para criar investimento")
+
     with engine.begin() as conexao:
         resultado = conexao.execute(
             consulta,
-            investimento,
+            parametros_investimento,
         )
 
         investimento_id = resultado.lastrowid
 
     investimento_criado = buscar_investimento_por_id(
-        investimento_id
+        investimento_id,
+        usuario_id=usuario_id,
     )
 
     if not investimento_criado:
@@ -359,9 +399,11 @@ def criar_investimento(
 def atualizar_investimento(
     investimento_id: int,
     dados: Dict[str, Any],
+    usuario_id: Optional[int] = None,
 ) -> Optional[Dict[str, Any]]:
     investimento_existente = buscar_investimento_por_id(
-        investimento_id
+        investimento_id,
+        usuario_id=usuario_id,
     )
 
     if not investimento_existente:
@@ -384,13 +426,14 @@ def atualizar_investimento(
             data_aplicacao = :data_aplicacao,
             data_vencimento = :data_vencimento,
             status = :status
-        WHERE id = :id
+        WHERE id = :id AND usuario_id = :usuario_id
         """
     )
 
     parametros = {
         **investimento,
         "id": investimento_id,
+        "usuario_id": usuario_id,
     }
 
     engine = obter_engine()
@@ -402,17 +445,19 @@ def atualizar_investimento(
         )
 
     return buscar_investimento_por_id(
-        investimento_id
+        investimento_id,
+        usuario_id=usuario_id,
     )
 
 
 def excluir_investimento(
     investimento_id: int,
+    usuario_id: Optional[int] = None,
 ) -> bool:
     consulta = text(
         """
         DELETE FROM investimentos
-        WHERE id = :id
+        WHERE id = :id AND usuario_id = :usuario_id
         """
     )
 
@@ -423,13 +468,14 @@ def excluir_investimento(
             consulta,
             {
                 "id": investimento_id,
+                "usuario_id": usuario_id,
             },
         )
 
     return resultado.rowcount > 0
 
 
-def obter_resumo_investimentos() -> Dict[str, Any]:
+def obter_resumo_investimentos(usuario_id: Optional[int] = None) -> Dict[str, Any]:
     consulta_resumo = text(
         """
         SELECT
@@ -476,31 +522,147 @@ def obter_resumo_investimentos() -> Dict[str, Any]:
                 END
             ) AS quantidade_ativos
         FROM investimentos
+        WHERE 1=1
         """
     )
 
-    consulta_tipos = text(
-        """
-        SELECT
-            tipo,
-            COUNT(*) AS quantidade,
-            COALESCE(SUM(valor_atual), 0) AS valor_atual
-        FROM investimentos
-        WHERE status = 'ativo'
-        GROUP BY tipo
-        ORDER BY valor_atual DESC
-        """
-    )
+    if usuario_id is not None:
+        consulta_resumo = text(
+            """
+            SELECT
+                COUNT(*) AS quantidade_total,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'ativo'
+                            THEN valor_aplicado
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS total_aplicado,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'ativo'
+                            THEN valor_atual
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS valor_atual_total,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'ativo'
+                            THEN valor_atual - valor_aplicado
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS lucro_prejuizo,
+
+                SUM(
+                    CASE
+                        WHEN status = 'ativo'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS quantidade_ativos
+            FROM investimentos
+            WHERE usuario_id = :usuario_id
+            """
+        )
+        consulta_tipos = text(
+            """
+            SELECT
+                tipo,
+                COUNT(*) AS quantidade,
+                COALESCE(SUM(valor_atual), 0) AS valor_atual
+            FROM investimentos
+            WHERE status = 'ativo' AND usuario_id = :usuario_id
+            GROUP BY tipo
+            ORDER BY valor_atual DESC
+            """
+        )
+        parametros = {"usuario_id": usuario_id}
+    else:
+        consulta_resumo = text(
+            """
+            SELECT
+                COUNT(*) AS quantidade_total,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'ativo'
+                            THEN valor_aplicado
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS total_aplicado,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'ativo'
+                            THEN valor_atual
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS valor_atual_total,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'ativo'
+                            THEN valor_atual - valor_aplicado
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS lucro_prejuizo,
+
+                SUM(
+                    CASE
+                        WHEN status = 'ativo'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS quantidade_ativos
+            FROM investimentos
+            """
+        )
+        consulta_tipos = text(
+            """
+            SELECT
+                tipo,
+                COUNT(*) AS quantidade,
+                COALESCE(SUM(valor_atual), 0) AS valor_atual
+            FROM investimentos
+            WHERE status = 'ativo'
+            GROUP BY tipo
+            ORDER BY valor_atual DESC
+            """
+        )
+        parametros = {}
 
     engine = obter_engine()
 
     with engine.connect() as conexao:
         resumo = conexao.execute(
-            consulta_resumo
+            consulta_resumo,
+            parametros,
         ).mappings().first()
 
         tipos = conexao.execute(
-            consulta_tipos
+            consulta_tipos,
+            parametros,
         ).mappings().all()
 
     total_aplicado = float(
