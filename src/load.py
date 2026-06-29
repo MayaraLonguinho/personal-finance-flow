@@ -40,16 +40,21 @@ def obter_engine():
     return engine
 
 
-def carregar_transacoes_mysql(df):
+def carregar_transacoes_mysql(df, usuario_id):
     """
-    Carrega somente transações que ainda não existem no MySQL.
+    Carrega somente transações que ainda não existem no MySQL,
+    associando os registros ao usuário informado.
+
+    Args:
+        df: DataFrame com as transações tratadas.
+        usuario_id: ID do usuário responsável pelos dados.
 
     Returns:
-        dict: quantidade recebida, importada e ignorada.
+        dict: quantidades recebidas, importadas e ignoradas.
     """
     engine = obter_engine()
 
-    colunas_esperadas = [
+    colunas_transacao = [
         "data_transacao",
         "descricao",
         "categoria",
@@ -57,31 +62,47 @@ def carregar_transacoes_mysql(df):
         "valor",
         "conta",
         "instituicao",
-        "status"
+        "status",
+    ]
+
+    colunas_carga = [
+        "usuario_id",
+        "data_transacao",
+        "descricao",
+        "categoria",
+        "tipo",
+        "valor",
+        "conta",
+        "instituicao",
+        "status",
     ]
 
     try:
         df = df.copy()
 
         if "data" in df.columns:
-            df = df.rename(columns={"data": "data_transacao"})
+            df = df.rename(
+                columns={
+                    "data": "data_transacao",
+                }
+            )
 
-        # Garante que todas as colunas necessárias existam
-        for coluna in colunas_esperadas:
+        for coluna in colunas_transacao:
             if coluna not in df.columns:
                 df[coluna] = None
 
-        df_para_carregar = df[colunas_esperadas].copy()
+        df_para_carregar = df[colunas_transacao].copy()
 
-        # Padroniza os dados antes da comparação
+        df_para_carregar["usuario_id"] = usuario_id
+
         df_para_carregar["data_transacao"] = pd.to_datetime(
             df_para_carregar["data_transacao"],
-            errors="coerce"
+            errors="coerce",
         ).dt.date
 
         df_para_carregar["valor"] = pd.to_numeric(
             df_para_carregar["valor"],
-            errors="coerce"
+            errors="coerce",
         ).round(2)
 
         colunas_texto = [
@@ -90,7 +111,7 @@ def carregar_transacoes_mysql(df):
             "tipo",
             "conta",
             "instituicao",
-            "status"
+            "status",
         ]
 
         for coluna in colunas_texto:
@@ -102,16 +123,25 @@ def carregar_transacoes_mysql(df):
                 .str.lower()
             )
 
-        # Remove duplicações dentro do próprio arquivo enviado
-        quantidade_recebida = len(df_para_carregar)
-
-        df_para_carregar = df_para_carregar.drop_duplicates(
-            subset=colunas_esperadas
+        df_para_carregar = df_para_carregar.dropna(
+            subset=[
+                "data_transacao",
+                "valor",
+            ]
         )
 
-        # Busca as transações existentes no banco
-        query = """
+        quantidade_recebida = len(df_para_carregar)
+
+        df_para_carregar = (
+            df_para_carregar.drop_duplicates(
+                subset=colunas_carga
+            )
+        )
+
+        query = text(
+            """
             SELECT
+                usuario_id,
                 data_transacao,
                 descricao,
                 categoria,
@@ -121,19 +151,27 @@ def carregar_transacoes_mysql(df):
                 instituicao,
                 status
             FROM transacoes
-        """
+            WHERE usuario_id = :usuario_id
+            """
+        )
 
-        df_existente = pd.read_sql(query, engine)
+        df_existente = pd.read_sql(
+            query,
+            engine,
+            params={
+                "usuario_id": usuario_id,
+            },
+        )
 
         if not df_existente.empty:
             df_existente["data_transacao"] = pd.to_datetime(
                 df_existente["data_transacao"],
-                errors="coerce"
+                errors="coerce",
             ).dt.date
 
             df_existente["valor"] = pd.to_numeric(
                 df_existente["valor"],
-                errors="coerce"
+                errors="coerce",
             ).round(2)
 
             for coluna in colunas_texto:
@@ -145,57 +183,77 @@ def carregar_transacoes_mysql(df):
                     .str.lower()
                 )
 
-            # Cria uma chave de comparação para cada transação
             chaves_existentes = set(
-                df_existente[colunas_esperadas]
+                df_existente[colunas_carga]
                 .astype(str)
                 .agg("|".join, axis=1)
             )
 
             chaves_novas = (
-                df_para_carregar[colunas_esperadas]
+                df_para_carregar[colunas_carga]
                 .astype(str)
                 .agg("|".join, axis=1)
             )
 
             df_para_carregar = df_para_carregar[
-                ~chaves_novas.isin(chaves_existentes)
+                ~chaves_novas.isin(
+                    chaves_existentes
+                )
             ]
 
-        quantidade_importada = len(df_para_carregar)
-        quantidade_ignorada = quantidade_recebida - quantidade_importada
+        quantidade_importada = len(
+            df_para_carregar
+        )
+
+        quantidade_ignorada = (
+            quantidade_recebida
+            - quantidade_importada
+        )
 
         if quantidade_importada > 0:
-            # Converte campos vazios novamente para NULL
-            for coluna in ["conta", "instituicao"]:
-                df_para_carregar[coluna] = df_para_carregar[coluna].replace(
-                    "",
-                    None
+            for coluna in [
+                "conta",
+                "instituicao",
+            ]:
+                df_para_carregar[coluna] = (
+                    df_para_carregar[coluna]
+                    .replace("", None)
                 )
 
-            df_para_carregar.to_sql(
+            df_para_carregar[colunas_carga].to_sql(
                 "transacoes",
                 engine,
                 if_exists="append",
-                index=False
+                index=False,
             )
 
-        print(f"Registros recebidos: {quantidade_recebida}")
-        print(f"Registros importados: {quantidade_importada}")
-        print(f"Registros ignorados: {quantidade_ignorada}")
+        print(
+            f"Registros recebidos: "
+            f"{quantidade_recebida}"
+        )
+
+        print(
+            f"Registros importados: "
+            f"{quantidade_importada}"
+        )
+
+        print(
+            f"Registros ignorados: "
+            f"{quantidade_ignorada}"
+        )
 
         return {
             "recebidos": quantidade_recebida,
             "importados": quantidade_importada,
-            "ignorados": quantidade_ignorada
+            "ignorados": quantidade_ignorada,
         }
 
     except Exception as erro:
-        print(f"Erro ao carregar dados: {erro}")
+        print(
+            f"Erro ao carregar dados: {erro}"
+        )
+
         raise
-
-
-
 
 def limpar_transacoes_mysql():
     """
