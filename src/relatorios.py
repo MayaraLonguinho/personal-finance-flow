@@ -6,6 +6,18 @@ from sqlalchemy import text
 
 from src.investimentos import obter_resumo_investimentos
 from src.load import obter_engine
+from src.usuario_contexto import obter_usuario_id
+
+
+def _resolver_usuario_id(usuario_id=None):
+    if usuario_id is not None:
+        return usuario_id
+
+    contexto_usuario_id = obter_usuario_id()
+    if contexto_usuario_id is not None:
+        return contexto_usuario_id
+
+    raise PermissionError("Usuário não autenticado para consultar dados financeiros")
 
 
 def converter_valor(valor: Any) -> Any:
@@ -44,7 +56,10 @@ def validar_data(
 def obter_relatorio(
     data_inicio: Optional[str] = None,
     data_fim: Optional[str] = None,
+    usuario_id: Optional[int] = None,
 ) -> dict:
+    usuario_id = _resolver_usuario_id(usuario_id)
+
     data_inicio = validar_data(data_inicio)
     data_fim = validar_data(data_fim)
 
@@ -60,6 +75,10 @@ def obter_relatorio(
 
     filtros = []
     parametros = {}
+
+    if usuario_id is not None:
+        filtros.append("usuario_id = :usuario_id")
+        parametros["usuario_id"] = usuario_id
 
     if data_inicio:
         filtros.append(
@@ -245,7 +264,7 @@ def obter_relatorio(
         )
 
     resumo_investimentos = (
-        obter_resumo_investimentos()
+        obter_resumo_investimentos(usuario_id=usuario_id)
     )
 
     return {

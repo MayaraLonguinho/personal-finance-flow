@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Flow - Configurações</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/configuracoes.css') }}">
+</head>
+<body class="theme-blue">
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">↗</div>
+                <div>
+                    <h1>Personal</h1>
+                    <h1>Finance Flow</h1>
+                </div>
+            </div>
+
+            <nav class="menu">
+                <a href="/dashboard" class="menu-item">Dashboard</a>
+                <a href="/transacoes" class="menu-item">Transações</a>
+                <a href="/categorias" class="menu-item">Categorias</a>
+                <a href="/relatorios" class="menu-item">Relatórios</a>
+                <a href="/metas" class="menu-item">Metas</a>
+                <a href="/investimentos" class="menu-item">Investimentos</a>
+                <a href="/assistente" class="menu-item">Assistente</a>
+                <a href="/configuracoes" class="menu-item active">Configurações</a>
+            </nav>
+
+            <div class="goal-card" data-config-card="meta_economia">
+                <span>Meta de Economia</span>
+
+                <div class="goal-values">
+                    <strong id="goal-valor-atual">
+                        R$ 0,00
+                    </strong>
+
+                    <small id="goal-valor-meta">
+                        de R$ 0,00
+                    </small>
+                </div>
+
+                <div class="progress">
+                    <div class="progress-bar" id="goal-progress-bar" style="width: 0%;"></div>
+                </div>
+
+                <strong class="progress-text" id="goal-percentual">
+                    0%
+                </strong>
+
+                <p id="goal-restante">
+                    Nenhuma meta cadastrada.
+                </p>
+            </div>
+
+            <div class="user-card">
+                <div class="avatar">{{ (usuario_nome or 'U')[:1].upper() }}</div>
+                <div>
+                    <strong>{{ usuario_nome or 'Usuário' }}</strong>
+                    <span>Configurações</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section class="hero">
+                <div>
+                    <span class="welcome">Preferências</span>
+                    <h2>Configurações do usuário</h2>
+                    <p>Defina como o app deve se comportar para você.</p>
+                </div>
+            </section>
+
+            <section class="settings-section">
+                <form id="form-configuracoes" class="settings-card">
+                    <div class="settings-header">
+                        <h3>Dados pessoais</h3>
+                        <p>Essas opções são salvas apenas para a sua conta.</p>
+                    </div>
+
+                    <div class="form-grid">
+                        <label class="field">
+                            <span>Nome</span>
+                            <input type="text" id="nome" name="nome" value="{{ configuracoes.nome or '' }}">
+                        </label>
+
+                        <label class="field">
+                            <span>Tema</span>
+                            <select id="tema" name="tema">
+                                <option value="theme-blue" {% if configuracoes.tema == 'theme-blue' %}selected{% endif %}>Azul</option>
+                                <option value="theme-pink" {% if configuracoes.tema == 'theme-pink' %}selected{% endif %}>Rosa</option>
+                                <option value="theme-green" {% if configuracoes.tema == 'theme-green' %}selected{% endif %}>Verde</option>
+                                <option value="theme-red" {% if configuracoes.tema == 'theme-red' %}selected{% endif %}>Vermelho</option>
+                                <option value="theme-dark" {% if configuracoes.tema == 'theme-dark' %}selected{% endif %}>Preto</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span>Moeda</span>
+                            <select id="moeda" name="moeda">
+                                <option value="BRL" {% if configuracoes.moeda == 'BRL' %}selected{% endif %}>Real (BRL)</option>
+                                <option value="USD" {% if configuracoes.moeda == 'USD' %}selected{% endif %}>Dólar (USD)</option>
+                                <option value="EUR" {% if configuracoes.moeda == 'EUR' %}selected{% endif %}>Euro (EUR)</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span>Formato de data</span>
+                            <select id="formato_data" name="formato_data">
+                                <option value="DD/MM/YYYY" {% if configuracoes.formato_data == 'DD/MM/YYYY' %}selected{% endif %}>DD/MM/YYYY</option>
+                                <option value="MM/DD/YYYY" {% if configuracoes.formato_data == 'MM/DD/YYYY' %}selected{% endif %}>MM/DD/YYYY</option>
+                                <option value="YYYY-MM-DD" {% if configuracoes.formato_data == 'YYYY-MM-DD' %}selected{% endif %}>YYYY-MM-DD</option>
+                            </select>
+                        </label>
+
+                        <label class="field">
+                            <span>Transações recentes</span>
+                            <input type="number" id="qtd_transacoes_recentes" name="qtd_transacoes_recentes" min="3" max="20" value="{{ configuracoes.qtd_transacoes_recentes }}">
+                        </label>
+
+                        <label class="field checkbox-field">
+                            <input type="checkbox" id="confirmar_exclusao" name="confirmar_exclusao" {% if configuracoes.confirmar_exclusao %}checked{% endif %}>
+                            <span>Confirmar antes de excluir</span>
+                        </label>
+                    </div>
+
+                    <div class="cards-section">
+                        <h4>Cards visíveis</h4>
+                        <div class="checkbox-list">
+                            <label><input type="checkbox" name="cards_visiveis" value="resumo_financeiro" {% if 'resumo_financeiro' in configuracoes.cards_visiveis %}checked{% endif %}> Resumo financeiro</label>
+                            <label><input type="checkbox" name="cards_visiveis" value="investimentos" {% if 'investimentos' in configuracoes.cards_visiveis %}checked{% endif %}> Investimentos</label>
+                            <label><input type="checkbox" name="cards_visiveis" value="transacoes_recentes" {% if 'transacoes_recentes' in configuracoes.cards_visiveis %}checked{% endif %}> Transações recentes</label>
+                            <label><input type="checkbox" name="cards_visiveis" value="meta_economia" {% if 'meta_economia' in configuracoes.cards_visiveis %}checked{% endif %}> Meta de economia</label>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">Salvar configurações</button>
+                        <button type="button" id="btn-restaurar" class="btn btn-outline">Restaurar padrões</button>
+                    </div>
+                    <p id="configuracoes-mensagem" class="settings-message" hidden></p>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    {% include '_preferencias_usuario.html' %}
+    <script src="{{ url_for('static', filename='js/configuracoes.js') }}"></script>
+</body>
+</html>

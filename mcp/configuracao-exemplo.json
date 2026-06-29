@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "personal-finance-flow-readonly": {
+      "command": "/Users/mayara.longuinho/Documents/PROJETO-STEFAS-FERIAS/personal-finance-flow/.venv-mcp/bin/python",
+      "args": [
+        "/Users/mayara.longuinho/Documents/PROJETO-STEFAS-FERIAS/personal-finance-flow/mcp/server.py"
+      ],
+      "env": {
+        "PFF_MCP_ENV_FILE": "/Users/mayara.longuinho/Documents/PROJETO-STEFAS-FERIAS/personal-finance-flow/.env.mcp",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+@import url("dashboard.css");
+
+.settings-section { max-width: 920px; }
+.settings-card {
+    padding: 28px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: var(--shadow-card, 0 12px 28px rgba(15, 23, 42, .06));
+}
+.settings-header { margin-bottom: 24px; }
+.settings-header p { margin: 6px 0 0; color: #64748b; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.field { display: grid; gap: 7px; font-weight: 600; }
+.field input, .field select {
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #fff;
+}
+.checkbox-field { display: flex; align-items: center; align-self: end; padding: 12px 0; }
+.cards-section { margin-top: 26px; }
+.checkbox-list { display: flex; flex-wrap: wrap; gap: 14px 24px; }
+.actions { display: flex; gap: 12px; align-items: center; margin-top: 28px; }
+.settings-message { margin-top: 16px; color: #15803d; }
+.settings-message.erro { color: #b91c1c; }
+body.theme-dark .settings-card,
+body.theme-dark .field input,
+body.theme-dark .field select { background: #172033; color: #f8fafc; border-color: #334155; }
+@media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } }

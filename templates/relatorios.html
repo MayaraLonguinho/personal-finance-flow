@@ -63,7 +63,7 @@
                 </a>
             </nav>
 
-            <div class="goal-card">
+            <div class="goal-card" data-config-card="meta_economia">
                 <span>
                     Meta de Economia
                 </span>
@@ -93,12 +93,12 @@
 
             <div class="user-card">
                 <div class="avatar">
-                    M
+                    {{ (usuario_nome or 'U')[:1].upper() }}
                 </div>
 
                 <div>
                     <strong>
-                        Mayara
+                        {{ usuario_nome or 'Usuário' }}
                     </strong>
 
                     <span>
@@ -427,7 +427,7 @@
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='js/temas.js') }}"></script>
+    {% include '_preferencias_usuario.html' %}
 
     <script src="{{ url_for('static', filename='js/relatorios.js') }}?v=2"></script>
 </body>

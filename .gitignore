@@ -5,6 +5,11 @@ venv/
 
 # Variáveis de ambiente
 .env
+.env.mcp
+.env.mcp.local
+
+# Ambiente isolado do servidor MCP (requer Python 3.10+)
+.venv-mcp/
 
 # Python
 __pycache__/

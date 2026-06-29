@@ -1,16 +1,11 @@
 // Funções para gerenciar metas na página exclusiva de metas
 
 function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(valor || 0);
+    return window.PFF.formatarMoeda(valor);
 }
 
 function formatarData(data) {
-    if (!data) return "-";
-    const dataObj = new Date(data);
-    return dataObj.toLocaleDateString("pt-BR");
+    return window.PFF.formatarData(data);
 }
 
 async function buscarMeta() {
@@ -102,8 +97,8 @@ function exibirMetaVazia() {
     const goalProgressBar = document.getElementById("goal-progress-bar");
     const goalRestante = document.getElementById("goal-restante");
     
-    if (goalValorAtual) goalValorAtual.textContent = "R$ 0,00";
-    if (goalValorMeta) goalValorMeta.textContent = "de R$ 0,00";
+    if (goalValorAtual) goalValorAtual.textContent = formatarMoeda(0);
+    if (goalValorMeta) goalValorMeta.textContent = `de ${formatarMoeda(0)}`;
     if (goalPercentual) goalPercentual.textContent = "0%";
     if (goalProgressBar) goalProgressBar.style.width = "0%";
     if (goalRestante) goalRestante.textContent = "Nenhuma meta cadastrada.";
@@ -243,7 +238,7 @@ async function salvarMeta() {
 }
 
 async function excluirMeta() {
-    if (!confirm("Tem certeza de que deseja excluir esta meta? Esta ação não poderá ser desfeita.")) {
+    if (!window.PFF.confirmarExclusao("Tem certeza de que deseja excluir esta meta? Esta ação não poderá ser desfeita.")) {
         return;
     }
     

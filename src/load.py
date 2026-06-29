@@ -40,6 +40,41 @@ def obter_engine():
     return engine
 
 
+def garantir_colunas_usuario():
+    """
+    Garante que as tabelas que agora armazenam dados por usuário
+    possuam a coluna `usuario_id`.
+    """
+    engine = obter_engine()
+
+    tabelas_colunas = {
+        "metas": "usuario_id",
+        "categorias": "usuario_id",
+        "investimentos": "usuario_id",
+    }
+
+    with engine.begin() as conexao:
+        for tabela, coluna in tabelas_colunas.items():
+            existe = conexao.execute(
+                text(
+                    """
+                    SELECT COUNT(*)
+                    FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                      AND TABLE_NAME = :tabela
+                      AND COLUMN_NAME = :coluna
+                    """
+                ),
+                {"tabela": tabela, "coluna": coluna},
+            ).scalar()
+
+            if existe == 0:
+                conexao.execute(
+                    text(f"ALTER TABLE {tabela} ADD COLUMN {coluna} INT NULL")
+                )
+                print(f"Coluna {coluna} adicionada à tabela {tabela}.")
+
+
 def carregar_transacoes_mysql(df, usuario_id):
     """
     Carrega somente transações que ainda não existem no MySQL,
@@ -255,13 +290,19 @@ def carregar_transacoes_mysql(df, usuario_id):
 
         raise
 
-def limpar_transacoes_mysql():
+def limpar_transacoes_mysql(usuario_id=None):
     """
-    Remove todas as transações cadastradas no banco.
+    Remove transações cadastradas no banco.
+
+    Se `usuario_id` for informado, remove apenas as transações desse usuário.
+    Caso contrário, remove todas (uso restrito).
     """
     engine = obter_engine()
 
     with engine.begin() as conexao:
-        conexao.execute(text("DELETE FROM transacoes"))
-
-    print("Todas as transações foram removidas.")
+        if usuario_id is None:
+            conexao.execute(text("DELETE FROM transacoes"))
+            print("Todas as transações foram removidas.")
+        else:
+            conexao.execute(text("DELETE FROM transacoes WHERE usuario_id = :usuario_id"), {'usuario_id': usuario_id})
+            print(f"Transações do usuário {usuario_id} foram removidas.")

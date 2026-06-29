@@ -36,7 +36,7 @@
                 </a>
             </nav>
 
-            <div class="goal-card">
+            <div class="goal-card" data-config-card="meta_economia">
                 <span>Meta de Economia</span>
 
                 <div class="goal-values" id="goal-values">
@@ -54,9 +54,9 @@
             </div>
 
             <div class="user-card">
-                <div class="avatar">M</div>
+                <div class="avatar">{{ (usuario_nome or 'U')[:1].upper() }}</div>
                 <div>
-                    <strong>Mayara</strong>
+                    <strong>{{ usuario_nome or 'Usuário' }}</strong>
                     <span>Usuária local</span>
                 </div>
             </div>
@@ -111,7 +111,7 @@
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='js/temas.js') }}"></script>
+    {% include '_preferencias_usuario.html' %}
     <script src="{{ url_for('static', filename='js/assistente.js') }}"></script>
 </body>
 
