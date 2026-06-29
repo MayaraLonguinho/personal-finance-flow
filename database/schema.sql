@@ -1,6 +1,16 @@
 -- Uso do banco de dados
 USE personal_finance_flow;
 
+-- Tabela de usuários
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    telefone VARCHAR(20),
+    senha_hash VARCHAR(255) NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Tabela de transações
 CREATE TABLE IF NOT EXISTS transacoes (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -13,37 +23,44 @@ CREATE TABLE IF NOT EXISTS transacoes (
     conta VARCHAR(100),
     instituicao VARCHAR(100),
     status ENUM('confirmado', 'pendente', 'cancelado') DEFAULT 'pendente',
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    INDEX idx_transacoes_usuario_id (usuario_id),
+    INDEX idx_transacoes_data_transacao (data_transacao DESC)
 );
 
 -- Tabela de metas
 CREATE TABLE IF NOT EXISTS metas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NULL,
+    usuario_id INT NOT NULL,
     titulo VARCHAR(255) NOT NULL,
     valor_meta DECIMAL(10, 2) NOT NULL,
     valor_atual DECIMAL(10, 2) DEFAULT 0.00,
     data_limite DATE,
     status ENUM('ativa', 'concluida', 'cancelada') DEFAULT 'ativa',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    INDEX idx_metas_usuario_id (usuario_id)
 );
 
 -- Tabela de categorias
 CREATE TABLE IF NOT EXISTS categorias (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NULL,
-    nome VARCHAR(100) NOT NULL UNIQUE,
+    usuario_id INT NOT NULL,
+    nome VARCHAR(100) NOT NULL,
     palavras_chave TEXT,
     cor VARCHAR(20),
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    UNIQUE KEY uk_categorias_usuario_nome (usuario_id, nome)
 );
 
--- tabela de investimentos
+-- Tabela de investimentos
 CREATE TABLE IF NOT EXISTS investimentos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NULL,
+    usuario_id INT NOT NULL,
     nome VARCHAR(150) NOT NULL,
     tipo VARCHAR(80) NOT NULL,
     instituicao VARCHAR(120),
@@ -54,17 +71,10 @@ CREATE TABLE IF NOT EXISTS investimentos (
     data_vencimento DATE NULL,
     status ENUM('ativo', 'resgatado', 'cancelado') NOT NULL DEFAULT 'ativo',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Tabela de usuários
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    telefone VARCHAR(20),
-    senha_hash VARCHAR(255) NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    INDEX idx_investimentos_usuario_id (usuario_id),
+    INDEX idx_investimentos_data_aplicacao (data_aplicacao DESC)
 );
 
 -- Preferências visuais e de comportamento, isoladas por usuário
@@ -79,5 +89,6 @@ CREATE TABLE IF NOT EXISTS configuracoes_usuario (
     confirmar_exclusao TINYINT(1) NOT NULL DEFAULT 1,
     cards_visiveis TEXT NOT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
