@@ -57,6 +57,15 @@ def pagina_relatorios():
 def pagina_investimentos():
     return render_template("investimentos.html")
 
+
+@app.route("/login")
+def pagina_login():
+    return render_template("login.html")
+
+
+@app.route("/cadastro")
+def pagina_cadastro():
+    return render_template("cadastro.html")
 # Rota de API - retorna métricas financeiras em JSON
 @app.route('/api/metricas')
 def api_metricas():
