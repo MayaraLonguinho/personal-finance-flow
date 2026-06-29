@@ -1,10 +1,10 @@
-# Módulo de carregamento de dados
-# Responsável por salvar os dados tratados no banco de dados MySQL
+import os
 
 import pandas as pd
-from sqlalchemy import create_engine, URL, text
 from dotenv import load_dotenv
-import os
+from sqlalchemy import URL, create_engine, text
+
+from src.categorization import normalizar_texto
 
 
 def obter_engine():
@@ -38,6 +38,25 @@ def obter_engine():
     engine = create_engine(connection_url)
     
     return engine
+
+
+def _normalizar_texto_livre(valor):
+    if valor is None or pd.isna(valor):
+        return None
+
+    texto = " ".join(str(valor).split()).strip()
+    return texto or None
+
+
+def _normalizar_texto_para_comparacao(valor):
+    return normalizar_texto(valor) or ""
+
+
+def _normalizar_categoria_para_armazenamento(valor):
+    categoria = _normalizar_texto_livre(valor)
+    if not categoria:
+        return "Outros"
+    return categoria
 
 
 def garantir_colunas_usuario():
@@ -140,23 +159,20 @@ def carregar_transacoes_mysql(df, usuario_id):
             errors="coerce",
         ).round(2)
 
-        colunas_texto = [
-            "descricao",
-            "categoria",
-            "tipo",
-            "conta",
-            "instituicao",
-            "status",
-        ]
-
-        for coluna in colunas_texto:
-            df_para_carregar[coluna] = (
-                df_para_carregar[coluna]
-                .fillna("")
-                .astype(str)
-                .str.strip()
-                .str.lower()
+        for coluna in ["descricao", "conta", "instituicao"]:
+            df_para_carregar[coluna] = df_para_carregar[coluna].apply(
+                _normalizar_texto_livre
             )
+
+        df_para_carregar["categoria"] = df_para_carregar["categoria"].apply(
+            _normalizar_categoria_para_armazenamento
+        )
+        df_para_carregar["tipo"] = df_para_carregar["tipo"].apply(
+            lambda valor: (_normalizar_texto_livre(valor) or "").lower()
+        )
+        df_para_carregar["status"] = df_para_carregar["status"].apply(
+            lambda valor: (_normalizar_texto_livre(valor) or "").lower()
+        )
 
         df_para_carregar = df_para_carregar.dropna(
             subset=[
@@ -209,23 +225,52 @@ def carregar_transacoes_mysql(df, usuario_id):
                 errors="coerce",
             ).round(2)
 
-            for coluna in colunas_texto:
-                df_existente[coluna] = (
-                    df_existente[coluna]
-                    .fillna("")
-                    .astype(str)
-                    .str.strip()
-                    .str.lower()
+            for coluna in ["descricao", "conta", "instituicao"]:
+                df_existente[coluna] = df_existente[coluna].apply(
+                    _normalizar_texto_livre
+                )
+
+            df_existente["categoria"] = df_existente["categoria"].apply(
+                _normalizar_categoria_para_armazenamento
+            )
+            df_existente["tipo"] = df_existente["tipo"].apply(
+                lambda valor: (_normalizar_texto_livre(valor) or "").lower()
+            )
+            df_existente["status"] = df_existente["status"].apply(
+                lambda valor: (_normalizar_texto_livre(valor) or "").lower()
+            )
+
+            colunas_comparacao = [
+                "usuario_id",
+                "data_transacao",
+                "descricao",
+                "categoria",
+                "tipo",
+                "valor",
+                "conta",
+                "instituicao",
+                "status",
+            ]
+
+            df_existente_comparacao = df_existente[colunas_comparacao].copy()
+            df_novo_comparacao = df_para_carregar[colunas_comparacao].copy()
+
+            for coluna in ["descricao", "categoria", "conta", "instituicao", "tipo", "status"]:
+                df_existente_comparacao[coluna] = df_existente_comparacao[coluna].apply(
+                    _normalizar_texto_para_comparacao
+                )
+                df_novo_comparacao[coluna] = df_novo_comparacao[coluna].apply(
+                    _normalizar_texto_para_comparacao
                 )
 
             chaves_existentes = set(
-                df_existente[colunas_carga]
+                df_existente_comparacao[colunas_comparacao]
                 .astype(str)
                 .agg("|".join, axis=1)
             )
 
             chaves_novas = (
-                df_para_carregar[colunas_carga]
+                df_novo_comparacao[colunas_comparacao]
                 .astype(str)
                 .agg("|".join, axis=1)
             )

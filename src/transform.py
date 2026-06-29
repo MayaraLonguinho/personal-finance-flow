@@ -1,12 +1,24 @@
-# Módulo de transformação de dados
-# Responsável por limpar e tratar os dados extraídos
+"""Módulo de transformação de dados."""
 
 import pandas as pd
+
+from src.categorias import (
+    inicializar_categorias_padrao,
+    obter_regras_categorizacao_do_banco,
+)
 from src.categorization import categorizar_dataframe
-from src.categorias import obter_regras_categorizacao_do_banco, inicializar_categorias_padrao
 
 
-def tratar_transacoes(df):
+def _normalizar_texto_arquivo(serie):
+    return (
+        serie.fillna("")
+        .astype(str)
+        .str.replace(r"\s+", " ", regex=True)
+        .str.strip()
+    )
+
+
+def tratar_transacoes(df, usuario_id=None):
     """
     Trata e limpa os dados das transações.
     
@@ -16,50 +28,53 @@ def tratar_transacoes(df):
     Returns:
         tuple: (pd.DataFrame, int) - DataFrame com dados tratados e contador de transações categorizadas
     """
-    # Remove linhas duplicadas
+    df = df.copy()
+
     df = df.drop_duplicates()
-    
-    # Padroniza nomes das colunas para minúsculas
-    df.columns = df.columns.str.lower()
-    
-    # Converte a coluna data para formato de data
-    df['data'] = pd.to_datetime(df['data'])
-    
-    # Converte a coluna valor para número
-    df['valor'] = pd.to_numeric(df['valor'])
-    
-    # Padroniza o campo tipo
-    # Mapeia: receita -> entrada, despesa -> saida
-    df['tipo'] = df['tipo'].str.lower()
-    df['tipo'] = df['tipo'].replace({
-        'receita': 'entrada',
-        'despesa': 'saida'
-    })
-    
-    # Padroniza o campo status
-    # Mapeia: concluído -> confirmado
-    df['status'] = df['status'].str.lower()
-    df['status'] = df['status'].replace({
-        'concluído': 'confirmado',
-        'concluido': 'confirmado'
-    })
-    
-    # Preenche categorias vazias como "outros" temporariamente
-    df['categoria'] = df['categoria'].fillna('outros')
-    
-    # Inicializa categorias padrão se necessário
-    inicializar_categorias_padrao()
-    
-    # Obtém regras de categorização do banco
-    regras_categorizacao = obter_regras_categorizacao_do_banco()
-    
-    # Aplica categorização automática
-    df, contador_categorizadas = categorizar_dataframe(df, regras_categorizacao)
-    
-    # Remove linhas sem valor
-    df = df.dropna(subset=['valor'])
-    
-    # Remove linhas sem data
-    df = df.dropna(subset=['data'])
-    
+
+    df.columns = (
+        df.columns.astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    for coluna in ["descricao", "categoria", "tipo", "status", "conta", "instituicao"]:
+        if coluna not in df.columns:
+            df[coluna] = None
+
+    df["descricao"] = _normalizar_texto_arquivo(df["descricao"])
+    df["categoria"] = _normalizar_texto_arquivo(df["categoria"]).replace("", pd.NA)
+    df["tipo"] = _normalizar_texto_arquivo(df["tipo"]).str.lower()
+    df["status"] = _normalizar_texto_arquivo(df["status"]).str.lower()
+    df["conta"] = _normalizar_texto_arquivo(df["conta"]).replace("", pd.NA)
+    df["instituicao"] = _normalizar_texto_arquivo(df["instituicao"]).replace("", pd.NA)
+
+    df["data"] = pd.to_datetime(df["data"], errors="coerce")
+    df["valor"] = pd.to_numeric(df["valor"], errors="coerce")
+
+    df["tipo"] = df["tipo"].replace(
+        {
+            "receita": "entrada",
+            "despesa": "saida",
+            "saída": "saida",
+        }
+    )
+    df["status"] = df["status"].replace(
+        {
+            "concluído": "confirmado",
+            "concluido": "confirmado",
+        }
+    )
+
+    inicializar_categorias_padrao(usuario_id=usuario_id)
+    regras_categorizacao = obter_regras_categorizacao_do_banco(usuario_id=usuario_id)
+
+    df, contador_categorizadas = categorizar_dataframe(
+        df,
+        regras_categorizacao=regras_categorizacao,
+        categorias_usuario=regras_categorizacao,
+    )
+
+    df = df.dropna(subset=["valor", "data"])
+
     return df, contador_categorizadas
