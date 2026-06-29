@@ -6,7 +6,7 @@ from src.load import obter_engine
 from src.utils import formatar_moeda
 
 
-def buscar_transacoes():
+def buscar_transacoes(usuario_id=None):
     """
     Busca todas as transações da tabela transacoes no MySQL.
     
@@ -17,8 +17,13 @@ def buscar_transacoes():
     engine = obter_engine()
     
     # Executa a query e retorna como DataFrame
-    query = "SELECT * FROM transacoes WHERE status = 'confirmado'"
-    df = pd.read_sql(query, engine)
+    # Se usuario_id for informado, filtra pelo usuário
+    if usuario_id is not None:
+        query = "SELECT * FROM transacoes WHERE status = 'confirmado' AND usuario_id = :usuario_id"
+        df = pd.read_sql(query, engine, params={'usuario_id': usuario_id})
+    else:
+        query = "SELECT * FROM transacoes WHERE status = 'confirmado'"
+        df = pd.read_sql(query, engine)
     
     return df
 
@@ -30,7 +35,7 @@ def calcular_resumo_financeiro():
     Returns:
         dict: Dicionário com total de entradas, saídas, investimentos, saldo e quantidade de transações
     """
-    # Busca as transações
+    # Busca as transações (sem usuário por compatibilidade)
     df = buscar_transacoes()
     
     # Calcula totais por tipo
@@ -60,7 +65,7 @@ def calcular_gastos_por_categoria():
     Returns:
         pd.DataFrame: DataFrame com gastos por categoria
     """
-    # Busca as transações
+    # Busca as transações (sem usuário por compatibilidade)
     df = buscar_transacoes()
     
     # Filtra apenas saídas e agrupa por categoria
@@ -77,7 +82,7 @@ def calcular_movimento_por_tipo():
     Returns:
         pd.DataFrame: DataFrame com movimento por tipo
     """
-    # Busca as transações
+    # Busca as transações (sem usuário por compatibilidade)
     df = buscar_transacoes()
     
     # Agrupa por tipo e soma os valores
@@ -117,24 +122,50 @@ def calcular_evolucao_mensal():
     return evolucao
 
 
-def gerar_metricas_dashboard():
+def gerar_metricas_dashboard(usuario_id=None):
     """
     Reúne todas as métricas em um dicionário simples para a dashboard.
     
     Returns:
         dict: Dicionário com todas as métricas calculadas
     """
-    # Calcula o resumo financeiro
-    resumo = calcular_resumo_financeiro()
+    # Calcula o resumo financeiro usando apenas transações do usuário
+    # Ajusta chamadas para passar usuario_id às funções que consultam o banco
+    df = buscar_transacoes(usuario_id=usuario_id)
+
+    # Calcula o resumo financeiro a partir do DataFrame filtrado
+    total_entradas = df[df['tipo'] == 'entrada']['valor'].sum()
+    total_saidas = df[df['tipo'] == 'saida']['valor'].sum()
+    total_investido = df[df['tipo'] == 'investimento']['valor'].sum()
+    saldo_final = total_entradas - total_saidas - total_investido
+    resumo = {
+        'total_entradas': total_entradas,
+        'total_saidas': total_saidas,
+        'total_investido': total_investido,
+        'saldo_final': saldo_final,
+        'qtd_transacoes': len(df)
+    }
     
     # Calcula gastos por categoria
-    gastos_categoria = calcular_gastos_por_categoria()
-    
+    saidas = df[df['tipo'] == 'saida']
+    gastos_categoria = saidas.groupby('categoria')['valor'].sum().reset_index()
+
     # Calcula movimento por tipo
-    movimento_tipo = calcular_movimento_por_tipo()
-    
+    movimento_tipo = df.groupby('tipo')['valor'].sum().reset_index()
+
     # Calcula evolução mensal
-    evolucao_mensal = calcular_evolucao_mensal()
+    if not df.empty:
+        df_local = df.copy()
+        df_local['mes_ano'] = pd.to_datetime(df_local['data_transacao']).dt.to_period('M').astype(str)
+        evolucao_mensal = df_local.groupby(['mes_ano', 'tipo'])['valor'].sum().unstack(fill_value=0)
+        evolucao_mensal = evolucao_mensal.round(2)
+        if 'entrada' in evolucao_mensal.columns:
+            evolucao_mensal['saldo'] = evolucao_mensal.get('entrada', 0) - evolucao_mensal.get('saida', 0) - evolucao_mensal.get('investimento', 0)
+        else:
+            evolucao_mensal['saldo'] = 0
+        evolucao_mensal = evolucao_mensal.reset_index()
+    else:
+        evolucao_mensal = pd.DataFrame()
     
     return {
         'resumo_financeiro': resumo,
@@ -144,7 +175,7 @@ def gerar_metricas_dashboard():
     }
 
 
-def gerar_insights():
+def gerar_insights(usuario_id=None):
     """
     Gera insights baseados nos dados reais das transações.
     
@@ -153,8 +184,8 @@ def gerar_insights():
     """
     insights = []
     
-    # Busca as transações
-    df = buscar_transacoes()
+    # Busca as transações do usuário
+    df = buscar_transacoes(usuario_id=usuario_id)
     
     # Se não houver transações, retorna insight informativo
     if df.empty:
@@ -164,8 +195,14 @@ def gerar_insights():
             'mensagem': 'Nenhuma transação registrada ainda.'
         }]
     
-    # Calcula resumo financeiro
-    resumo = calcular_resumo_financeiro()
+    # Calcula resumo financeiro a partir do DataFrame filtrado
+    resumo = {
+        'total_entradas': df[df['tipo'] == 'entrada']['valor'].sum(),
+        'total_saidas': df[df['tipo'] == 'saida']['valor'].sum(),
+        'total_investido': df[df['tipo'] == 'investimento']['valor'].sum(),
+        'saldo_final': df[df['tipo'] == 'entrada']['valor'].sum() - df[df['tipo'] == 'saida']['valor'].sum() - df[df['tipo'] == 'investimento']['valor'].sum(),
+        'qtd_transacoes': len(df)
+    }
     
     # 1. Identificar categoria com maior gasto
     gastos_categoria = calcular_gastos_por_categoria()
@@ -236,27 +273,44 @@ def gerar_insights():
     return insights[:4]
 
 
-def buscar_ultimas_transacoes(limite=5):
+def buscar_ultimas_transacoes(limite=5, usuario_id=None):
     """
     Busca as últimas transações confirmadas no banco MySQL.
     Retorna uma lista de dicionários para ser usada pela API.
     """
     engine = obter_engine()
 
-    query = f"""
-        SELECT
-            data_transacao,
-            descricao,
-            categoria,
-            tipo,
-            valor
-        FROM transacoes
-        WHERE status = 'confirmado'
-        ORDER BY data_transacao DESC, id DESC
-        LIMIT {limite}
-    """
+    # Filtra por usuário se informado
+    if usuario_id is not None:
+        query = f"""
+            SELECT
+                data_transacao,
+                descricao,
+                categoria,
+                tipo,
+                valor
+            FROM transacoes
+            WHERE status = 'confirmado' AND usuario_id = :usuario_id
+            ORDER BY data_transacao DESC, id DESC
+            LIMIT {limite}
+        """
 
-    df = pd.read_sql(query, engine)
+        df = pd.read_sql(query, engine, params={'usuario_id': usuario_id})
+    else:
+        query = f"""
+            SELECT
+                data_transacao,
+                descricao,
+                categoria,
+                tipo,
+                valor
+            FROM transacoes
+            WHERE status = 'confirmado'
+            ORDER BY data_transacao DESC, id DESC
+            LIMIT {limite}
+        """
+
+        df = pd.read_sql(query, engine)
 
     if df.empty:
         return []

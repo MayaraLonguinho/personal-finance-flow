@@ -208,11 +208,12 @@ def api_logout():
 @login_obrigatorio
 def api_metricas():
     try:
-        # Busca e calcula as métricas
-        metricas = gerar_metricas_dashboard()
-        
+        usuario_id = session.get('usuario_id')
+        # Busca e calcula as métricas filtradas pelo usuário
+        metricas = gerar_metricas_dashboard(usuario_id=usuario_id)
+
         # Gera insights dinâmicos
-        insights = gerar_insights()
+        insights = gerar_insights(usuario_id=usuario_id)
         
         # Adiciona insights às métricas
         metricas['insights'] = insights
@@ -228,7 +229,8 @@ def api_metricas():
 @login_obrigatorio
 def api_transacoes():
     try:
-        transacoes = buscar_ultimas_transacoes()
+        usuario_id = session.get('usuario_id')
+        transacoes = buscar_ultimas_transacoes(usuario_id=usuario_id)
         return jsonify(transacoes)
     except Exception as erro:
         return jsonify({
@@ -253,7 +255,8 @@ def api_transacoes_todas():
             filtros['status'] = request.args.get('status')
         
         # Busca transações com filtros
-        df = buscar_todas_transacoes(filtros if filtros else None)
+        usuario_id = session.get('usuario_id')
+        df = buscar_todas_transacoes(filtros if filtros else None, usuario_id=usuario_id)
         
         # Converte DataFrame para lista de dicionários
         transacoes = df.to_dict('records')
@@ -298,6 +301,8 @@ def api_criar_transacao():
             return jsonify({'erro': f'Status deve ser um de: {", ".join(status_permitidos)}'}), 400
         
         # Cria transação
+        usuario_id = session.get('usuario_id')
+
         resultado = criar_transacao(
             data_transacao=dados['data'],
             descricao=dados['descricao'],
@@ -306,7 +311,8 @@ def api_criar_transacao():
             valor=valor,
             conta=dados.get('conta', ''),
             instituicao=dados.get('instituicao', ''),
-            status=dados['status']
+            status=dados['status'],
+            usuario_id=usuario_id
         )
         
         if resultado['sucesso']:
@@ -350,6 +356,8 @@ def api_editar_transacao(id):
             return jsonify({'erro': f'Status deve ser um de: {", ".join(status_permitidos)}'}), 400
         
         # Edita transação
+        usuario_id = session.get('usuario_id')
+
         resultado = editar_transacao(
             id_transacao=id,
             data_transacao=dados['data'],
@@ -359,7 +367,8 @@ def api_editar_transacao(id):
             valor=valor,
             conta=dados.get('conta', ''),
             instituicao=dados.get('instituicao', ''),
-            status=dados['status']
+            status=dados['status'],
+            usuario_id=usuario_id
         )
         
         if resultado['sucesso']:
@@ -378,7 +387,8 @@ def api_editar_transacao(id):
 def api_excluir_transacao(id):
     try:
         # Exclui transação
-        resultado = excluir_transacao(id)
+        usuario_id = session.get('usuario_id')
+        resultado = excluir_transacao(id, usuario_id=usuario_id)
         
         if resultado['sucesso']:
             return jsonify({'mensagem': resultado['mensagem']}), 200
@@ -419,9 +429,10 @@ def api_upload():
 
         df = pd.read_csv(caminho_arquivo)
         df_tratado, contador_categorizadas = tratar_transacoes(df)
+        usuario_id = session.get('usuario_id')
         resultado_carga = carregar_transacoes_mysql(
             df_tratado,
-            usuario_id=1,
+            usuario_id=usuario_id,
         )
 
         return {
@@ -443,7 +454,9 @@ def api_upload():
 @login_obrigatorio
 def api_limpar_transacoes():
     try:
-        limpar_transacoes_mysql()
+        usuario_id = session.get('usuario_id')
+        # Limpa apenas as transações do usuário
+        limpar_transacoes_mysql(usuario_id=usuario_id)
 
         return jsonify({
             "mensagem": "Todos os dados foram removidos com sucesso."

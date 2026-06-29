@@ -255,13 +255,19 @@ def carregar_transacoes_mysql(df, usuario_id):
 
         raise
 
-def limpar_transacoes_mysql():
+def limpar_transacoes_mysql(usuario_id=None):
     """
-    Remove todas as transações cadastradas no banco.
+    Remove transações cadastradas no banco.
+
+    Se `usuario_id` for informado, remove apenas as transações desse usuário.
+    Caso contrário, remove todas (uso restrito).
     """
     engine = obter_engine()
 
     with engine.begin() as conexao:
-        conexao.execute(text("DELETE FROM transacoes"))
-
-    print("Todas as transações foram removidas.")
+        if usuario_id is None:
+            conexao.execute(text("DELETE FROM transacoes"))
+            print("Todas as transações foram removidas.")
+        else:
+            conexao.execute(text("DELETE FROM transacoes WHERE usuario_id = :usuario_id"), {'usuario_id': usuario_id})
+            print(f"Transações do usuário {usuario_id} foram removidas.")
