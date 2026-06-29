@@ -16,8 +16,9 @@ from src.metrics import (
     calcular_gastos_por_categoria,
     calcular_resumo_financeiro,
 )
-from src.utils import formatar_moeda
+from src.utils import formatar_data, formatar_moeda
 from src.usuario_contexto import obter_usuario_id
+from src.configuracoes import obter_configuracoes_usuario
 
 
 # Palavras-chave para reconhecimento das intenções gerais.
@@ -146,6 +147,10 @@ def _obter_usuario_id_da_sessao():
     if usuario_id is None:
         raise PermissionError("Usuário não autenticado para consultar dados financeiros")
     return usuario_id
+
+
+def _limite_transacoes_preferido(usuario_id):
+    return obter_configuracoes_usuario(usuario_id)["qtd_transacoes_recentes"]
 
 
 def normalizar_texto(texto):
@@ -1510,7 +1515,7 @@ def responder_transacoes(pergunta):
                         "Sua última transação foi "
                         f"{ultima['descricao']} de "
                         f"{formatar_moeda(ultima['valor'])} "
-                        f"em {ultima['data_transacao']}."
+                        f"em {formatar_data(ultima['data_transacao'])}."
                     ),
                     "tipo": "transacao_ultima",
                     "dados": ultima,
@@ -1527,7 +1532,7 @@ def responder_transacoes(pergunta):
         if "ultimas" in pergunta_normalizada:
             usuario_id = _obter_usuario_id_da_sessao()
             ultimas = buscar_ultimas_transacoes(
-                limite=5,
+                limite=_limite_transacoes_preferido(usuario_id),
                 usuario_id=usuario_id,
             )
 
@@ -1536,7 +1541,7 @@ def responder_transacoes(pergunta):
                     (
                         f"- {transacao['descricao']}: "
                         f"{formatar_moeda(transacao['valor'])} "
-                        f"em {transacao['data_transacao']}"
+                        f"em {formatar_data(transacao['data_transacao'])}"
                     )
                     for transacao in ultimas
                 ]
@@ -1881,4 +1886,3 @@ def responder_pergunta(pergunta):
         "tipo": "desconhecido",
         "dados": {},
     }
-

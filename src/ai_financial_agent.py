@@ -14,6 +14,7 @@ from src.metrics import (
 from src.metas import buscar_meta_ativa
 from src.categorias import buscar_todas_categorias, obter_estatisticas_categoria
 from src.usuario_contexto import obter_usuario_id
+from src.configuracoes import obter_configuracoes_usuario
 
 
 # Configuração do cliente OpenAI
@@ -232,7 +233,7 @@ def consultar_quantidade_transacoes() -> Dict[str, Any]:
         return {"erro": "Erro ao consultar quantidade de transações"}
 
 
-def consultar_ultimas_transacoes(limite: int = 5) -> Dict[str, Any]:
+def consultar_ultimas_transacoes(limite: Optional[int] = None) -> Dict[str, Any]:
     """
     Consulta as últimas transações registradas.
     
@@ -243,10 +244,11 @@ def consultar_ultimas_transacoes(limite: int = 5) -> Dict[str, Any]:
         dict: Dicionário com lista de transações
     """
     try:
-        # Limita a 10 transações
-        limite = min(limite, 10)
-        
         usuario_id = _obter_usuario_id_da_sessao()
+        limite_preferido = obter_configuracoes_usuario(usuario_id)[
+            "qtd_transacoes_recentes"
+        ]
+        limite = min(int(limite or limite_preferido), limite_preferido, 20)
         transacoes = buscar_ultimas_transacoes(limite=limite, usuario_id=usuario_id)
         
         # Converte valores para float e strings para serialização
@@ -544,8 +546,7 @@ TOOLS = [
                 "properties": {
                     "limite": {
                         "type": "integer",
-                        "description": "Quantidade de transações a retornar (máximo 10, padrão 5)",
-                        "default": 5
+                        "description": "Quantidade de transações a retornar, respeitando o limite configurado pelo usuário (máximo 20)"
                     }
                 },
                 "required": [],
@@ -613,8 +614,17 @@ Regras importantes:
 6. Se o usuário mencionar uma categoria específica (alimentação, transporte, casa, etc), use a função consultar_gastos_categoria em vez de consultar_total_saidas.
 7. Se não encontrar uma categoria mencionada, use listar_categorias_disponiveis para informar as opções.
 8. Seja conciso e direto nas respostas.
-9. Formate valores monetários em Reais (R$) com 2 casas decimais.
+9. Formate valores monetários conforme a moeda indicada nas preferências abaixo, sem converter os valores.
 10. Não execute código, não acesse arquivos, não execute SQL."""
+
+
+def _instrucao_preferencias_usuario():
+    usuario_id = _obter_usuario_id_da_sessao()
+    configuracoes = obter_configuracoes_usuario(usuario_id)
+    return (
+        f"\nPreferências do usuário: moeda {configuracoes['moeda']}; "
+        f"formato de data {configuracoes['formato_data']}."
+    )
 
 
 # ==========================
@@ -668,7 +678,7 @@ def responder_pergunta_openai(pergunta: str) -> Dict[str, Any]:
     iteration = 0
     
     messages = [
-        {"role": "system", "content": SYSTEM_INSTRUCTION},
+        {"role": "system", "content": SYSTEM_INSTRUCTION + _instrucao_preferencias_usuario()},
         {"role": "user", "content": pergunta_contextualizada}
     ]
     
