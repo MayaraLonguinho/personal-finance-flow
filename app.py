@@ -3,8 +3,8 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, gerar_insights
-from src.transform import tratar_transacoes
-from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine, garantir_colunas_usuario
+from src.transform import processar_upload_csv
+from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, garantir_colunas_usuario
 from src.transacoes import buscar_todas_transacoes, criar_transacao, editar_transacao, excluir_transacao
 from src.metas import buscar_meta_ativa, criar_meta, atualizar_meta, excluir_meta
 from src.categorias import buscar_todas_categorias, criar_categoria, atualizar_categoria, excluir_categoria, obter_estatisticas_categoria, inicializar_categorias_padrao
@@ -22,12 +22,17 @@ from src.configuracoes import (
 
 
 import os
+import tempfile
 import pandas as pd
 from functools import wraps
+from pandas.errors import EmptyDataError, ParserError
+from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 # Configura Flask para retornar JSON com acentos corretamente
 app.config['JSON_AS_ASCII'] = False
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 # Carrega variáveis de ambiente
 from dotenv import load_dotenv
@@ -58,6 +63,8 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"],
     storage_uri="memory://"
 )
+
+EXTENSOES_UPLOAD_PERMITIDAS = {".csv"}
 
 # Garante colunas de isolamento por usuário em bancos já existentes
 # antes de processar qualquer rota.
@@ -112,6 +119,13 @@ def disponibilizar_preferencias_usuario():
 @app.route('/api/csrf-token', methods=['GET'])
 def get_csrf_token():
     return jsonify({'csrf_token': generate_csrf()})
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def tratar_upload_muito_grande(_erro):
+    return jsonify({
+        'erro': 'O arquivo excede o limite permitido de 2 MB.'
+    }), 413
 
 # Rota principal - exibe a página inicial
 @app.route('/')
@@ -541,7 +555,14 @@ def api_excluir_transacao(id):
 @login_obrigatorio
 @limiter.limit("10 per minute")
 def api_upload():
+    caminho_temporario = None
     try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({
+                "erro": "Autenticação necessária."
+            }), 401
+
         if "arquivo" not in request.files:
             return jsonify({
                 "erro": "Nenhum arquivo foi enviado."
@@ -554,38 +575,88 @@ def api_upload():
                 "erro": "Nenhum arquivo foi selecionado."
             }), 400
 
-        if not arquivo.filename.endswith(".csv"):
+        nome_seguro = secure_filename(arquivo.filename)
+        _, extensao = os.path.splitext(nome_seguro)
+        if extensao.lower() not in EXTENSOES_UPLOAD_PERMITIDAS:
             return jsonify({
                 "erro": "Envie apenas arquivos CSV."
             }), 400
 
-        caminho_uploads = "uploads"
-        os.makedirs(caminho_uploads, exist_ok=True)
+        if request.content_length and request.content_length > app.config['MAX_CONTENT_LENGTH']:
+            return jsonify({
+                "erro": "O arquivo excede o limite permitido de 2 MB."
+            }), 413
 
-        caminho_arquivo = os.path.join(caminho_uploads, arquivo.filename)
-        arquivo.save(caminho_arquivo)
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".csv",
+            prefix="upload_",
+        ) as arquivo_temporario:
+            caminho_temporario = arquivo_temporario.name
 
-        df = pd.read_csv(caminho_arquivo)
-        df_tratado, contador_categorizadas = tratar_transacoes(df)
-        usuario_id = session.get('usuario_id')
+        arquivo.save(caminho_temporario)
+
+        try:
+            df = pd.read_csv(caminho_temporario)
+        except EmptyDataError:
+            return jsonify({
+                "erro": "O arquivo CSV está vazio."
+            }), 400
+        except (ParserError, UnicodeDecodeError):
+            return jsonify({
+                "erro": "Não foi possível ler o CSV enviado."
+            }), 400
+
+        df_tratado, contador_categorizadas, relatorio = processar_upload_csv(
+            df,
+            usuario_id=usuario_id,
+        )
+        if df_tratado.empty:
+            return jsonify({
+                "erro": "Nenhuma linha válida foi encontrada no CSV.",
+                "relatorio": relatorio,
+            }), 400
+
         resultado_carga = carregar_transacoes_mysql(
             df_tratado,
             usuario_id=usuario_id,
         )
 
-        return {
-            "mensagem": "Planilha processada com sucesso.",
-            "recebidos": resultado_carga["recebidos"],
-            "importados": resultado_carga["importados"],
-            "ignorados": resultado_carga["ignorados"],
-            "categorizadas_automaticamente": contador_categorizadas
-        }
+        rejeicoes = list(relatorio["rejeicoes"])
+        for linha in resultado_carga.get("linhas_ignoradas_duplicadas", []):
+            rejeicoes.append({
+                "linha": int(linha),
+                "motivo": "linha já existente para o usuário autenticado",
+            })
 
+        relatorio["rejeicoes"] = sorted(
+            rejeicoes,
+            key=lambda item: item["linha"],
+        )
+        relatorio["linhas_aceitas"] = int(resultado_carga["importados"])
+        relatorio["linhas_rejeitadas"] = len(relatorio["rejeicoes"])
+
+        return jsonify({
+            "mensagem": "Planilha processada com sucesso.",
+            "recebidos": int(relatorio["total_linhas"]),
+            "importados": int(resultado_carga["importados"]),
+            "ignorados": int(relatorio["linhas_rejeitadas"]),
+            "categorizadas_automaticamente": int(contador_categorizadas),
+            "relatorio": relatorio,
+        }), 200
+
+    except ValueError as erro:
+        return jsonify({
+            "erro": str(erro)
+        }), 400
     except Exception as erro:
         print(f"[ERRO] Não foi possível importar a planilha: {erro}")
         return jsonify({
             "erro": "Não foi possível importar a planilha."
         }), 500
+    finally:
+        if caminho_temporario and os.path.exists(caminho_temporario):
+            os.remove(caminho_temporario)
 
 
 @app.route("/api/transacoes/limpar", methods=["DELETE"])

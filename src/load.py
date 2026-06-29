@@ -133,6 +133,7 @@ def carregar_transacoes_mysql(df, usuario_id):
 
     try:
         df = df.copy()
+        linhas_ignoradas_duplicadas = []
 
         if "data" in df.columns:
             df = df.rename(
@@ -141,11 +142,15 @@ def carregar_transacoes_mysql(df, usuario_id):
                 }
             )
 
-        for coluna in colunas_transacao:
+        colunas_processamento = list(colunas_transacao)
+        if "_linha_csv" in df.columns:
+            colunas_processamento.append("_linha_csv")
+
+        for coluna in colunas_processamento:
             if coluna not in df.columns:
                 df[coluna] = None
 
-        df_para_carregar = df[colunas_transacao].copy()
+        df_para_carregar = df[colunas_processamento].copy()
 
         df_para_carregar["usuario_id"] = usuario_id
 
@@ -275,10 +280,22 @@ def carregar_transacoes_mysql(df, usuario_id):
                 .agg("|".join, axis=1)
             )
 
-            df_para_carregar = df_para_carregar[
-                ~chaves_novas.isin(
-                    chaves_existentes
+            mascara_duplicadas_banco = chaves_novas.isin(
+                chaves_existentes
+            )
+            if "_linha_csv" in df_para_carregar.columns:
+                linhas_ignoradas_duplicadas = (
+                    df_para_carregar.loc[
+                        mascara_duplicadas_banco,
+                        "_linha_csv",
+                    ]
+                    .dropna()
+                    .astype(int)
+                    .tolist()
                 )
+
+            df_para_carregar = df_para_carregar[
+                ~mascara_duplicadas_banco
             ]
 
         quantidade_importada = len(
@@ -326,6 +343,7 @@ def carregar_transacoes_mysql(df, usuario_id):
             "recebidos": quantidade_recebida,
             "importados": quantidade_importada,
             "ignorados": quantidade_ignorada,
+            "linhas_ignoradas_duplicadas": linhas_ignoradas_duplicadas,
         }
 
     except Exception as erro:
