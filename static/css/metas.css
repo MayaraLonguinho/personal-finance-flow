@@ -48,7 +48,7 @@
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Georgia, "Times New Roman", serif;
     background: #f5f7fb;
     color: #0f172a;
 }
@@ -93,11 +93,9 @@ select {
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    background: linear-gradient(
-        135deg,
-        var(--primary-dark),
-        var(--primary)
-    );
+    background: linear-gradient(135deg,
+            var(--primary-dark),
+            var(--primary));
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -152,7 +150,7 @@ select {
     box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
-.goal-card > span {
+.goal-card>span {
     display: block;
     font-size: 12px;
     color: var(--primary);
@@ -196,11 +194,9 @@ select {
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(
-        90deg,
-        var(--primary),
-        var(--accent)
-    );
+    background: linear-gradient(90deg,
+            var(--primary),
+            var(--accent));
     border-radius: 999px;
     transition: width 0.3s ease;
 }
@@ -311,11 +307,9 @@ select {
 ========================== */
 
 .hero {
-    background: radial-gradient(
-        circle at top left,
-        var(--accent),
-        var(--primary-dark) 62%
-    );
+    background: radial-gradient(circle at top left,
+            var(--accent),
+            var(--primary-dark) 62%);
     color: #ffffff;
     border-radius: 0 0 18px 18px;
     padding: 18px 26px;
