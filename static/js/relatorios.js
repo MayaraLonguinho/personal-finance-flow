@@ -1,13 +1,5 @@
 function formatarMoeda(valor) {
-    return new Intl.NumberFormat(
-        "pt-BR",
-        {
-            style: "currency",
-            currency: "BRL"
-        }
-    ).format(
-        Number(valor) || 0
-    );
+    return window.PFF.formatarMoeda(valor);
 }
 
 function formatarPercentual(valor) {
@@ -16,25 +8,7 @@ function formatarPercentual(valor) {
 }
 
 function formatarData(dataTexto) {
-    if (!dataTexto) {
-        return "-";
-    }
-
-    const texto = String(
-        dataTexto
-    ).substring(0, 10);
-
-    const partes = texto.split("-");
-
-    if (partes.length !== 3) {
-        return dataTexto;
-    }
-
-    return (
-        `${partes[2]}/` +
-        `${partes[1]}/` +
-        `${partes[0]}`
-    );
+    return window.PFF.formatarData(dataTexto);
 }
 
 function capitalizarTexto(texto) {
@@ -318,15 +292,10 @@ function preencherPeriodo(periodo) {
 
     document.getElementById(
         "relatorio-gerado-em"
-    ).textContent = new Intl.DateTimeFormat(
-        "pt-BR",
-        {
-            dateStyle: "short",
-            timeStyle: "short"
-        }
-    ).format(
-        new Date()
-    );
+    ).textContent = `${formatarData(new Date())} ${new Date().toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit"
+    })}`;
 }
 
 function preencherCategorias(categorias) {

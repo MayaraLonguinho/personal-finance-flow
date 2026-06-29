@@ -1,8 +1,5 @@
 function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    }).format(Number(valor) || 0);
+    return window.PFF.formatarMoeda(valor);
 }
 
 function formatarPercentual(valor) {
@@ -10,19 +7,7 @@ function formatarPercentual(valor) {
 }
 
 function formatarData(dataTexto) {
-    if (!dataTexto) {
-        return "-";
-    }
-
-    const partes = String(dataTexto)
-        .substring(0, 10)
-        .split("-");
-
-    if (partes.length !== 3) {
-        return dataTexto;
-    }
-
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    return window.PFF.formatarData(dataTexto);
 }
 
 function escaparHtml(texto) {
@@ -680,7 +665,7 @@ async function excluirInvestimento(
     investimentoId,
     investimentoNome
 ) {
-    const confirmou = confirm(
+    const confirmou = window.PFF.confirmarExclusao(
         `Deseja excluir o investimento "${investimentoNome}"?`
     );
 
