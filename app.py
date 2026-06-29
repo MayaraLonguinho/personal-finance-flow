@@ -473,7 +473,8 @@ def api_limpar_transacoes():
 @login_obrigatorio
 def api_meta():
     try:
-        meta = buscar_meta_ativa()
+        usuario_id = session.get('usuario_id')
+        meta = buscar_meta_ativa(usuario_id=usuario_id)
         
         if meta is None:
             return jsonify({'meta': None})
@@ -539,12 +540,15 @@ def api_criar_meta():
             return jsonify({'erro': 'Status deve ser ativa, concluida ou cancelada'}), 400
         
         # Cria meta
+        usuario_id = session.get('usuario_id')
+
         id_meta = criar_meta(
             titulo=dados['titulo'],
             valor_meta=valor_meta,
             valor_atual=valor_atual,
             data_limite=dados.get('data_limite'),
             status=status
+            , usuario_id=usuario_id
         )
         
         return jsonify({'mensagem': 'Meta criada com sucesso', 'id': id_meta}), 201
@@ -585,6 +589,8 @@ def api_atualizar_meta(id):
                 return jsonify({'erro': 'Status deve ser ativa, concluida ou cancelada'}), 400
         
         # Atualiza meta
+        usuario_id = session.get('usuario_id')
+
         sucesso = atualizar_meta(
             id_meta=id,
             titulo=dados.get('titulo'),
@@ -592,6 +598,7 @@ def api_atualizar_meta(id):
             valor_atual=dados.get('valor_atual'),
             data_limite=dados.get('data_limite'),
             status=dados.get('status')
+            , usuario_id=usuario_id
         )
         
         if sucesso:
@@ -607,7 +614,8 @@ def api_atualizar_meta(id):
 @login_obrigatorio
 def api_excluir_meta(id):
     try:
-        sucesso = excluir_meta(id)
+        usuario_id = session.get('usuario_id')
+        sucesso = excluir_meta(id, usuario_id=usuario_id)
         
         if sucesso:
             return jsonify({'mensagem': 'Meta excluída com sucesso'}), 200
@@ -622,14 +630,15 @@ def api_excluir_meta(id):
 @login_obrigatorio
 def api_categorias():
     try:
-        # Inicializa categorias padrão se necessário
-        inicializar_categorias_padrao()
-        
-        categorias = buscar_todas_categorias()
+        # Inicializa categorias padrão se necessário (por usuário)
+        usuario_id = session.get('usuario_id')
+        inicializar_categorias_padrao(usuario_id=usuario_id)
+
+        categorias = buscar_todas_categorias(usuario_id=usuario_id)
         
         # Adiciona estatísticas para cada categoria
         for categoria in categorias:
-            estatisticas = obter_estatisticas_categoria(categoria['nome'])
+            estatisticas = obter_estatisticas_categoria(categoria['nome'], usuario_id=usuario_id)
             categoria['quantidade_transacoes'] = estatisticas['quantidade']
             categoria['valor_total'] = estatisticas['valor_total']
         
@@ -650,10 +659,13 @@ def api_criar_categoria():
             return jsonify({'erro': 'Nome da categoria é obrigatório'}), 400
         
         # Cria categoria
+        usuario_id = session.get('usuario_id')
+
         resultado = criar_categoria(
             nome=dados['nome'],
             palavras_chave=dados.get('palavras_chave', []),
-            cor=dados.get('cor')
+            cor=dados.get('cor'),
+            usuario_id=usuario_id
         )
         
         if resultado['sucesso']:
@@ -670,13 +682,15 @@ def api_criar_categoria():
 def api_atualizar_categoria(nome):
     try:
         dados = request.get_json()
-        
+        usuario_id = session.get('usuario_id')
+
         # Atualiza categoria
         resultado = atualizar_categoria(
             nome_atual=nome,
             novo_nome=dados.get('nome'),
             palavras_chave=dados.get('palavras_chave'),
-            cor=dados.get('cor')
+            cor=dados.get('cor'),
+            usuario_id=usuario_id
         )
         
         if resultado['sucesso']:
@@ -694,7 +708,8 @@ def api_atualizar_categoria(nome):
 @login_obrigatorio
 def api_excluir_categoria(nome):
     try:
-        resultado = excluir_categoria(nome)
+        usuario_id = session.get('usuario_id')
+        resultado = excluir_categoria(nome, usuario_id=usuario_id)
         
         if resultado['sucesso']:
             return jsonify({'mensagem': resultado['mensagem']}), 200

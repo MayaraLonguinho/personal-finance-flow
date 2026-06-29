@@ -6,7 +6,7 @@ from src.load import obter_engine
 from sqlalchemy import text
 
 
-def buscar_todas_categorias():
+def buscar_todas_categorias(usuario_id=None):
     """
     Busca todas as categorias da tabela categorias no MySQL.
     
@@ -16,10 +16,15 @@ def buscar_todas_categorias():
     try:
         engine = obter_engine()
         
-        query = text("SELECT * FROM categorias ORDER BY nome")
+        if usuario_id is None:
+            query = text("SELECT * FROM categorias ORDER BY nome")
+            params = {}
+        else:
+            query = text("SELECT * FROM categorias WHERE usuario_id = :usuario_id ORDER BY nome")
+            params = {'usuario_id': usuario_id}
         
         with engine.connect() as conn:
-            result = conn.execute(query)
+            result = conn.execute(query, params) if 'params' in locals() else conn.execute(query)
             categorias = []
             for row in result:
                 categoria = {
@@ -38,7 +43,7 @@ def buscar_todas_categorias():
         return []
 
 
-def buscar_categoria_por_nome(nome):
+def buscar_categoria_por_nome(nome, usuario_id=None):
     """
     Busca uma categoria pelo nome.
     
@@ -51,10 +56,15 @@ def buscar_categoria_por_nome(nome):
     try:
         engine = obter_engine()
         
-        query = text("SELECT * FROM categorias WHERE nome = :nome")
-        
+        if usuario_id is None:
+            query = text("SELECT * FROM categorias WHERE nome = :nome")
+            params = {'nome': nome}
+        else:
+            query = text("SELECT * FROM categorias WHERE nome = :nome AND usuario_id = :usuario_id")
+            params = {'nome': nome, 'usuario_id': usuario_id}
+
         with engine.connect() as conn:
-            result = conn.execute(query, {'nome': nome})
+            result = conn.execute(query, params)
             row = result.fetchone()
             
             if row:
@@ -73,7 +83,7 @@ def buscar_categoria_por_nome(nome):
         return None
 
 
-def criar_categoria(nome, palavras_chave=None, cor=None):
+def criar_categoria(nome, palavras_chave=None, cor=None, usuario_id=None):
     """
     Cria uma nova categoria na tabela categorias do MySQL.
     
@@ -91,17 +101,30 @@ def criar_categoria(nome, palavras_chave=None, cor=None):
         # Converte lista de palavras-chave para JSON
         palavras_chave_json = json.dumps(palavras_chave) if palavras_chave else None
         
-        query = text("""
-            INSERT INTO categorias (nome, palavras_chave, cor)
-            VALUES (:nome, :palavras_chave, :cor)
-        """)
-        
-        with engine.connect() as conn:
-            conn.execute(query, {
+        if usuario_id is None:
+            query = text("""
+                INSERT INTO categorias (nome, palavras_chave, cor)
+                VALUES (:nome, :palavras_chave, :cor)
+            """)
+            params = {
                 'nome': nome,
                 'palavras_chave': palavras_chave_json,
                 'cor': cor
-            })
+            }
+        else:
+            query = text("""
+                INSERT INTO categorias (usuario_id, nome, palavras_chave, cor)
+                VALUES (:usuario_id, :nome, :palavras_chave, :cor)
+            """)
+            params = {
+                'usuario_id': usuario_id,
+                'nome': nome,
+                'palavras_chave': palavras_chave_json,
+                'cor': cor
+            }
+        
+        with engine.connect() as conn:
+            conn.execute(query, params)
             conn.commit()
         
         return {'sucesso': True, 'mensagem': 'Categoria criada com sucesso'}
@@ -110,7 +133,7 @@ def criar_categoria(nome, palavras_chave=None, cor=None):
         return {'sucesso': False, 'erro': str(e)}
 
 
-def atualizar_categoria(nome_atual, novo_nome=None, palavras_chave=None, cor=None):
+def atualizar_categoria(nome_atual, novo_nome=None, palavras_chave=None, cor=None, usuario_id=None):
     """
     Atualiza uma categoria existente na tabela categorias do MySQL.
     
@@ -145,11 +168,19 @@ def atualizar_categoria(nome_atual, novo_nome=None, palavras_chave=None, cor=Non
         if not set_clauses:
             return {'sucesso': False, 'erro': 'Nenhum campo para atualizar'}
         
-        query = f"""
-            UPDATE categorias 
-            SET {', '.join(set_clauses)}
-            WHERE nome = :nome_atual
-        """
+        if usuario_id is None:
+            query = f"""
+                UPDATE categorias 
+                SET {', '.join(set_clauses)}
+                WHERE nome = :nome_atual
+            """
+        else:
+            query = f"""
+                UPDATE categorias 
+                SET {', '.join(set_clauses)}
+                WHERE nome = :nome_atual AND usuario_id = :usuario_id
+            """
+            params['usuario_id'] = usuario_id
         
         with engine.connect() as conn:
             result = conn.execute(text(query), params)
@@ -164,7 +195,7 @@ def atualizar_categoria(nome_atual, novo_nome=None, palavras_chave=None, cor=Non
         return {'sucesso': False, 'erro': str(e)}
 
 
-def excluir_categoria(nome):
+def excluir_categoria(nome, usuario_id=None):
     """
     Exclui uma categoria da tabela categorias do MySQL.
     Move transações dessa categoria para 'outros'.
@@ -184,20 +215,34 @@ def excluir_categoria(nome):
         engine = obter_engine()
         
         # Primeiro, move transações dessa categoria para 'outros'
-        query_update = text("""
-            UPDATE transacoes 
-            SET categoria = 'outros'
-            WHERE categoria = :nome
-        """)
+        if usuario_id is None:
+            query_update = text("""
+                UPDATE transacoes 
+                SET categoria = 'outros'
+                WHERE categoria = :nome
+            """)
+            params_update = {'nome': nome}
+        else:
+            query_update = text("""
+                UPDATE transacoes 
+                SET categoria = 'outros'
+                WHERE categoria = :nome AND usuario_id = :usuario_id
+            """)
+            params_update = {'nome': nome, 'usuario_id': usuario_id}
         
         with engine.connect() as conn:
-            conn.execute(query_update, {'nome': nome})
+            conn.execute(query_update, params_update)
         
         # Depois, exclui a categoria
-        query_delete = text("DELETE FROM categorias WHERE nome = :nome")
-        
+        if usuario_id is None:
+            query_delete = text("DELETE FROM categorias WHERE nome = :nome")
+            params_delete = {'nome': nome}
+        else:
+            query_delete = text("DELETE FROM categorias WHERE nome = :nome AND usuario_id = :usuario_id")
+            params_delete = {'nome': nome, 'usuario_id': usuario_id}
+
         with engine.connect() as conn:
-            result = conn.execute(query_delete, {'nome': nome})
+            result = conn.execute(query_delete, params_delete)
             conn.commit()
         
         if result.rowcount == 0:
@@ -209,7 +254,7 @@ def excluir_categoria(nome):
         return {'sucesso': False, 'erro': str(e)}
 
 
-def obter_regras_categorizacao_do_banco():
+def obter_regras_categorizacao_do_banco(usuario_id=None):
     """
     Obtém as regras de categorização do banco de dados.
     
@@ -217,7 +262,7 @@ def obter_regras_categorizacao_do_banco():
         dict: Dicionário com categorias e palavras-chave
     """
     try:
-        categorias = buscar_todas_categorias()
+        categorias = buscar_todas_categorias(usuario_id=usuario_id)
         
         regras = {}
         for categoria in categorias:
@@ -229,7 +274,7 @@ def obter_regras_categorizacao_do_banco():
         return {}
 
 
-def inicializar_categorias_padrao():
+def inicializar_categorias_padrao(usuario_id=None):
     """
     Inicializa as categorias padrão se ainda não existirem no banco.
     
@@ -243,11 +288,11 @@ def inicializar_categorias_padrao():
         
         for nome, palavras_chave in regras_padrao.items():
             # Verifica se a categoria já existe
-            categoria_existente = buscar_categoria_por_nome(nome)
+            categoria_existente = buscar_categoria_por_nome(nome, usuario_id=usuario_id)
             
             if not categoria_existente:
                 # Cria a categoria
-                resultado = criar_categoria(nome, palavras_chave)
+                resultado = criar_categoria(nome, palavras_chave, usuario_id=usuario_id)
                 if not resultado['sucesso']:
                     return resultado
         
@@ -257,7 +302,7 @@ def inicializar_categorias_padrao():
         return {'sucesso': False, 'erro': str(e)}
 
 
-def obter_estatisticas_categoria(nome):
+def obter_estatisticas_categoria(nome, usuario_id=None):
     """
     Obtém estatísticas de uma categoria (quantidade de transações e valor total).
     
@@ -270,16 +315,27 @@ def obter_estatisticas_categoria(nome):
     try:
         engine = obter_engine()
         
-        query = text("""
-            SELECT 
-                COUNT(*) as quantidade,
-                SUM(valor) as valor_total
-            FROM transacoes
-            WHERE categoria = :nome
-        """)
-        
+        if usuario_id is None:
+            query = text("""
+                SELECT 
+                    COUNT(*) as quantidade,
+                    SUM(valor) as valor_total
+                FROM transacoes
+                WHERE categoria = :nome
+            """)
+            params = {'nome': nome}
+        else:
+            query = text("""
+                SELECT 
+                    COUNT(*) as quantidade,
+                    SUM(valor) as valor_total
+                FROM transacoes
+                WHERE categoria = :nome AND usuario_id = :usuario_id
+            """)
+            params = {'nome': nome, 'usuario_id': usuario_id}
+
         with engine.connect() as conn:
-            result = conn.execute(query, {'nome': nome})
+            result = conn.execute(query, params)
             row = result.fetchone()
             
             return {
