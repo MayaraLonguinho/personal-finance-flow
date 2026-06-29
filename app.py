@@ -9,6 +9,7 @@ from src.financial_agent import responder_pergunta as responder_pergunta_local
 from src.ai_financial_agent import responder_pergunta_openai
 from src.relatorios import obter_relatorio
 from src.investimentos import atualizar_investimento, buscar_investimento_por_id, criar_investimento, excluir_investimento, listar_investimentos, obter_resumo_investimentos
+from src.auth import criar_usuario
 
 
 import os
@@ -66,6 +67,60 @@ def pagina_login():
 @app.route("/cadastro")
 def pagina_cadastro():
     return render_template("cadastro.html")
+
+
+# Rota de API - cadastro de usuário
+@app.route('/api/cadastro', methods=['POST'])
+def api_cadastro():
+    try:
+        dados = request.get_json()
+        
+        # Valida campos obrigatórios
+        campos_obrigatorios = ['nome', 'email', 'senha', 'confirmacao_senha']
+        for campo in campos_obrigatorios:
+            if campo not in dados or not dados[campo]:
+                return jsonify({'erro': f'Campo {campo} é obrigatório'}), 400
+        
+        # Valida nome
+        nome = dados['nome'].strip()
+        if len(nome) < 3:
+            return jsonify({'erro': 'Nome deve ter pelo menos 3 caracteres'}), 400
+        
+        # Valida email
+        email = dados['email'].strip().lower()
+        if '@' not in email or '.' not in email:
+            return jsonify({'erro': 'Email inválido'}), 400
+        
+        # Valida telefone (opcional)
+        telefone = dados.get('telefone', '').strip() if dados.get('telefone') else None
+        
+        # Valida senha
+        senha = dados['senha']
+        if len(senha) < 6:
+            return jsonify({'erro': 'Senha deve ter pelo menos 6 caracteres'}), 400
+        
+        # Valida confirmação de senha
+        confirmacao_senha = dados['confirmacao_senha']
+        if senha != confirmacao_senha:
+            return jsonify({'erro': 'Senhas não conferem'}), 400
+        
+        # Cria usuário
+        resultado = criar_usuario(
+            nome=nome,
+            email=email,
+            telefone=telefone,
+            senha=senha
+        )
+        
+        if resultado['sucesso']:
+            return jsonify({'mensagem': resultado['mensagem']}), 201
+        else:
+            return jsonify({'erro': resultado['erro']}), 400
+            
+    except Exception as e:
+        return jsonify({'erro': 'Falha ao criar usuário', 'detalhes': str(e)}), 500
+
+
 # Rota de API - retorna métricas financeiras em JSON
 @app.route('/api/metricas')
 def api_metricas():
