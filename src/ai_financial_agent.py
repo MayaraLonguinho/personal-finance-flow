@@ -383,6 +383,39 @@ def normalizar_texto_sem_pontuacao(texto: str) -> str:
     texto = texto.translate(str.maketrans('', '', string.punctuation))
     return texto
 
+def pergunta_sobre_maior_categoria(
+    pergunta: str,
+) -> bool:
+    """
+    Verifica se a pergunta pede a categoria
+    com maior gasto.
+    """
+    pergunta_normalizada = (
+        normalizar_texto_sem_pontuacao(
+            pergunta
+        )
+    )
+
+    termos = [
+        "maior categoria",
+        "categoria de gasto",
+        "categoria de gastos",
+        "qual categoria teve mais despesas",
+        "qual categoria teve maior despesa",
+        "onde mais gastei",
+        "onde eu mais gastei",
+        "em que mais gastei",
+        "com o que mais gastei",
+        "maior gasto",
+        "maior despesa",
+    ]
+
+    return any(
+        normalizar_texto_sem_pontuacao(
+            termo
+        ) in pergunta_normalizada
+        for termo in termos
+    )
 
 def resolver_categoria(pergunta: str) -> Optional[str]:
     """
@@ -413,7 +446,7 @@ def resolver_categoria(pergunta: str) -> Optional[str]:
             palavras_chave = categoria.get('palavras_chave', [])
             for palavra in palavras_chave:
                 palavra_normalizada = normalizar_texto(palavra)
-                if palavra_normalizado in palavras_pergunta:
+                if palavra_normalizada in palavras_pergunta:
                     return categoria['nome']
         
         return None
@@ -603,19 +636,37 @@ FUNCTION_MAP = {
 # INSTRUÇÃO DO SISTEMA
 # ==========================
 
-SYSTEM_INSTRUCTION = """Você é um assistente financeiro do Personal Finance Flow. Responda em português do Brasil.
+SYSTEM_INSTRUCTION = """
+Você é um assistente financeiro pessoal.
 
-Regras importantes:
-1. Utilize exclusivamente as ferramentas fornecidas para obter números financeiros.
+Responda somente com base nos dados fornecidos pelas ferramentas.
+
+Regras:
+
+1. Sempre use as ferramentas para consultar dados financeiros.
 2. Nunca invente valores, categorias, metas ou transações.
-3. Quando faltarem dados, informe claramente ao usuário.
-4. Não forneça recomendações de investimento personalizadas ou aconselhamento financeiro.
-5. Diferencie consultas de uma categoria específica do total geral de saídas.
-6. Se o usuário mencionar uma categoria específica (alimentação, transporte, casa, etc), use a função consultar_gastos_categoria em vez de consultar_total_saidas.
-7. Se não encontrar uma categoria mencionada, use listar_categorias_disponiveis para informar as opções.
-8. Seja conciso e direto nas respostas.
-9. Formate valores monetários conforme a moeda indicada nas preferências abaixo, sem converter os valores.
-10. Não execute código, não acesse arquivos, não execute SQL."""
+3. Quando faltarem dados, informe isso claramente.
+4. Diferencie consultas sobre uma categoria específica do total
+   geral de saídas.
+5. Quando o usuário mencionar uma categoria específica, use
+   consultar_gastos_categoria.
+6. Quando o usuário perguntar pela maior categoria, onde mais
+   gastou, qual categoria teve mais despesas ou expressão
+   equivalente, use obrigatoriamente
+   consultar_maior_categoria.
+7. Não use consultar_total_saidas para perguntas sobre maior
+   categoria de gasto.
+8. Para perguntas sobre total de entradas, use
+   consultar_total_entradas.
+9. Para perguntas sobre total de saídas, use
+   consultar_total_saidas.
+10. Para perguntas sobre saldo, use consultar_saldo.
+11. Para perguntas sobre investimentos, use
+    consultar_total_investido ou a ferramenta mais adequada.
+12. Para perguntas sobre meta atual, use consultar_meta_ativa.
+13. Seja direto, claro e conciso.
+14. Não invente dados nem faça cálculos fora das ferramentas.
+"""
 
 
 def _instrucao_preferencias_usuario():
@@ -690,59 +741,106 @@ def responder_pergunta_openai(pergunta: str) -> Dict[str, Any]:
         
         try:
             # Faz a chamada à API
+            tool_choice = "auto"
+
+            if (
+                iteration == 1
+                and pergunta_sobre_maior_categoria(
+                     pergunta
+                )
+            ):
+                tool_choice = {
+                    "type": "function",
+                    "function": {
+                        "name": (
+                            "consultar_maior_categoria"
+                        ),
+                    },
+                }
+
             response = client.chat.completions.create(
                 model=OPENAI_MODEL,
                 messages=messages,
                 tools=TOOLS,
-                tool_choice="auto"
+                tool_choice=tool_choice,
             )
             
             response_message = response.choices[0].message
             
             # Verifica se o modelo quer chamar uma função
             tool_calls = response_message.tool_calls
-            
+
             if tool_calls:
+                # Registra no histórico a mensagem do assistente
+                # que solicitou as chamadas das ferramentas.
+                messages.append(response_message)
+
                 # Processa cada chamada de função
                 for tool_call in tool_calls:
                     function_name = tool_call.function.name
                     function_args = tool_call.function.arguments
-                    
-                    print(f"[AI Agent] Chamando função: {function_name} com args: {function_args}")
-                    
-                    # Valida se a função é permitida
+
+                    print(
+                        f"[AI Agent] Chamando função: "
+                        f"{function_name} com args: "
+                        f"{function_args}"
+                    )
+
                     if function_name not in FUNCTION_MAP:
-                        print(f"[AI Agent] Função não permitida: {function_name}")
+                        print(
+                            f"[AI Agent] Função não permitida: "
+                            f"{function_name}"
+                        )
                         continue
-                    
-                    # Executa a função
+
                     try:
                         import json
-                        args_dict = json.loads(function_args) if function_args else {}
-                        function_result = FUNCTION_MAP[function_name](**args_dict)
-                        
-                        # Registra a ferramenta usada
+
+                        args_dict = (
+                            json.loads(function_args)
+                            if function_args
+                            else {}
+                        )
+
+                        function_result = (
+                            FUNCTION_MAP[function_name](
+                                **args_dict
+                            )
+                        )
+
                         ferramenta_usada = function_name
                         dados_ferramenta = function_result
-                        
-                        # Adiciona o resultado à conversa
-                        messages.append({
-                            "tool_call_id": tool_call.id,
-                            "role": "tool",
-                            "name": function_name,
-                            "content": json.dumps(function_result, ensure_ascii=False)
-                        })
-                        
-                    except Exception as e:
-                        print(f"[AI Agent] Erro ao executar função {function_name}: {e}")
-                        messages.append({
-                            "tool_call_id": tool_call.id,
-                            "role": "tool",
-                            "name": function_name,
-                            "content": json.dumps({"erro": str(e)}, ensure_ascii=False)
-                        })
-                
-                # Continua o loop para obter a resposta final
+
+                        messages.append(
+                            {
+                                "tool_call_id": tool_call.id,
+                                "role": "tool",
+                                "name": function_name,
+                                "content": json.dumps(
+                                    function_result,
+                                    ensure_ascii=False,
+                                ),
+                            }
+                        )
+
+                    except Exception as erro:
+                        print(
+                            f"[AI Agent] Erro ao executar "
+                            f"função {function_name}: {erro}"
+                        )
+
+                        messages.append(
+                            {
+                                "tool_call_id": tool_call.id,
+                                "role": "tool",
+                                "name": function_name,
+                                "content": json.dumps(
+                                    {"erro": str(erro)},
+                                    ensure_ascii=False,
+                                ),
+                            }
+                        )
+
                 continue
             else:
                 # Resposta final do modelo

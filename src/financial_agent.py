@@ -211,10 +211,14 @@ def contem_algum_termo(texto, termos):
         for termo in termos
     )
 
-
 def identificar_intencao(pergunta):
     """
     Identifica a intenção geral da pergunta.
+
+    Perguntas sobre categorias possuem prioridade sobre a
+    intenção genérica de saídas. Isso evita que expressões como
+    "maior categoria de gasto" sejam classificadas apenas como
+    total de gastos.
 
     Args:
         pergunta (str): Pergunta do usuário.
@@ -224,9 +228,43 @@ def identificar_intencao(pergunta):
     """
     pergunta_normalizada = normalizar_texto(pergunta)
 
-    for intencao, palavras_chave in INTENCOES.items():
+    termos_prioritarios_categoria = [
+        "maior categoria",
+        "categoria de gasto",
+        "categoria de gastos",
+        "qual categoria",
+        "onde mais gastei",
+        "onde eu mais gastei",
+        "em que mais gastei",
+        "com o que mais gastei",
+        "maior gasto",
+        "maior despesa",
+    ]
+
+    if contem_algum_termo(
+        pergunta_normalizada,
+        termos_prioritarios_categoria,
+    ):
+        return "categorias"
+
+    ordem_intencoes = [
+        "categorias",
+        "saldo",
+        "entradas",
+        "saidas",
+        "investimentos",
+        "metas",
+        "transacoes",
+        "resumo",
+    ]
+
+    for intencao in ordem_intencoes:
+        palavras_chave = INTENCOES[intencao]
+
         for palavra in palavras_chave:
-            if normalizar_texto(palavra) in pergunta_normalizada:
+            if normalizar_texto(
+                palavra
+            ) in pergunta_normalizada:
                 return intencao
 
     return None
