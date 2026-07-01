@@ -26,10 +26,25 @@ __pycache__/
 .idea/
 
 # Arquivos enviados pelo usuário
-uploads/*
+g_uploads/*
 
 # Mantém a pasta uploads no projeto
-!uploads/.gitkeep
+!g_uploads/.gitkeep
 
 # Logs
 *.log
+d_traceability/logs/*.log
+
+# Output gerado
+g_output/reports/*
+g_output/exports/*
+g_output/screenshots/*
+g_output/test_results/*
+!g_output/reports/.gitkeep
+!g_output/exports/.gitkeep
+!g_output/screenshots/.gitkeep
+!g_output/test_results/.gitkeep
+
+# Relatórios de teste gerados
+f_test_execution/reports/*
+!f_test_execution/reports/.gitkeep
