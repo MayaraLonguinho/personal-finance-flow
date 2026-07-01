@@ -87,8 +87,6 @@ Responsabilidades confirmadas:
 | `financial_agent.py` | Assistente determinístico baseado em intenções |
 | `ai_financial_agent.py` | Assistente OpenAI com function calling |
 | `utils.py` | Formatação de moeda e data por preferência |
-| `database.py` | Segunda fábrica de engine e sessão SQLAlchemy |
-| `main.py` | Entrada standalone do pipeline legado |
 
 ## Persistência
 
@@ -99,7 +97,7 @@ O projeto usa SQLAlchemy sem modelos ORM declarativos. As operações são feita
 - `pandas.read_sql()` para consultas tabulares;
 - `DataFrame.to_sql()` na carga em lote.
 
-Cada chamada de `obter_engine()` cria um novo engine com credenciais obtidas do `.env`. Existe também `get_connection()` em `src/database.py`, com construção equivalente.
+Cada chamada de `obter_engine()` cria um novo engine com credenciais obtidas do `.env`.
 
 ## Isolamento por usuário
 
@@ -154,7 +152,7 @@ Variáveis documentadas em `.env.example`:
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`;
 - `OPENAI_API_KEY`, `OPENAI_MODEL`.
 
-`SECRET_KEY` é lida por `app.py`, embora não apareça no `.env.example`. Ao executar diretamente, o servidor usa host `127.0.0.1`, porta `5001` e modo debug.
+`SECRET_KEY` é obrigatória e deve estar configurada no ambiente. Ao executar diretamente, o servidor usa host `127.0.0.1`, porta `5001` e modo debug.
 
 ## Notas relacionadas
 

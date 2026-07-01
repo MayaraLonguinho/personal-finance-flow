@@ -4,6 +4,16 @@
 
 Garantir qualidade do código através de testes automatizados.
 
+## Estado Atual
+
+A pasta `tests/` contém os seguintes testes automatizados:
+
+- `test_mcp_readonly.py`: 11 testes do servidor MCP somente leitura (consultas SELECT, escopo por usuário, limites, fórmulas, tools publicadas e allowlist de resources);
+- `test_categorias_padrao.py`: inicialização de categorias padrão;
+- `test_categorizacao_automatica.py`: categorização automática de transações;
+- `test_upload_api.py`: API de upload de CSV;
+- `test_user_isolation.py`: isolamento de dados por usuário.
+
 ## Tipos de Testes
 
 ### Testes Unitários
@@ -27,11 +37,13 @@ Garantir qualidade do código através de testes automatizados.
 
 - Testar fluxos principais
 - Testar validações
-- Testar limites (ex: valores negativos, datas inválidas)
+- Testar limites (ex: valores negativos, datas inválidos)
 
 ## Critérios de Aceitação
 
-- [ ] Pasta `tests/` existe
-- [ ] Testes unitários para módulos principais
+- [x] Pasta `tests/` existe
+- [ ] Testes unitários para todos os módulos principais
 - [ ] Testes de segurança para isolamento
-- [ ] Todos os testes passam
+- [ ] Testes de integração para APIs Flask
+- [ ] Testes de interface e integração com MySQL
+- [x] Todos os testes existentes passam

@@ -228,6 +228,14 @@ Caso contrário, envia a pergunta original.
 
 Ao obter resposta textual, o retorno contém a última ferramenta executada e seu resultado em `dados`.
 
+### Priorização de "maior categoria de gasto"
+
+Quando a pergunta contém termos como "maior categoria", "categoria de gasto", "onde mais gastei", "onde eu mais gastei", "em que mais gastei", "com o que mais gastei", "maior gasto" ou "maior despesa", o agente OpenAI é forçado a usar a ferramenta `consultar_maior_categoria` na primeira iteração. Isso evita que o modelo interprete a pergunta apenas como uma consulta de total de saídas.
+
+### Histórico de mensagens
+
+Quando o modelo solicita chamadas de ferramentas (`tool_calls`), a mensagem do assistente contendo essas solicitações é adicionada ao histórico antes dos resultados das ferramentas serem enviados. Isso garante que o contexto da conversa inclua tanto a intenção do modelo quanto os dados retornados pelas tools.
+
 Se as quatro iterações forem consumidas, a função retorna uma resposta estática com `origem="local"`, embora não invoque `responder_pergunta_local()` nesse ramo específico.
 
 ## Fallback local

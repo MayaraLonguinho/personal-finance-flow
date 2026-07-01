@@ -23,45 +23,45 @@ tags:
 
 A documentação de execução e o roadmap precisam acompanhar o ponto de entrada real; caso contrário, recursos existentes parecem ausentes e a porta informada falha.
 
-## 2. Pipeline standalone incompatível com o transformador e a carga
+## 2. Inexistência de ponto de entrada CLI
 
 ### Evidência
 
-`src/main.py` atribui `df_tratado = tratar_transacoes(df_bruto)`, mas a função retorna `(df, contador)`. Em seguida, tenta chamar `.to_csv()` nessa tupla. O mesmo arquivo chama `carregar_transacoes_mysql(df_tratado)` sem o `usuario_id` exigido pela assinatura atual.
+Não existe ponto de entrada CLI funcional. O pipeline web está alinhado com os contratos atuais.
 
 ### Aprendizado
 
-Mudanças de contrato entre módulos precisam atualizar todos os pontos de entrada. O pipeline web está alinhado com o contrato atual; o standalone não está.
+Para uso programático, utilize os módulos diretamente com o contexto e os argumentos corretos.
 
-## 3. Unicidade de categorias conflita com o escopo por usuário
+## 3. Unicidade de categorias por usuário e nome
 
 ### Evidência
 
-O schema declara `nome VARCHAR(100) NOT NULL UNIQUE`, enquanto todas as consultas de categoria filtram por `usuario_id` e cada usuário tenta inicializar as mesmas categorias padrão.
+O schema atual declara `UNIQUE (usuario_id, nome)` na tabela `categorias`, o que permite que diferentes usuários tenham categorias com o mesmo nome.
 
 ### Aprendizado
 
-Em um modelo multiusuário, a unicidade esperada pelo código seria por proprietário e nome. O schema atual pode impedir que dois usuários tenham uma categoria homônima.
+A unicidade composta por usuário e nome está alinhada com o modelo multiusuário atual.
 
 ## 4. Relações sem chaves estrangeiras
 
 ### Evidência
 
-Todas as tabelas usam `usuario_id`, mas `database/schema.sql` não possui nenhuma `FOREIGN KEY`. Além disso, metas, categorias e investimentos aceitam `NULL` nessa coluna.
+Todas as tabelas usam `usuario_id`, mas `database/schema.sql` não possui nenhuma `FOREIGN KEY`. No schema atual, `usuario_id` é NOT NULL em todas as tabelas financeiras.
 
 ### Aprendizado
 
-Filtrar por usuário na aplicação protege os fluxos atuais, mas não substitui integridade referencial no banco nem impede registros órfãos criados por outros caminhos.
+Filtrar por usuário na aplicação protege os fluxos atuais, mas não substitui integridade referencial no banco.
 
 ## 5. Métodos internos permitem consulta sem proprietário
 
 ### Evidência
 
-`buscar_todas_transacoes`, `listar_investimentos`, `buscar_investimento_por_id`, `obter_resumo_investimentos` e `limpar_transacoes_mysql` possuem comportamentos sem `usuario_id`. No caso da limpeza, a ausência do usuário remove todas as transações. As rotas atuais fornecem o identificador.
+`limpar_transacoes_mysql` agora exige `usuario_id` e remove apenas dados do usuário especificado. As rotas atuais fornecem o identificador.
 
 ### Aprendizado
 
-O isolamento é mais robusto quando o identificador é obrigatório também na camada interna, e não somente na borda HTTP.
+O isolamento é mais robusto quando o identificador é obrigatório também na camada interna.
 
 ## 6. Exclusão de categoria dividida em conexões
 
@@ -93,27 +93,18 @@ Funções de `src/auth.py` e `src/categorias.py` capturam `Exception` e retornam
 
 Valores vazios podem significar tanto ausência legítima quanto falha de banco. Sem registro estruturado, a distinção se perde e o diagnóstico fica mais difícil.
 
-## 9. Segredo de sessão com fallback conhecido
+## 9. SECRET_KEY obrigatória
 
 ### Evidência
 
-`app.py` usa `os.getenv('SECRET_KEY', 'chave-secreta-desenvolvimento-pff-2026')`. `SECRET_KEY` não está listada em `.env.example`.
+`app.py` falha ao iniciar se `SECRET_KEY` não estiver configurada no ambiente. Não existe fallback conhecido.
 
 ### Aprendizado
 
-O fallback é útil em desenvolvimento, mas a configuração necessária para outro ambiente precisa estar documentada e definida externamente.
+A configuração obrigatória deve estar documentada em `.env.example` e definida externamente antes da execução.
 
-## 10. Duas fábricas de conexão
 
-### Evidência
-
-`src/load.py::obter_engine` e `src/database.py::get_connection` repetem a montagem da URL e a criação de engine. O código de domínio usa predominantemente `obter_engine`.
-
-### Aprendizado
-
-Uma única composição de infraestrutura reduz divergência de configuração e facilita testes.
-
-## 11. Comentário da API OpenAI não corresponde à chamada
+## 10. Comentário da API OpenAI não corresponde à chamada
 
 ### Evidência
 
@@ -123,7 +114,7 @@ O cabeçalho de `ai_financial_agent.py` menciona “Responses API”, porém o c
 
 Comentários de integração devem nomear a API efetivamente utilizada, especialmente quando o SDK oferece superfícies diferentes.
 
-## 12. Migrações embutidas na inicialização
+## 11. Migrações embutidas na inicialização
 
 ### Evidência
 
@@ -133,27 +124,27 @@ Importar `app.py` executa `garantir_colunas_usuario()`, que pode rodar `ALTER TA
 
 O comportamento facilita compatibilidade com bancos antigos, mas acopla inicialização e leitura a permissões de alteração de schema.
 
-## 13. Ausência de testes versionados
+## 12. Testes existentes
 
 ### Evidência
 
-A árvore atual não contém diretório ou arquivos de teste, e `requirements.txt` não inclui framework de testes.
+A pasta `tests/` contém testes automatizados para MCP, categorias, categorização automática e upload API. Não existem testes para isolamento de usuário via SQL (a implementação atual usa ContextVar).
 
 ### Aprendizado
 
-Contratos críticos — isolamento por usuário, ETL, deduplicação, métricas e validações — estão documentados no código, mas não protegidos por uma suíte presente no repositório.
+Testes existentes cobrem partes importantes do sistema, mas há lacunas em cobertura de integração e interface.
 
-## 14. Documentação técnica anterior vazia
+## 13. Documentação técnica organizada
 
 ### Evidência
 
-Antes deste vault, os arquivos de `brain/` continham apenas títulos. `docs/arquitetura.md` e `docs/vibe-coding.md` também contêm somente um título.
+`docs/arquitetura.md` agora é uma página de navegação. `docs/vibe-coding.md` contém a metodologia de desenvolvimento. O vault `brain/` contém documentação técnica detalhada.
 
 ### Aprendizado
 
-Um vault útil precisa indicar fontes, estado atual e divergências, além de conectar conceitos por links internos.
+Documentação organizada em níveis diferentes (índice, visão de produto, arquitetura técnica) facilita navegação e manutenção.
 
-## 15. Conceitos de saldo e período diferem entre dashboard e relatório
+## 14. Conceitos de saldo e período diferem entre dashboard e relatório
 
 ### Evidência
 

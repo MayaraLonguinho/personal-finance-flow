@@ -25,6 +25,6 @@
 - Notificações e alertas
 - Importação de mais formatos (OFX, QIF)
 - Backup automático
-- Exportação de relatórios em PDF
+- Geração nativa de PDF sem depender do diálogo de impressão do navegador
 - Múltiplas metas simultâneas
 - Tags em transações

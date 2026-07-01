@@ -72,10 +72,9 @@ O objetivo declarado no `README.md` é permitir importar transações de CSV, tr
 ## Estado observado
 
 - A aplicação principal executa em `127.0.0.1:5001` com `debug=True` quando `app.py` é iniciado diretamente.
-- O `README.md` ainda informa a porta 5000 e lista como próximos passos recursos que já aparecem implementados.
 - O schema possui seis tabelas: `usuarios`, `transacoes`, `metas`, `categorias`, `investimentos` e `configuracoes_usuario`.
-- Não há diretório de testes automatizados no repositório listado.
-- `docs/arquitetura.md` e `docs/vibe-coding.md` contêm somente seus títulos; a documentação técnica detalhada está concentrada neste vault.
+- A pasta `tests/` contém testes automatizados para MCP, categorias, categorização automática, upload API e isolamento de usuário.
+- `docs/arquitetura.md` agora é uma página de navegação; `docs/vibe-coding.md` contém a metodologia de desenvolvimento.
 
 ## Navegação do vault
 

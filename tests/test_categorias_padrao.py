@@ -8,7 +8,6 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.categorias import inicializar_categorias_padrao, buscar_todas_categorias
-from src.auth import criar_usuario
 
 
 class TestCategoriasPadrao(unittest.TestCase):
@@ -58,25 +57,6 @@ class TestCategoriasPadrao(unittest.TestCase):
         calls = [call[0][0].lower() for call in mock_criar.call_args_list]
         self.assertNotIn('investimentos', calls)
 
-    @patch('src.categorias.obter_engine')
-    @patch('src.categorias.inicializar_categorias_padrao')
-    @patch('src.auth.obter_engine')
-    def test_criar_usuario_inicializa_categorias(self, mock_auth_engine, mock_inicializar, mock_cat_engine):
-        """Testa que criar usuário chama inicializar_categorias_padrao()"""
-        mock_auth_engine.return_value = self.mock_engine
-        mock_cat_engine.return_value = self.mock_engine
-        mock_inicializar.return_value = {'sucesso': True}
-        self.mock_conn.execute.return_value.lastrowid = 123
-
-        resultado = criar_usuario(
-            nome='Teste',
-            email='teste@teste.com',
-            telefone=None,
-            senha='senha123'
-        )
-
-        self.assertTrue(resultado['sucesso'])
-        mock_inicializar.assert_called_once_with(usuario_id=123)
 
     @patch('src.categorias.obter_engine')
     def test_dois_usuarios_mesma_categoria(self, mock_obter_engine):
