@@ -64,19 +64,19 @@ body {
 ========================== */
 
 .sidebar {
-    background: #ffffff;
-    border-right: 1px solid #e5e7eb;
-    padding: 14px 12px;
-
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-
     position: sticky;
     top: 0;
     height: 100vh;
-    align-self: start;
+    min-height: 100vh;
     overflow-y: auto;
+    flex-shrink: 0;
+    align-self: flex-start;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .main-content {
