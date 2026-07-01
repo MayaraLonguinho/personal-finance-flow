@@ -1,0 +1,571 @@
+diff --git a/alteracoes-parciais.patch b/alteracoes-parciais.patch
+deleted file mode 100644
+index e69de29..0000000
+diff --git a/app.py b/app.py
+index ddaf748..6b87c63 100644
+--- a/app.py
++++ b/app.py
+@@ -366,6 +366,8 @@ def api_metricas():
+         return jsonify(metricas)
+         
+     except Exception as e:
++        import traceback
++        traceback.print_exc()
+         print(f"[ERRO] Falha ao buscar métricas: {e}")
+         return jsonify({'erro': 'Falha ao buscar métricas'}), 500
+ 
+diff --git a/database/schema.sql b/database/schema.sql
+index f4d6bfc..3b5197a 100644
+--- a/database/schema.sql
++++ b/database/schema.sql
+@@ -1,94 +1,209 @@
+--- Uso do banco de dados
++
+ USE personal_finance_flow;
+ 
+--- Tabela de usuários
+-CREATE TABLE IF NOT EXISTS usuarios (
+-    id INT AUTO_INCREMENT PRIMARY KEY,
+-    nome VARCHAR(255) NOT NULL,
+-    email VARCHAR(255) NOT NULL UNIQUE,
+-    telefone VARCHAR(20),
+-    senha_hash VARCHAR(255) NOT NULL,
+-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
++CREATE TABLE usuarios (
++id INT AUTO_INCREMENT PRIMARY KEY,
++nome VARCHAR(255) NOT NULL,
++email VARCHAR(255) NOT NULL UNIQUE,
++telefone VARCHAR(20),
++senha_hash VARCHAR(255) NOT NULL,
++criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+ );
+ 
+--- Tabela de transações
+-CREATE TABLE IF NOT EXISTS transacoes (
+-    id INT AUTO_INCREMENT PRIMARY KEY,
+-    usuario_id INT NOT NULL,
+-    data_transacao DATE NOT NULL,
+-    descricao VARCHAR(255) NOT NULL,
+-    categoria VARCHAR(100),
+-    tipo ENUM('entrada', 'saida', 'investimento') NOT NULL,
+-    valor DECIMAL(10, 2) NOT NULL,
+-    conta VARCHAR(100),
+-    instituicao VARCHAR(100),
+-    status ENUM('confirmado', 'pendente', 'cancelado') DEFAULT 'pendente',
+-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+-    INDEX idx_transacoes_usuario_id (usuario_id),
+-    INDEX idx_transacoes_data_transacao (data_transacao DESC)
++CREATE TABLE transacoes (
++id INT AUTO_INCREMENT PRIMARY KEY,
++usuario_id INT NOT NULL,
++data_transacao DATE NOT NULL,
++descricao VARCHAR(255) NOT NULL,
++categoria VARCHAR(100),
++tipo ENUM('entrada','saida','investimento') NOT NULL,
++valor DECIMAL(12,2) NOT NULL,
++conta VARCHAR(100),
++instituicao VARCHAR(100),
++status ENUM('confirmado','pendente','cancelado') DEFAULT 'pendente',
++criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+ );
+ 
+--- Tabela de metas
+-CREATE TABLE IF NOT EXISTS metas (
+-    id INT AUTO_INCREMENT PRIMARY KEY,
+-    usuario_id INT NOT NULL,
+-    titulo VARCHAR(255) NOT NULL,
+-    valor_meta DECIMAL(10, 2) NOT NULL,
+-    valor_atual DECIMAL(10, 2) DEFAULT 0.00,
+-    data_limite DATE,
+-    status ENUM('ativa', 'concluida', 'cancelada') DEFAULT 'ativa',
+-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+-    INDEX idx_metas_usuario_id (usuario_id)
++CREATE TABLE categorias (
++id INT AUTO_INCREMENT PRIMARY KEY,
++usuario_id INT NOT NULL,
++nome VARCHAR(100) NOT NULL,
++palavras_chave TEXT,
++cor VARCHAR(20),
++criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
++atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
++UNIQUE (usuario_id,nome)
+ );
+ 
+--- Tabela de categorias
+-CREATE TABLE IF NOT EXISTS categorias (
+-    id INT AUTO_INCREMENT PRIMARY KEY,
+-    usuario_id INT NOT NULL,
+-    nome VARCHAR(100) NOT NULL,
+-    palavras_chave TEXT,
+-    cor VARCHAR(20),
+-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+-    UNIQUE KEY uk_categorias_usuario_nome (usuario_id, nome)
++CREATE TABLE metas (
++id INT AUTO_INCREMENT PRIMARY KEY,
++usuario_id INT NOT NULL,
++titulo VARCHAR(255) NOT NULL,
++valor_meta DECIMAL(12,2) NOT NULL,
++valor_atual DECIMAL(12,2) DEFAULT 0.00,
++data_limite DATE,
++status ENUM('ativa','concluida','cancelada') DEFAULT 'ativa',
++criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
++atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+ );
+ 
+--- Tabela de investimentos
+-CREATE TABLE IF NOT EXISTS investimentos (
+-    id INT AUTO_INCREMENT PRIMARY KEY,
+-    usuario_id INT NOT NULL,
+-    nome VARCHAR(150) NOT NULL,
+-    tipo VARCHAR(80) NOT NULL,
+-    instituicao VARCHAR(120),
+-    valor_aplicado DECIMAL(12,2) NOT NULL,
+-    valor_atual DECIMAL(12,2) NOT NULL,
+-    rentabilidade_percentual DECIMAL(8,2) DEFAULT 0,
+-    data_aplicacao DATE NOT NULL,
+-    data_vencimento DATE NULL,
+-    status ENUM('ativo', 'resgatado', 'cancelado') NOT NULL DEFAULT 'ativo',
+-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+-    INDEX idx_investimentos_usuario_id (usuario_id),
+-    INDEX idx_investimentos_data_aplicacao (data_aplicacao DESC)
++CREATE TABLE investimentos (
++id INT AUTO_INCREMENT PRIMARY KEY,
++usuario_id INT NOT NULL,
++nome VARCHAR(150) NOT NULL,
++tipo VARCHAR(80) NOT NULL,
++instituicao VARCHAR(120),
++valor_aplicado DECIMAL(12,2) NOT NULL,
++valor_atual DECIMAL(12,2) NOT NULL,
++rentabilidade_percentual DECIMAL(8,2) DEFAULT 0.00,
++data_aplicacao DATE NOT NULL,
++data_vencimento DATE,
++status ENUM('ativo','resgatado','cancelado') DEFAULT 'ativo',
++criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
++atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+ );
+ 
+--- Preferências visuais e de comportamento, isoladas por usuário
+-CREATE TABLE IF NOT EXISTS configuracoes_usuario (
+-    id INT AUTO_INCREMENT PRIMARY KEY,
+-    usuario_id INT NOT NULL UNIQUE,
+-    nome VARCHAR(150) NULL,
+-    tema VARCHAR(50) NOT NULL DEFAULT 'theme-blue',
+-    moeda VARCHAR(10) NOT NULL DEFAULT 'BRL',
+-    formato_data VARCHAR(20) NOT NULL DEFAULT 'DD/MM/YYYY',
+-    qtd_transacoes_recentes INT NOT NULL DEFAULT 5,
+-    confirmar_exclusao TINYINT(1) NOT NULL DEFAULT 1,
+-    cards_visiveis TEXT NOT NULL,
+-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
++CREATE TABLE configuracoes_usuario (
++id INT AUTO_INCREMENT PRIMARY KEY,
++usuario_id INT NOT NULL UNIQUE,
++nome VARCHAR(150),
++tema VARCHAR(50) DEFAULT 'theme-pink',
++moeda VARCHAR(10) DEFAULT 'BRL',
++formato_data VARCHAR(20) DEFAULT 'DD/MM/YYYY',
++qtd_transacoes_recentes INT DEFAULT 5,
++confirmar_exclusao TINYINT(1) DEFAULT 1,
++cards_visiveis TEXT,
++criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
++atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+ );
++
++SHOW TABLES;
++
++DESCRIBE usuarios;
++DESCRIBE transacoes;
++DESCRIBE categorias;
++DESCRIBE metas;
++DESCRIBE investimentos;
++DESCRIBE configuracoes_usuario;
++
++-- Lista todos os usuários cadastrados no sistema.
++SELECT * FROM usuarios;
++
++-- Lista todas as transações cadastradas.
++SELECT * FROM transacoes;
++
++-- Lista todas as categorias cadastradas por usuário.
++SELECT * FROM categorias;
++
++-- Lista todas as metas financeiras cadastradas.
++SELECT * FROM metas;
++
++-- Lista todos os investimentos cadastrados.
++SELECT * FROM investimentos;
++
++-- Lista todas as configurações salvas para os usuários.
++SELECT * FROM configuracoes_usuario;
++
++-- Mostra os tipos de transação existentes no banco.
++SELECT DISTINCT tipo FROM transacoes;
++
++-- Mostra os status existentes nas transações.
++SELECT DISTINCT status FROM transacoes;
++
++-- Exibe os principais dados dos investimentos.
++SELECT
++id,
++usuario_id,
++nome,
++tipo,
++instituicao,
++valor_aplicado,
++valor_atual,
++rentabilidade_percentual,
++status
++FROM investimentos;
++
++-- Exibe os principais dados das metas.
++SELECT
++id,
++usuario_id,
++titulo,
++valor_meta,
++valor_atual,
++data_limite,
++status
++FROM metas;
++
++-- Exibe as categorias organizadas por usuário e nome.
++SELECT
++id,
++usuario_id,
++nome,
++palavras_chave,
++cor
++FROM categorias
++ORDER BY usuario_id,nome;
++
++-- Exibe as transações da mais recente para a mais antiga.
++SELECT
++id,
++usuario_id,
++data_transacao,
++descricao,
++categoria,
++tipo,
++valor,
++conta,
++instituicao,
++status
++FROM transacoes
++ORDER BY data_transacao DESC;
++
++-- Mostra a quantidade de transações cadastradas por usuário.
++SELECT
++usuario_id,
++COUNT(*) AS quantidade_transacoes
++FROM transacoes
++GROUP BY usuario_id;
++
++-- Mostra o total de entradas, saídas e investimentos por usuário.
++SELECT
++usuario_id,
++tipo,
++SUM(valor) AS valor_total
++FROM transacoes
++GROUP BY usuario_id,tipo;
++
++-- Mostra quais categorias pertencem a cada usuário.
++SELECT
++u.nome AS usuario,
++c.nome AS categoria
++FROM usuarios u
++INNER JOIN categorias c
++ON c.usuario_id = u.id
++ORDER BY u.nome,c.nome;
++
++-- Mostra as metas relacionadas aos usuários.
++SELECT
++u.nome AS usuario,
++m.titulo,
++m.valor_meta,
++m.valor_atual,
++m.status
++FROM usuarios u
++INNER JOIN metas m
++ON m.usuario_id = u.id
++ORDER BY u.nome,m.titulo;
++
++-- Mostra os investimentos relacionados aos usuários.
++SELECT
++u.nome AS usuario,
++i.nome AS investimento,
++i.tipo,
++i.valor_aplicado,
++i.valor_atual,
++i.status
++FROM usuarios u
++INNER JOIN investimentos i
++ON i.usuario_id = u.id
++ORDER BY u.nome,i.nome;
+\ No newline at end of file
+diff --git a/static/css/assistente.css b/static/css/assistente.css
+index 28c7942..6418703 100644
+--- a/static/css/assistente.css
++++ b/static/css/assistente.css
+@@ -155,13 +155,13 @@ body {
+ }
+ 
+ .goal-values strong {
+-    font-size: 13px;
++    font-size: 10px;
+     color: #0f172a;
+ }
+ 
+ .goal-values small {
+     color: #64748b;
+-    font-size: 11px;
++    font-size: 9px;
+ }
+ 
+ .progress {
+diff --git a/static/css/categorias.css b/static/css/categorias.css
+index e92fd60..c9c093e 100644
+--- a/static/css/categorias.css
++++ b/static/css/categorias.css
+@@ -166,13 +166,13 @@ body {
+ }
+ 
+ .goal-values strong {
+-    font-size: 13px;
++    font-size: 10px;
+     color: #0f172a;
+ }
+ 
+ .goal-values small {
+     color: #64748b;
+-    font-size: 11px;
++    font-size: 9px;
+ }
+ 
+ .progress {
+diff --git a/static/css/dashboard.css b/static/css/dashboard.css
+index 50723f0..3b221d0 100644
+--- a/static/css/dashboard.css
++++ b/static/css/dashboard.css
+@@ -160,13 +160,13 @@ Isso evita alterar spans internos usados nos valores.
+ }
+ 
+ .goal-values strong {
+-    font-size: 13px;
++    font-size: 10px;
+     color: #0f172a;
+ }
+ 
+ .goal-values small {
+     color: #64748b;
+-    font-size: 11px;
++    font-size: 9px;
+ }
+ 
+ .goal-values small span {
+diff --git a/static/css/investimentos.css b/static/css/investimentos.css
+index 0175142..56448dc 100644
+--- a/static/css/investimentos.css
++++ b/static/css/investimentos.css
+@@ -162,13 +162,13 @@ select {
+ }
+ 
+ .goal-values strong {
+-    font-size: 13px;
++    font-size: 10px;
+     color: #0f172a;
+ }
+ 
+ .goal-values small {
+     color: #64748b;
+-    font-size: 11px;
++    font-size: 9px;
+ }
+ 
+ .progress {
+diff --git a/static/css/metas.css b/static/css/metas.css
+index df3514f..b4adc2c 100644
+--- a/static/css/metas.css
++++ b/static/css/metas.css
+@@ -166,13 +166,13 @@ select {
+ }
+ 
+ .goal-values strong {
+-    font-size: 13px;
++    font-size: 10px;
+     color: #0f172a;
+ }
+ 
+ .goal-values small {
+     color: #64748b;
+-    font-size: 11px;
++    font-size: 9px;
+ }
+ 
+ .goal-values small span {
+diff --git a/static/css/relatorios.css b/static/css/relatorios.css
+index b37d7b3..659adea 100644
+--- a/static/css/relatorios.css
++++ b/static/css/relatorios.css
+@@ -195,13 +195,13 @@ input {
+ }
+ 
+ .goal-values strong {
+-    font-size: 13px;
++    font-size: 10px;
+     color: #0f172a;
+ }
+ 
+ .goal-values small {
+     color: #64748b;
+-    font-size: 11px;
++    font-size: 9px;
+ }
+ 
+ .progress {
+diff --git a/static/css/transacoes.css b/static/css/transacoes.css
+index ad9bdce..d694953 100644
+--- a/static/css/transacoes.css
++++ b/static/css/transacoes.css
+@@ -155,13 +155,13 @@ body {
+ }
+ 
+ .goal-values strong {
+-    font-size: 13px;
++    font-size: 10px;
+     color: #0f172a;
+ }
+ 
+ .goal-values small {
+     color: #64748b;
+-    font-size: 11px;
++    font-size: 9px;
+ }
+ 
+ .progress {
+diff --git a/static/js/investimentos.js b/static/js/investimentos.js
+index bffe9cb..b43e34a 100644
+--- a/static/js/investimentos.js
++++ b/static/js/investimentos.js
+@@ -815,12 +815,59 @@ function exibirMetaSidebarVazia() {
+     ).textContent = "Nenhuma meta cadastrada.";
+ }
+ 
++async function atualizarInvestimentos() {
++    const botao = document.getElementById(
++        "btn-atualizar-investimentos"
++    );
++
++    if (!botao) {
++        return;
++    }
++
++    const textoOriginal = botao.textContent;
++
++    try {
++        botao.disabled = true;
++        botao.textContent = "Atualizando...";
++
++        await carregarPaginaInvestimentos();
++
++        botao.textContent = "Atualizado";
++
++        window.setTimeout(() => {
++            botao.textContent = textoOriginal;
++        }, 1500);
++    } catch (erro) {
++        console.error(
++            "Erro ao atualizar investimentos:",
++            erro
++        );
++
++        botao.textContent = "Erro ao atualizar";
++
++        window.setTimeout(() => {
++            botao.textContent = textoOriginal;
++        }, 2000);
++    } finally {
++        botao.disabled = false;
++    }
++}
++
+ async function carregarPaginaInvestimentos() {
+-    await Promise.all([
+-        buscarInvestimentos(),
+-        buscarResumoInvestimentos(),
+-        buscarMetaSidebar()
+-    ]);
++    try {
++        await Promise.all([
++            buscarInvestimentos(),
++            buscarResumoInvestimentos(),
++            buscarMetaSidebar()
++        ]);
++    } catch (erro) {
++        console.error(
++            "Erro ao carregar página de investimentos:",
++            erro
++        );
++
++        throw erro;
++    }
+ }
+ 
+ document.addEventListener(
+diff --git a/templates/investimentos.html b/templates/investimentos.html
+index dbb077e..89c2c6f 100644
+--- a/templates/investimentos.html
++++ b/templates/investimentos.html
+@@ -26,7 +26,7 @@
+ 
+             <nav class="menu">
+                 <a href="/dashboard" class="menu-item">
+-                    Dashboard
++                    Visão Geral
+                 </a>
+ 
+                 <a href="/transacoes" class="menu-item">
+@@ -109,7 +109,8 @@
+                 </div>
+ 
+                 <div class="hero-actions">
+-                    <button class="btn-outline" type="button" onclick="carregarPaginaInvestimentos()">
++                    <button id="btn-atualizar-investimentos" class="btn-outline" type="button"
++                        onclick="atualizarInvestimentos()">
+                         Atualizar
+                     </button>
+ 
+@@ -410,4 +411,4 @@
+     <script src="{{ url_for('static', filename='js/investimentos.js') }}"></script>
+ </body>
+ 
+-</html>
++</html>
+\ No newline at end of file
+diff --git a/templates/relatorios.html b/templates/relatorios.html
+index 84d4f4e..fc91140 100644
+--- a/templates/relatorios.html
++++ b/templates/relatorios.html
+@@ -31,7 +31,7 @@
+ 
+             <nav class="menu">
+                 <a href="/dashboard" class="menu-item">
+-                    Dashboard
++                    Visão Geral
+                 </a>
+ 
+                 <a href="/transacoes" class="menu-item">
+@@ -432,4 +432,4 @@
+     <script src="{{ url_for('static', filename='js/relatorios.js') }}?v=2"></script>
+ </body>
+ 
+-</html>
++</html>
+\ No newline at end of file

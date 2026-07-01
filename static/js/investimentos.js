@@ -815,12 +815,59 @@ function exibirMetaSidebarVazia() {
     ).textContent = "Nenhuma meta cadastrada.";
 }
 
+async function atualizarInvestimentos() {
+    const botao = document.getElementById(
+        "btn-atualizar-investimentos"
+    );
+
+    if (!botao) {
+        return;
+    }
+
+    const textoOriginal = botao.textContent;
+
+    try {
+        botao.disabled = true;
+        botao.textContent = "Atualizando...";
+
+        await carregarPaginaInvestimentos();
+
+        botao.textContent = "Atualizado";
+
+        window.setTimeout(() => {
+            botao.textContent = textoOriginal;
+        }, 1500);
+    } catch (erro) {
+        console.error(
+            "Erro ao atualizar investimentos:",
+            erro
+        );
+
+        botao.textContent = "Erro ao atualizar";
+
+        window.setTimeout(() => {
+            botao.textContent = textoOriginal;
+        }, 2000);
+    } finally {
+        botao.disabled = false;
+    }
+}
+
 async function carregarPaginaInvestimentos() {
-    await Promise.all([
-        buscarInvestimentos(),
-        buscarResumoInvestimentos(),
-        buscarMetaSidebar()
-    ]);
+    try {
+        await Promise.all([
+            buscarInvestimentos(),
+            buscarResumoInvestimentos(),
+            buscarMetaSidebar()
+        ]);
+    } catch (erro) {
+        console.error(
+            "Erro ao carregar página de investimentos:",
+            erro
+        );
+
+        throw erro;
+    }
 }
 
 document.addEventListener(

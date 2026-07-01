@@ -127,8 +127,11 @@ def _preparar_evolucao_mensal(df):
         - evolucao['saida']
         - evolucao['investimento']
     )
+
+    evolucao.index.name = 'mes_ano'
     evolucao = evolucao.reset_index()
     evolucao['mes_ano'] = evolucao['mes_ano'].astype(str)
+
     return evolucao[colunas]
 
 

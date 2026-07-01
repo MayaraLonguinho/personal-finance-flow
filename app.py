@@ -366,6 +366,8 @@ def api_metricas():
         return jsonify(metricas)
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"[ERRO] Falha ao buscar métricas: {e}")
         return jsonify({'erro': 'Falha ao buscar métricas'}), 500
 
