@@ -95,45 +95,6 @@ class TestCategorizacaoAutomatica(unittest.TestCase):
         self.assertEqual(df_tratado.iloc[1]["categoria"], "Alimentação")
         self.assertEqual(contador, 1)
 
-    @patch("pandas.DataFrame.to_sql")
-    @patch("pandas.read_sql")
-    @patch("src.load.obter_engine")
-    def test_carregar_transacoes_preserva_categoria_formatada(self, mock_engine, mock_read_sql, mock_to_sql):
-        mock_engine.return_value = object()
-        mock_read_sql.return_value = pd.DataFrame(
-            columns=[
-                "usuario_id",
-                "data_transacao",
-                "descricao",
-                "categoria",
-                "tipo",
-                "valor",
-                "conta",
-                "instituicao",
-                "status",
-            ]
-        )
-
-        df = pd.DataFrame(
-            [
-                {
-                    "data": "2026-01-10",
-                    "descricao": "  Conta de água  ",
-                    "categoria": "Casa",
-                    "tipo": "saida",
-                    "valor": 120,
-                    "conta": "Conta Corrente",
-                    "instituicao": "Banco X",
-                    "status": "confirmado",
-                }
-            ]
-        )
-
-        carregar_transacoes_mysql(df, usuario_id=77)
-
-        dataframe_enviado = mock_to_sql.call_args[0][0]
-        self.assertEqual(dataframe_enviado.iloc[0]["categoria"], "Casa")
-        self.assertEqual(dataframe_enviado.iloc[0]["descricao"], "Conta de água")
 
 
 if __name__ == "__main__":

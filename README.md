@@ -96,9 +96,19 @@ data, descricao, categoria, tipo, valor, conta, instituicao, status
 
 A deduplicação considera a combinação lógica de usuário, data, descrição, categoria, tipo, valor, conta, instituição e status. Essa regra está no código; não existe índice único equivalente no schema.
 
+### Sincronização entre transações e investimentos
+
+Transações do tipo `investimento` com status `confirmado` criam automaticamente registros na tabela `investimentos` vinculados por `transacao_id`. Isso ocorre tanto na criação manual quanto na importação por CSV.
+
+A edição de transações sincroniza o investimento vinculado:
+- se a transação for alterada para `investimento` + `confirmado`, cria ou atualiza o investimento;
+- se a transação for alterada para outro tipo ou status, remove o investimento vinculado.
+
+A exclusão de uma transação remove seu investimento vinculado. Investimentos criados diretamente na tela de investimentos não são removidos, pois possuem `transacao_id` igual a NULL.
+
 ### Limitação do pipeline standalone
 
-`src/main.py` não está alinhado com os contratos atuais: trata o retorno `(DataFrame, contador)` de `tratar_transacoes()` como um único DataFrame e chama a carga sem o `usuario_id` obrigatório. Use o upload web ou os módulos diretamente com o contexto e os argumentos corretos. Não considere `python src/main.py` um caminho funcional no estado atual.
+Não existe ponto de entrada CLI funcional. Use o upload web ou os módulos diretamente com o contexto e os argumentos corretos.
 
 Detalhes: [pipeline ETL](brain/04-pipeline-etl.md).
 
@@ -110,9 +120,9 @@ Detalhes: [pipeline ETL](brain/04-pipeline-etl.md).
 | Transações | listar, filtrar, criar, editar, excluir, importar e limpar | dados do usuário autenticado |
 | Categorias | listar, criar, editar e excluir | categorias do usuário; `outros` não pode ser excluída |
 | Metas | consultar ativa, criar, editar e excluir | meta mais recente com status `ativa` |
-| Investimentos | listar, filtrar, consultar por ID, criar, editar, excluir e resumir | carteira do usuário |
+| Investimentos | listar, filtrar, consultar por ID, criar, editar, excluir e resumir | carteira do usuário; investimentos podem ser criados manualmente ou automaticamente via transações do tipo investimento confirmado |
 | Configurações | consultar, atualizar parcialmente e restaurar padrões | uma configuração por usuário |
-| Relatórios | consultar por período | somente leitura |
+| Relatórios | consultar por período | somente leitura; exportação via diálogo de impressão do navegador (window.print) |
 
 As métricas do dashboard consideram transações `confirmado` e calculam:
 
@@ -132,13 +142,15 @@ A rota protegida `POST /api/assistente` recebe uma pergunta com até 500 caracte
 
 O prompt determina que números devem vir das ferramentas, proíbe valores inventados e aconselhamento financeiro personalizado e usa moeda e formato de data das preferências do usuário.
 
+O assistente prioriza perguntas sobre "maior categoria de gasto" usando a ferramenta `consultar_maior_categoria` quando detecta termos como "onde mais gastei", "maior categoria", "categoria de gasto" ou expressões equivalentes.
+
 ### Fallback local
 
 Quando o fluxo OpenAI lança uma exceção, a rota chama `src/financial_agent.py`. Esse agente não usa LLM: normaliza a pergunta, reconhece intenções e produz respostas por regras Python. Ele também possui consultas detalhadas da carteira de investimentos que não fazem parte das tools atuais do agente OpenAI.
 
 Sem `OPENAI_API_KEY` disponível durante a inicialização, a aplicação continua com o fallback local.
 
-Detalhes e contratos: [docs/assistente-financeiro.md](docs/assistente-financeiro.md).
+Detalhes e contratos: [docs/agent.md](docs/agent.md).
 
 ## Skill `financial-csv-analyzer`
 
@@ -196,7 +208,7 @@ Instalação, permissões e configuração do Windsurf: [mcp/README.md](mcp/READ
 - APIs protegidas retornam HTTP 401;
 - consultas principais filtram por `usuario_id` da sessão ou do contexto da requisição.
 
-O schema atual não define chaves estrangeiras. Além disso, `usuario_id` é anulável em metas, categorias e investimentos, e `categorias.nome` possui unicidade global. Portanto, o isolamento efetivo depende também das consultas da aplicação.
+No schema atual, `usuario_id` é NOT NULL em todas as tabelas financeiras (`transacoes`, `metas`, `categorias`, `investimentos`). A tabela `categorias` possui unicidade composta `(usuario_id, nome)`, não global.
 
 ## Instalação da aplicação
 
@@ -247,7 +259,7 @@ Configurações adicionais da aplicação:
 SECRET_KEY=substitua-por-um-segredo-aleatorio
 ```
 
-`SECRET_KEY` ainda não aparece em `.env.example`. Se não estiver definida no ambiente do processo, `app.py` usa um fallback conhecido de desenvolvimento, inadequado para implantação.
+`SECRET_KEY` é obrigatória. Se não estiver definida no ambiente do processo, a aplicação falha ao iniciar.
 
 `DB_*` é carregado por `python-dotenv` quando a conexão é criada. Já `SECRET_KEY`, `OPENAI_API_KEY` e `OPENAI_MODEL` são lidos durante a importação dos módulos. Para garantir que todos estejam disponíveis desde o início, exporte o `.env` antes de executar:
 
@@ -347,28 +359,40 @@ personal-finance-flow/
 
 ## Testes
 
-A suíte versionada atual cobre somente o MCP somente leitura:
+A pasta `tests/` contém testes automatizados:
+
+- `test_mcp_readonly.py`: 11 testes do servidor MCP somente leitura (consultas SELECT, escopo por usuário, limites, fórmulas, tools publicadas e allowlist de resources);
+- `test_categorias_padrao.py`: inicialização de categorias padrão;
+- `test_categorizacao_automatica.py`: categorização automática de transações;
+- `test_upload_api.py`: API de upload de CSV;
+- `test_user_isolation.py`: isolamento de dados por usuário.
+
+Para executar os testes:
 
 ```bash
-.venv/bin/python -m unittest discover -s tests -p 'test_mcp_readonly.py' -v
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
-Os 11 testes atuais verificam consultas `SELECT`, escopo por usuário, impossibilidade de substituir a identidade fixa, limites, fórmulas, tools publicadas e allowlist de resources.
+Para validar o servidor MCP com o SDK MCP, instale primeiro o ambiente separado descrito em [mcp/README.md](mcp/README.md).
 
-Para validar o servidor com o SDK MCP, instale primeiro o ambiente separado descrito em [mcp/README.md](mcp/README.md). O repositório não possui, neste momento, testes automatizados do Flask, CRUDs, autenticação, ETL ou interface.
+## Limpar todos os dados
+
+A funcionalidade "Limpar todos os dados" remove do usuário:
+- investimentos (vinculados ou cadastrados diretamente);
+- transações;
+- metas;
+- categorias.
+
+O usuário, as credenciais e as configurações da conta são preservados.
 
 ## Próximos passos baseados nas lacunas atuais
 
 Os itens abaixo são melhorias ainda não implementadas ou não confirmadas como concluídas:
 
-- corrigir o contrato de `src/main.py` ou removê-lo como ponto de entrada;
 - adicionar testes automatizados para autenticação, isolamento multiusuário, CRUDs, métricas e ETL;
 - criar testes de interface e integração com MySQL;
-- substituir a unicidade global de categoria por uma regra coerente com usuário e nome;
-- adicionar chaves estrangeiras e revisar a nulabilidade de `usuario_id`;
+- gerar PDF nativo sem depender do diálogo de impressão do navegador;
 - mover ajustes de schema da inicialização para migrações explícitas;
-- centralizar as duas fábricas de conexão existentes;
-- retirar o fallback conhecido de `SECRET_KEY` e documentá-la no arquivo de exemplo;
 - definir normalização de nome e retenção/remoção dos uploads;
 - tornar atômica a recategorização realizada durante a exclusão de categoria;
 - alinhar e documentar a semântica financeira entre dashboard e relatórios;
@@ -383,6 +407,8 @@ Os itens abaixo são melhorias ainda não implementadas ou não confirmadas como
 - [Modelo de dados](brain/03-modelo-de-dados.md)
 - [Pipeline ETL](brain/04-pipeline-etl.md)
 - [Erros e aprendizados](brain/06-erros-e-aprendizados.md)
-- [Assistente financeiro](docs/assistente-financeiro.md)
+- [Prompts utilizados](brain/07-prompts.md)
+- [Assistente financeiro](docs/agent.md)
 - [Vibe coding](docs/vibe-coding.md)
 - [MCP somente leitura](mcp/README.md)
+- [Documentação detalhada](docs/README.md)
