@@ -1,189 +1,618 @@
 # Personal Finance Flow
 
-Aplicação web de finanças pessoais com autenticação, dados isolados por usuário, importação de transações por CSV, dashboard, CRUDs financeiros, relatórios, preferências individuais e assistente com OpenAI e fallback local.
+Aplicação web de finanças pessoais com autenticação, isolamento de dados por usuário, importação de transações por CSV, dashboard, CRUDs financeiros, relatórios, preferências individuais e assistente financeiro com OpenAI e fallback local.
 
 ## Objetivo
 
-O Personal Finance Flow reúne o fluxo de registro, importação, organização e consulta de finanças pessoais em uma aplicação Flask. Os dados são persistidos em MySQL, processados com Pandas e apresentados em páginas renderizadas com Jinja e JavaScript.
+O **Personal Finance Flow** centraliza o registro, a importação, a organização e a consulta de finanças pessoais em uma aplicação web Flask.
 
-O sistema trabalha com valores já informados pelo usuário. A preferência de moeda altera a formatação, mas não realiza conversão monetária.
+O sistema permite:
+
+- importar transações financeiras por CSV;
+- organizar entradas, saídas, gastos e investimentos;
+- acompanhar indicadores por meio de uma dashboard;
+- gerenciar transações, categorias, metas e investimentos;
+- consultar informações financeiras em linguagem natural;
+- manter dados separados por usuário autenticado.
+
+Os dados são persistidos em MySQL, processados com Pandas e apresentados em páginas renderizadas com Jinja, CSS e JavaScript.
+
+> A preferência de moeda altera apenas a formatação dos valores. O sistema não realiza conversão monetária.
+
+---
 
 ## Funcionalidades implementadas
 
 - cadastro, login e logout;
-- sessão Flask e proteção de páginas e APIs internas;
-- isolamento de transações, categorias, metas, investimentos, relatórios e configurações por `usuario_id`;
-- dashboard com entradas, saídas, investimentos, saldo, quantidade de transações, gráficos e insights;
-- criação, consulta, edição, exclusão e filtros de transações;
-- importação de CSV com transformação, categorização e deduplicação;
-- categorias personalizadas, palavras-chave, cores e estatísticas;
-- meta financeira ativa com progresso e valor restante;
-- carteira de investimentos com filtros e resumo agregado;
+- autenticação por sessão Flask;
+- proteção de páginas e APIs internas;
+- isolamento por `usuario_id`;
+- dashboard com entradas, saídas, investimentos, saldo, gráficos e insights;
+- CRUD de transações;
+- CRUD de categorias;
+- CRUD de metas financeiras;
+- CRUD de investimentos;
+- filtros e consultas financeiras;
+- importação de transações por CSV;
+- validação, transformação, categorização e deduplicação;
+- sincronização entre transações e investimentos;
 - relatórios por intervalo de datas;
-- assistente financeiro com OpenAI function calling e fallback local baseado em regras;
-- preferências individuais de nome, tema, moeda, data, transações recentes, confirmação de exclusão e cards visíveis;
+- exportação por meio do diálogo de impressão do navegador;
+- assistente financeiro com OpenAI;
+- fallback local baseado em regras;
+- configurações individuais por usuário;
 - restauração das preferências padrão;
-- skill documentada para análise e importação de CSV financeiro;
-- vault técnico em formato Obsidian;
-- servidor MCP local e somente leitura para consultas financeiras e documentação controlada.
+- Skill para análise de CSV financeiro;
+- Brain técnico compatível com Obsidian;
+- servidor MCP local e somente leitura;
+- testes unitários, de integração e de segurança;
+- scripts de execução dos testes com relatórios timestampados.
+
+---
 
 ## Tecnologias
 
-| Área | Implementação atual |
+| Área | Implementação |
 |---|---|
-| Backend | Python e Flask 3.1.3 |
+| Backend | Python e Flask |
 | Templates | Jinja2 |
-| Frontend | HTML, CSS e JavaScript sem framework |
-| Gráficos | Chart.js carregado no dashboard |
-| Processamento | Pandas 2.3.3 e NumPy |
-| Banco | MySQL com PyMySQL |
-| Acesso a dados | SQLAlchemy Core, SQL textual parametrizado e Pandas `read_sql`/`to_sql` |
-| Autenticação | Sessão Flask e hashes PBKDF2-SHA256 do Werkzeug |
-| IA | OpenAI Python SDK com Chat Completions e function calling |
+| Frontend | HTML, CSS e JavaScript |
+| Gráficos | Chart.js |
+| Processamento de dados | Pandas e NumPy |
+| Banco de dados | MySQL |
+| Acesso a dados | SQLAlchemy Core, SQL parametrizado e Pandas |
+| Autenticação | Sessão Flask e hashes do Werkzeug |
+| Inteligência artificial | OpenAI Python SDK |
 | Configuração | Variáveis de ambiente e `python-dotenv` |
-| MCP | SDK MCP Python, FastMCP e transporte local `stdio` |
+| MCP | SDK MCP Python, FastMCP e transporte `stdio` |
+| Testes | `unittest` e mocks Python |
+| IDE utilizada | Windsurf |
+| Desenvolvimento assistido | Vibe Coding |
 
-As versões completas estão em `requirements.txt` e, para o ambiente MCP separado, em `requirements-mcp.txt`.
+As dependências completas estão em:
 
-## Arquitetura
+- `requirements.txt`;
+- `requirements-mcp.txt`.
 
-A aplicação é um monólito Flask com camadas informais:
+---
+
+## Visão geral da solução
 
 ```mermaid
 flowchart LR
-    U[Usuário] --> T[Templates Jinja]
-    T --> J[JavaScript por página]
-    J --> A[Rotas e APIs em app.py]
-    A --> S[Sessão e ContextVar]
-    S --> D[Módulos em src]
-    D --> P[Pandas]
-    D --> Q[SQLAlchemy]
-    Q --> DB[(MySQL)]
-    A --> O[Agent OpenAI]
-    A --> L[Fallback local]
+    U[Usuário] --> F[Frontend Web]
+    F --> B[Backend Flask]
+    B --> P[Pipeline CSV]
+    P --> DB[(MySQL)]
+    DB --> D[Dashboard e Relatórios]
+    DB --> A[Agent Financeiro]
+    B --> D
 ```
 
-- `app.py` configura o Flask, páginas, APIs, sessão, validações HTTP e orquestração.
-- `src/` contém autenticação, domínio financeiro, SQL, métricas, ETL e agentes.
-- `templates/` e `static/` implementam a interface multipágina.
-- `database/schema.sql` define as seis tabelas atuais.
-- `before_request` coloca o usuário da sessão em um `ContextVar`; o teardown limpa esse contexto.
-- as rotas passam `usuario_id` às operações de domínio.
-
-Ao iniciar, `app.py` executa `garantir_colunas_usuario()`. Em bancos antigos, essa função pode adicionar `usuario_id` a metas, categorias e investimentos. O módulo de configurações também possui `CREATE TABLE IF NOT EXISTS`. Em uma instalação nova criada pelo schema atual, essas estruturas já existem.
-
-Mais detalhes: [arquitetura do vault](brain/02-arquitetura.md) e [modelo de dados](brain/03-modelo-de-dados.md).
-
-## Pipeline ETL
-
-O pipeline web implementado é acionado por `POST /api/upload`:
-
-1. valida presença do arquivo, nome e extensão `.csv`;
-2. salva o upload em `uploads/`;
-3. lê o CSV com Pandas;
-4. remove duplicatas completas e normaliza colunas, datas, valores, tipos e status;
-5. preenche e categoriza registros usando palavras-chave do usuário;
-6. associa todas as linhas ao `usuario_id` da sessão;
-7. compara o lote com as transações existentes do mesmo usuário;
-8. grava somente registros novos em `transacoes`;
-9. retorna quantidades recebidas, importadas, ignoradas e categorizadas automaticamente.
-
-Cabeçalho esperado:
+Fluxo principal:
 
 ```text
-data, descricao, categoria, tipo, valor, conta, instituicao, status
+CSV
+ ↓
+Extração
+ ↓
+Transformação e categorização
+ ↓
+Deduplicação
+ ↓
+MySQL
+ ↓
+Dashboard, CRUDs, relatórios e Agent
 ```
 
-A deduplicação considera a combinação lógica de usuário, data, descrição, categoria, tipo, valor, conta, instituição e status. Essa regra está no código; não existe índice único equivalente no schema.
+---
 
-### Sincronização entre transações e investimentos
+## Arquitetura
 
-Transações do tipo `investimento` com status `confirmado` criam automaticamente registros na tabela `investimentos` vinculados por `transacao_id`. Isso ocorre tanto na criação manual quanto na importação por CSV.
+O projeto é uma aplicação Flask organizada por responsabilidades.
 
-A edição de transações sincroniza o investimento vinculado:
-- se a transação for alterada para `investimento` + `confirmado`, cria ou atualiza o investimento;
-- se a transação for alterada para outro tipo ou status, remove o investimento vinculado.
+### Frontend
 
-A exclusão de uma transação remove seu investimento vinculado. Investimentos criados diretamente na tela de investimentos não são removidos, pois possuem `transacao_id` igual a NULL.
+```text
+a_frontend_webclient/
+```
 
-### Limitação do pipeline standalone
+Contém:
 
-Não existe ponto de entrada CLI funcional. Use o upload web ou os módulos diretamente com o contexto e os argumentos corretos.
+- templates Jinja;
+- arquivos CSS;
+- arquivos JavaScript;
+- imagens e recursos visuais.
 
-Detalhes: [pipeline ETL](brain/04-pipeline-etl.md).
+### Backend
+
+```text
+b_backend/
+```
+
+Contém:
+
+- inicialização da aplicação Flask;
+- autenticação;
+- APIs;
+- CRUDs;
+- métricas;
+- relatórios;
+- configurações;
+- Agent OpenAI;
+- fallback local.
+
+### Pipeline financeiro
+
+```text
+c_generate_rpa/
+```
+
+Contém:
+
+- extração de CSV;
+- transformação;
+- categorização;
+- persistência;
+- dados de exemplo.
+
+### Rastreabilidade
+
+```text
+d_traceability/
+```
+
+Contém:
+
+- documentação;
+- Brain;
+- Skill;
+- MCP;
+- decisões arquiteturais;
+- requisitos;
+- prompts;
+- registros técnicos.
+
+### Verificação
+
+```text
+e_verify/
+```
+
+Contém os testes automatizados organizados em:
+
+- unitários;
+- integração;
+- segurança;
+- fixtures.
+
+### Execução dos testes
+
+```text
+f_test_execution/
+```
+
+Contém:
+
+- executor geral;
+- scripts por tipo de teste;
+- plano de testes manuais;
+- relatórios timestampados.
+
+### Saídas
+
+```text
+g_output/
+```
+
+É destinada a:
+
+- relatórios;
+- exportações;
+- capturas de tela;
+- resultados finais de testes.
+
+---
+
+## Componentes principais
+
+- `b_backend/app.py`: inicialização Flask, páginas, APIs e orquestração;
+- `b_backend/src/`: domínio financeiro, autenticação, métricas, relatórios e Agents;
+- `c_generate_rpa/`: pipeline de importação de CSV;
+- `a_frontend_webclient/templates/`: páginas Jinja;
+- `a_frontend_webclient/static/`: CSS, JavaScript e imagens;
+- `database/schema.sql`: estrutura do banco;
+- `d_traceability/brain/`: memória técnica do projeto;
+- `d_traceability/skills/`: Skill de análise financeira;
+- `d_traceability/mcp/`: servidor MCP;
+- `e_verify/`: testes automatizados;
+- `f_test_execution/`: scripts e relatórios de teste.
+
+O Flask é configurado para localizar os diretórios de templates e arquivos estáticos dentro de `a_frontend_webclient`, independentemente do diretório atual do terminal.
+
+Mais detalhes:
+
+- [Arquitetura técnica](d_traceability/brain/02-arquitetura.md)
+- [Modelo de dados](d_traceability/brain/03-modelo-de-dados.md)
+- [Pipeline ETL](d_traceability/brain/04-pipeline-etl.md)
+
+---
+
+## Pipeline financeiro por CSV
+
+O pipeline é acionado pela rota:
+
+```text
+POST /api/upload
+```
+
+Etapas:
+
+1. valida a presença do arquivo;
+2. valida o nome e a extensão `.csv`;
+3. salva temporariamente o arquivo recebido;
+4. lê os dados com Pandas;
+5. normaliza colunas, datas, tipos, valores e status;
+6. remove duplicidades dentro do próprio arquivo;
+7. categoriza os registros;
+8. associa as linhas ao `usuario_id` autenticado;
+9. compara o lote com os registros já existentes;
+10. grava somente as novas transações;
+11. cria investimentos vinculados quando necessário;
+12. retorna o resumo da importação.
+
+### Cabeçalho esperado
+
+```text
+data,descricao,categoria,tipo,valor,conta,instituicao,status
+```
+
+### Exemplo
+
+```csv
+data,descricao,categoria,tipo,valor,conta,instituicao,status
+2026-06-01,Salário,Salário,entrada,5000.00,Conta corrente,Banco A,confirmado
+2026-06-02,Supermercado,Alimentação,saida,250.90,Cartão,Banco B,confirmado
+2026-06-03,Aporte mensal,Investimentos,investimento,500.00,Corretora,Corretora A,confirmado
+```
+
+### Deduplicação
+
+A deduplicação considera a combinação lógica de:
+
+- usuário;
+- data;
+- descrição;
+- categoria;
+- tipo;
+- valor;
+- conta;
+- instituição;
+- status.
+
+A regra é aplicada pelo código da aplicação. Não existe um índice único equivalente no schema.
+
+Mais detalhes:
+
+- [Pipeline técnico](d_traceability/brain/04-pipeline-etl.md)
+- [Documentação do RPA](c_generate_rpa/README.md)
+
+---
+
+## Sincronização entre transações e investimentos
+
+Transações com:
+
+```text
+tipo = investimento
+status = confirmado
+```
+
+criam automaticamente um investimento vinculado por `transacao_id`.
+
+Isso ocorre em:
+
+- criação manual;
+- importação por CSV.
+
+### Edição
+
+Ao editar uma transação:
+
+- se ela se tornar um investimento confirmado, o investimento é criado;
+- se já existir um investimento vinculado, ele é atualizado;
+- se deixar de ser investimento ou confirmado, o vínculo é removido.
+
+### Exclusão
+
+Ao excluir uma transação, o investimento vinculado também é removido.
+
+Investimentos criados diretamente na tela de investimentos não dependem de uma transação e possuem:
+
+```text
+transacao_id = NULL
+```
+
+---
 
 ## CRUDs e consultas
 
-| Área | Operações implementadas | Escopo |
-|---|---|---|
-| Usuários | cadastro e consulta para autenticação | e-mail único; não há edição ou exclusão de conta |
-| Transações | listar, filtrar, criar, editar, excluir, importar e limpar | dados do usuário autenticado |
-| Categorias | listar, criar, editar e excluir | categorias do usuário; `outros` não pode ser excluída |
-| Metas | consultar ativa, criar, editar e excluir | meta mais recente com status `ativa` |
-| Investimentos | listar, filtrar, consultar por ID, criar, editar, excluir e resumir | carteira do usuário; investimentos podem ser criados manualmente ou automaticamente via transações do tipo investimento confirmado |
-| Configurações | consultar, atualizar parcialmente e restaurar padrões | uma configuração por usuário |
-| Relatórios | consultar por período | somente leitura; exportação via diálogo de impressão do navegador (window.print) |
+| Área | Operações |
+|---|---|
+| Usuários | cadastro e autenticação |
+| Transações | listar, filtrar, criar, editar, excluir, importar e limpar |
+| Categorias | listar, criar, editar e excluir |
+| Metas | consultar, criar, editar e excluir |
+| Investimentos | listar, filtrar, criar, editar, excluir e resumir |
+| Configurações | consultar, atualizar e restaurar padrões |
+| Relatórios | consultar por período e imprimir |
+| Assistente | consultar dados financeiros em linguagem natural |
 
-As métricas do dashboard consideram transações `confirmado` e calculam:
+Todas as operações financeiras utilizam o usuário autenticado como escopo.
+
+---
+
+## Dashboard
+
+A dashboard apresenta:
+
+- total de entradas;
+- total de saídas;
+- total investido;
+- saldo;
+- quantidade de transações;
+- transações recentes;
+- distribuição por categoria;
+- evolução financeira;
+- insights automáticos.
+
+O saldo da dashboard segue a regra:
 
 ```text
-saldo = entradas - saídas - transações do tipo investimento
+saldo = entradas - saídas - investimentos
 ```
 
-Os relatórios possuem semântica diferente no código atual: calculam `entradas - saídas`, retornam investimentos separadamente e não aplicam o mesmo filtro global de status.
+As métricas consideram as transações com status confirmado.
+
+---
+
+## Relatórios
+
+Os relatórios permitem consultar os dados por intervalo de datas.
+
+São exibidos:
+
+- entradas;
+- saídas;
+- investimentos;
+- saldo do período;
+- categorias;
+- evolução;
+- transações.
+
+A exportação atual utiliza:
+
+```javascript
+window.print()
+```
+
+Portanto, o usuário pode imprimir ou salvar o relatório como PDF usando o navegador.
+
+A geração nativa de arquivos PDF permanece como melhoria futura.
+
+---
 
 ## Agent financeiro
 
-A rota protegida `POST /api/assistente` recebe uma pergunta com até 500 caracteres.
+O assistente está disponível por meio da rota protegida:
 
-### OpenAI
+```text
+POST /api/assistente
+```
 
-`src/ai_financial_agent.py` usa `client.chat.completions.create()` com modelo configurável. O agente publica onze ferramentas predefinidas para consultar saldo, entradas, saídas, categorias, meta, quantidade e transações recentes. O nome da ferramenta é validado contra um mapa interno; o modelo não recebe SQL nem acesso direto a arquivos.
+A pergunta enviada possui limite de 500 caracteres.
 
-O prompt determina que números devem vir das ferramentas, proíbe valores inventados e aconselhamento financeiro personalizado e usa moeda e formato de data das preferências do usuário.
+### Agent OpenAI
 
-O assistente prioriza perguntas sobre "maior categoria de gasto" usando a ferramenta `consultar_maior_categoria` quando detecta termos como "onde mais gastei", "maior categoria", "categoria de gasto" ou expressões equivalentes.
+O arquivo:
+
+```text
+b_backend/src/ai_financial_agent.py
+```
+
+utiliza o SDK da OpenAI e ferramentas controladas para consultar os dados financeiros.
+
+O modelo não recebe:
+
+- acesso direto ao banco;
+- SQL arbitrário;
+- caminhos livres de arquivos;
+- permissão de escrita.
+
+Entre as consultas disponíveis estão:
+
+- saldo;
+- entradas;
+- saídas;
+- investimentos;
+- quantidade de transações;
+- transações recentes;
+- gastos por categoria;
+- maior categoria de gasto;
+- meta ativa;
+- progresso financeiro.
+
+Perguntas sobre a maior categoria de gastos recebem prioridade e utilizam a ferramenta apropriada.
+
+Exemplos:
+
+```text
+Qual é o meu saldo?
+Quanto eu gastei este mês?
+Onde eu mais gastei?
+Qual é a minha maior categoria de gasto?
+Como está minha meta?
+Quais são minhas últimas transações?
+```
 
 ### Fallback local
 
-Quando o fluxo OpenAI lança uma exceção, a rota chama `src/financial_agent.py`. Esse agente não usa LLM: normaliza a pergunta, reconhece intenções e produz respostas por regras Python. Ele também possui consultas detalhadas da carteira de investimentos que não fazem parte das tools atuais do agente OpenAI.
+Caso a OpenAI não esteja configurada ou ocorra uma falha, o sistema utiliza:
 
-Sem `OPENAI_API_KEY` disponível durante a inicialização, a aplicação continua com o fallback local.
+```text
+b_backend/src/financial_agent.py
+```
 
-Detalhes e contratos: [docs/agent.md](docs/agent.md).
+O fallback:
+
+- normaliza a pergunta;
+- identifica intenções;
+- consulta as métricas existentes;
+- monta respostas por regras Python;
+- não utiliza LLM.
+
+A aplicação continua funcional sem `OPENAI_API_KEY`.
+
+Mais detalhes:
+
+- [Documentação do Agent](d_traceability/docs/agent.md)
+
+---
+
+## Hyper, Agent, Skill, Brain e MCP
+
+### Hyper / Agent
+
+No projeto, o conceito de **Hyper** é representado pelo Agent financeiro.
+
+Ele interpreta perguntas em linguagem natural e utiliza funções controladas para buscar informações reais do usuário.
+
+### Skill
+
+A Skill está em:
+
+```text
+d_traceability/skills/financial-csv-analyzer/SKILL.md
+```
+
+Ela orienta agentes sobre como:
+
+- analisar CSVs;
+- validar colunas;
+- transformar dados;
+- categorizar transações;
+- evitar duplicidades;
+- importar registros quando autorizado.
+
+A Skill reutiliza o pipeline existente e não duplica sua implementação.
+
+### Brain
+
+O Brain está em:
+
+```text
+d_traceability/brain/
+```
+
+Ele funciona como uma memória técnica compatível com Obsidian e reúne:
+
+- visão geral;
+- requisitos;
+- arquitetura;
+- banco de dados;
+- pipeline;
+- decisões;
+- aprendizados;
+- prompts.
+
+### MCP
+
+O servidor MCP está em:
+
+```text
+d_traceability/mcp/
+```
+
+Ele oferece consultas financeiras somente leitura para ferramentas externas compatíveis.
+
+O MCP:
+
+- utiliza transporte local `stdio`;
+- possui ferramentas predefinidas;
+- não aceita SQL arbitrário;
+- não possui operações de escrita;
+- utiliza usuário financeiro controlado;
+- restringe os documentos acessíveis.
+
+### Vibe Coding
+
+O projeto foi desenvolvido com apoio de inteligência artificial na IDE Windsurf.
+
+A IA foi utilizada para:
+
+- análise;
+- implementação;
+- revisão;
+- testes;
+- organização;
+- documentação;
+- correção de inconsistências.
+
+As decisões e validações permaneceram sob controle humano.
+
+Mais detalhes:
+
+- [Vibe Coding](d_traceability/docs/vibe-coding.md)
+
+---
 
 ## Skill `financial-csv-analyzer`
 
-A skill em `skills/financial-csv-analyzer/SKILL.md` orienta agentes a analisar, validar, transformar, categorizar e, quando autorizado, importar CSVs usando o pipeline existente.
+A Skill referencia como fontes de verdade:
 
-Ela não duplica o ETL nem adiciona um novo executável. A skill:
+- `c_generate_rpa/extract.py`;
+- `c_generate_rpa/transform.py`;
+- `c_generate_rpa/categorization.py`;
+- `c_generate_rpa/load.py`.
 
-- referencia `extract.py`, `transform.py`, `categorization.py` e `load.py` como fontes de verdade;
-- separa análise sem carga de importação;
-- exige usuário válido para persistência;
-- documenta colunas, validações, deduplicação, erros e saídas;
-- evita o ponto de entrada standalone enquanto seu contrato permanecer incompatível.
+Ela:
 
-## Brain
+- separa análise de persistência;
+- exige usuário válido para importação;
+- documenta o formato do CSV;
+- define validações;
+- explica a deduplicação;
+- orienta o tratamento de erros;
+- impede persistência sem autorização.
 
-`brain/` é um vault técnico compatível com Obsidian:
+---
+
+## Brain técnico
 
 | Arquivo | Conteúdo |
 |---|---|
 | `00-visao-geral.md` | escopo e capacidades |
-| `01-requisitos.md` | requisitos derivados do código |
-| `02-arquitetura.md` | camadas, rotas e fluxos |
+| `01-requisitos.md` | requisitos do projeto |
+| `02-arquitetura.md` | camadas, módulos e fluxos |
 | `03-modelo-de-dados.md` | tabelas e integridade |
-| `04-pipeline-etl.md` | extração, transformação e carga |
-| `05-decisoes-tecnicas.md` | decisões observadas na implementação |
-| `06-erros-e-aprendizados.md` | inconsistências e limitações confirmadas |
-| `07-prompts.md` | prompt persistido do assistente e function calling |
+| `04-pipeline-etl.md` | processamento de CSV |
+| `05-decisoes-tecnicas.md` | decisões arquiteturais |
+| `06-erros-e-aprendizados.md` | problemas e aprendizados |
+| `07-prompts.md` | prompts e regras do assistente |
+
+---
 
 ## MCP somente leitura
 
-O servidor `personal-finance-flow-readonly` fica em `mcp/` e utiliza transporte local `stdio`.
+O servidor:
 
-Tools publicadas:
+```text
+personal-finance-flow-readonly
+```
+
+utiliza transporte local `stdio`.
+
+### Tools disponíveis
 
 - `get_financial_summary`;
 - `get_recent_transactions`;
@@ -192,48 +621,106 @@ Tools publicadas:
 - `get_investment_summary`;
 - `list_categories`.
 
-Também existem cinco resources fixos para visão geral, arquitetura, modelo de dados, ETL e schema. Não há tool para escrita, SQL arbitrário, caminho de arquivo ou troca de `usuario_id`.
+### Proteções
 
-O MCP requer Python 3.10 ou superior em ambiente separado, uma conta MySQL dedicada com apenas `SELECT` e um `.env.mcp` local. A implementação e o handshake do protocolo foram testados sem acessar o banco real; a integração com dados reais depende da configuração local dessa conta.
+- sem operações de escrita;
+- sem SQL arbitrário;
+- consultas controladas;
+- limites de retorno;
+- escopo por usuário;
+- resources definidos por allowlist;
+- banco recomendado com permissão apenas de `SELECT`.
 
-Instalação, permissões e configuração do Windsurf: [mcp/README.md](mcp/README.md).
+O MCP requer:
+
+- Python 3.10 ou superior;
+- ambiente virtual separado;
+- dependências de `requirements-mcp.txt`;
+- conta MySQL somente leitura;
+- arquivo `.env.mcp` local.
+
+Mais detalhes:
+
+- [Instalação e configuração do MCP](d_traceability/mcp/README.md)
+
+---
 
 ## Autenticação e isolamento
 
 - cadastro valida nome, e-mail, senha e confirmação;
-- senhas são persistidas como hash PBKDF2-SHA256;
-- login grava `usuario_id`, nome e e-mail na sessão;
-- logout remove essas chaves;
+- senhas são armazenadas como hash;
+- login salva o usuário na sessão;
+- logout remove os dados da sessão;
 - páginas protegidas redirecionam ao login;
 - APIs protegidas retornam HTTP 401;
-- consultas principais filtram por `usuario_id` da sessão ou do contexto da requisição.
+- consultas financeiras filtram pelo usuário autenticado.
 
-No schema atual, `usuario_id` é NOT NULL em todas as tabelas financeiras (`transacoes`, `metas`, `categorias`, `investimentos`). A tabela `categorias` possui unicidade composta `(usuario_id, nome)`, não global.
+O banco utiliza `usuario_id` nas tabelas financeiras.
 
-## Instalação da aplicação
+A tabela de categorias utiliza unicidade composta:
+
+```text
+(usuario_id, nome)
+```
+
+Assim, usuários diferentes podem possuir categorias com o mesmo nome.
+
+---
+
+## Limpar todos os dados
+
+A funcionalidade **Limpar todos os dados** remove do usuário autenticado:
+
+- investimentos;
+- transações;
+- metas;
+- categorias.
+
+São preservados:
+
+- usuário;
+- e-mail;
+- senha;
+- sessão;
+- configurações da conta.
+
+---
+
+## Instalação
 
 ### Pré-requisitos
 
-- Python compatível com as versões fixadas em `requirements.txt`;
-- MySQL em execução;
-- cliente MySQL para aplicar o schema.
+- Python;
+- MySQL;
+- cliente MySQL;
+- Git, caso o projeto seja clonado;
+- chave OpenAI opcional.
+
+### Criar o ambiente virtual
 
 Na raiz do projeto:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
 ```
 
-No Windows, a ativação normalmente é:
+No Windows:
 
 ```powershell
 .venv\Scripts\activate
 ```
 
-## Configuração do `.env`
+### Instalar as dependências
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+---
+
+## Configuração do ambiente
 
 Crie o arquivo local:
 
@@ -241,49 +728,74 @@ Crie o arquivo local:
 cp .env.example .env
 ```
 
-Variáveis presentes no exemplo:
+Exemplo:
 
 ```dotenv
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=sua_senha_aqui
+DB_PASSWORD=sua_senha
 DB_NAME=personal_finance_flow
-OPENAI_API_KEY=chave_openai_aqui
+
+SECRET_KEY=substitua-por-um-segredo-seguro
+
+OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-Configurações adicionais da aplicação:
+### Variáveis
 
-```dotenv
-SECRET_KEY=substitua-por-um-segredo-aleatorio
-```
+| Variável | Obrigatória | Finalidade |
+|---|---:|---|
+| `DB_HOST` | Sim | servidor MySQL |
+| `DB_PORT` | Sim | porta do MySQL |
+| `DB_USER` | Sim | usuário do banco |
+| `DB_PASSWORD` | Sim | senha do banco |
+| `DB_NAME` | Sim | nome do banco |
+| `SECRET_KEY` | Sim | assinatura segura da sessão Flask |
+| `OPENAI_API_KEY` | Não | habilita o Agent OpenAI |
+| `OPENAI_MODEL` | Não | modelo utilizado pelo Agent |
+| `FLASK_DEBUG` | Não | controla o modo debug |
+| `APP_ENV` | Não | identifica o ambiente |
 
-`SECRET_KEY` é obrigatória. Se não estiver definida no ambiente do processo, a aplicação falha ao iniciar.
+`SECRET_KEY` é obrigatória. A aplicação não deve ser iniciada sem essa variável.
 
-`DB_*` é carregado por `python-dotenv` quando a conexão é criada. Já `SECRET_KEY`, `OPENAI_API_KEY` e `OPENAI_MODEL` são lidos durante a importação dos módulos. Para garantir que todos estejam disponíveis desde o início, exporte o `.env` antes de executar:
+Não versione:
+
+- `.env`;
+- `.env.mcp`;
+- senhas;
+- chaves reais;
+- ambientes virtuais.
+
+### Carregar as variáveis no terminal
+
+Em macOS ou Linux:
 
 ```bash
 set -a
 source .env
 set +a
-python app.py
 ```
 
-Se a OpenAI não for configurada, o assistente local permanece disponível.
-
-Não versione `.env`, `.env.mcp` ou credenciais reais.
+---
 
 ## Criação do banco
 
-Crie o banco e aplique o schema:
+```bash
+mysql -u root -p -e \
+"CREATE DATABASE IF NOT EXISTS personal_finance_flow
+ CHARACTER SET utf8mb4
+ COLLATE utf8mb4_unicode_ci;"
+```
+
+Aplicar o schema:
 
 ```bash
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS personal_finance_flow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 mysql -u root -p personal_finance_flow < database/schema.sql
 ```
 
-O schema cria:
+Tabelas:
 
 - `usuarios`;
 - `transacoes`;
@@ -292,29 +804,35 @@ O schema cria:
 - `investimentos`;
 - `configuracoes_usuario`.
 
-O usuário configurado em `DB_USER` precisa conseguir consultar e alterar dados dessas tabelas. Em bancos legados sem as colunas de proprietário, a inicialização também precisa de permissão para executar os `ALTER TABLE` previstos em `garantir_colunas_usuario()`.
+O usuário definido em `DB_USER` precisa possuir as permissões necessárias para a aplicação.
+
+---
 
 ## Execução
 
-Com o ambiente virtual ativo, banco criado e variáveis disponíveis:
+A execução oficial deve ser feita a partir da raiz do projeto.
 
 ```bash
-python app.py
+source .venv/bin/activate
+set -a
+source .env
+set +a
+python -m b_backend.app
 ```
 
-A aplicação inicia com `debug=True` em:
+A aplicação fica disponível em:
 
 ```text
 http://127.0.0.1:5001
 ```
 
-Páginas públicas:
+### Páginas públicas
 
 - `/`;
 - `/login`;
 - `/cadastro`.
 
-Após autenticação:
+### Páginas autenticadas
 
 - `/dashboard`;
 - `/transacoes`;
@@ -325,90 +843,303 @@ Após autenticação:
 - `/assistente`;
 - `/configuracoes`.
 
-O servidor de desenvolvimento do Flask não é uma configuração de produção.
+> Evite entrar na pasta `b_backend` e executar `python app.py`. O comando oficial é `python -m b_backend.app`, executado a partir da raiz.
+
+O servidor Flask utilizado é destinado ao desenvolvimento local.
+
+---
 
 ## Estrutura de pastas
 
 ```text
-personal-finance-flow/
-├── app.py                         # aplicação Flask e rotas
-├── requirements.txt               # dependências da aplicação
-├── requirements-mcp.txt           # dependências do MCP
-├── .env.example                   # exemplo de ambiente da aplicação
-├── .env.mcp.example               # exemplo de ambiente do MCP
-├── brain/                         # vault técnico Obsidian
-├── data/
-│   ├── raw/                       # CSV bruto de exemplo
-│   └── processed/                 # CSV tratado de exemplo
+personal_finance_flow/
+├── README.md
+├── requirements.txt
+├── requirements-mcp.txt
+├── .env.example
+├── .gitignore
+│
+├── a_frontend_webclient/
+│   ├── templates/
+│   └── static/
+│       ├── css/
+│       ├── js/
+│       └── images/
+│
+├── b_backend/
+│   ├── __init__.py
+│   ├── app.py
+│   └── src/
+│       ├── __init__.py
+│       ├── auth.py
+│       ├── transacoes.py
+│       ├── investimentos.py
+│       ├── categorias.py
+│       ├── metas.py
+│       ├── configuracoes.py
+│       ├── metrics.py
+│       ├── relatorios.py
+│       ├── financial_agent.py
+│       ├── ai_financial_agent.py
+│       ├── usuario_contexto.py
+│       └── utils.py
+│
+├── c_generate_rpa/
+│   ├── __init__.py
+│   ├── extract.py
+│   ├── transform.py
+│   ├── categorization.py
+│   ├── load.py
+│   ├── samples/
+│   │   ├── raw/
+│   │   └── processed/
+│   └── README.md
+│
+├── d_traceability/
+│   ├── __init__.py
+│   ├── docs/
+│   │   ├── README.md
+│   │   ├── agent.md
+│   │   ├── vibe-coding.md
+│   │   ├── product/
+│   │   ├── prd/
+│   │   ├── adr/
+│   │   └── prompts/
+│   ├── brain/
+│   ├── logs/
+│   ├── skills/
+│   │   └── financial-csv-analyzer/
+│   │       └── SKILL.md
+│   └── mcp/
+│       ├── __init__.py
+│       ├── server.py
+│       ├── readonly_service.py
+│       ├── allowed_resources.py
+│       ├── schemas.py
+│       └── README.md
+│
+├── e_verify/
+│   ├── __init__.py
+│   ├── unit/
+│   ├── integration/
+│   ├── security/
+│   └── fixtures/
+│
+├── f_test_execution/
+│   ├── run_all_tests.py
+│   ├── run_unit_tests.sh
+│   ├── run_integration_tests.sh
+│   ├── manual_test_plan.md
+│   └── reports/
+│
+├── g_output/
+│   ├── reports/
+│   ├── exports/
+│   ├── screenshots/
+│   ├── test_results/
+│   └── README.md
+│
 ├── database/
-│   └── schema.sql                 # schema MySQL
-├── docs/                          # arquitetura, Agent e vibe coding
-├── mcp/                           # servidor MCP somente leitura
-├── presentation/                  # roteiro de apresentação
-├── skills/
-│   └── financial-csv-analyzer/    # skill do pipeline CSV
-├── src/                           # domínio, dados, ETL, métricas e agentes
-├── static/
-│   ├── css/                       # estilos por página
-│   ├── images/                    # imagens do projeto
-│   └── js/                        # comportamento das páginas
-├── templates/                     # templates Jinja
-├── tests/                         # testes automatizados atuais do MCP
-└── uploads/                       # CSVs recebidos pela aplicação
+│   └── schema.sql
+│
+├── g_uploads/
+│   └── .gitkeep
+│
+└── presentation/
+    ├── roteiro.md
+    └── slides/
 ```
+
+---
 
 ## Testes
 
-A pasta `tests/` contém testes automatizados:
+Os testes estão organizados em:
 
-- `test_mcp_readonly.py`: 11 testes do servidor MCP somente leitura (consultas SELECT, escopo por usuário, limites, fórmulas, tools publicadas e allowlist de resources);
-- `test_categorias_padrao.py`: inicialização de categorias padrão;
-- `test_categorizacao_automatica.py`: categorização automática de transações;
-- `test_upload_api.py`: API de upload de CSV;
-- `test_user_isolation.py`: isolamento de dados por usuário.
-
-Para executar os testes:
-
-```bash
-.venv/bin/python -m unittest discover -s tests -v
+```text
+e_verify/
+├── unit/
+├── integration/
+├── security/
+└── fixtures/
 ```
 
-Para validar o servidor MCP com o SDK MCP, instale primeiro o ambiente separado descrito em [mcp/README.md](mcp/README.md).
+A suíte atual cobre:
 
-## Limpar todos os dados
+- categorização automática;
+- categorias padrão;
+- importação por CSV;
+- deduplicação;
+- API de upload;
+- MCP somente leitura;
+- escopo por usuário;
+- allowlist de resources;
+- limites de consulta;
+- fórmulas financeiras;
+- tools publicadas.
 
-A funcionalidade "Limpar todos os dados" remove do usuário:
-- investimentos (vinculados ou cadastrados diretamente);
-- transações;
-- metas;
-- categorias.
+### Executar todos os testes
 
-O usuário, as credenciais e as configurações da conta são preservados.
+```bash
+python f_test_execution/run_all_tests.py
+```
 
-## Próximos passos baseados nas lacunas atuais
+O executor:
 
-Os itens abaixo são melhorias ainda não implementadas ou não confirmadas como concluídas:
+- localiza as suítes;
+- executa os testes;
+- contabiliza sucessos, falhas e erros;
+- retorna código diferente de zero quando há falha;
+- cria relatório timestampado em:
 
-- adicionar testes automatizados para autenticação, isolamento multiusuário, CRUDs, métricas e ETL;
-- criar testes de interface e integração com MySQL;
-- gerar PDF nativo sem depender do diálogo de impressão do navegador;
-- mover ajustes de schema da inicialização para migrações explícitas;
-- definir normalização de nome e retenção/remoção dos uploads;
-- tornar atômica a recategorização realizada durante a exclusão de categoria;
-- alinhar e documentar a semântica financeira entre dashboard e relatórios;
-- ampliar a cobertura de erros atualmente convertidos em resultados vazios;
-- validar o MCP com uma conta MySQL real somente leitura e confirmar sua ativação no Windsurf.
+```text
+f_test_execution/reports/
+```
+
+Exemplo:
+
+```text
+test_report_2026-07-01_051055.txt
+```
+
+### Executar somente testes unitários
+
+```bash
+bash f_test_execution/run_unit_tests.sh
+```
+
+### Executar testes de integração
+
+```bash
+bash f_test_execution/run_integration_tests.sh
+```
+
+Na última validação da reorganização estrutural:
+
+```text
+Testes encontrados: 25
+Sucessos: 25
+Falhas: 0
+Erros: 0
+```
+
+Também foram validados:
+
+- compilação dos módulos;
+- carregamento dos templates;
+- carregamento dos arquivos estáticos;
+- rotas públicas;
+- proteção das rotas autenticadas.
+
+---
+
+## Saídas com timestamp
+
+Arquivos gerados para entrega ou evidência devem seguir:
+
+```text
+nome_YYYY-MM-DD_HHMMSS.ext
+```
+
+Exemplos:
+
+```text
+relatorio_financeiro_2026-07-01_143022.pdf
+resultado_testes_2026-07-01_143144.txt
+dashboard_2026-07-01_143230.png
+transacoes_2026-07-01_143415.csv
+```
+
+Pastas destinadas às saídas:
+
+```text
+g_output/
+├── reports/
+├── exports/
+├── screenshots/
+└── test_results/
+```
+
+O banco MySQL e os templates da dashboard não ficam em `g_output`.
+
+---
+
+## Limitações atuais
+
+- a importação aceita apenas CSV;
+- não existe conversão monetária;
+- a exportação de relatório utiliza o navegador;
+- o Agent local utiliza regras, não um modelo de linguagem;
+- a integração OpenAI depende de chave e acesso à API;
+- o MCP depende de configuração local;
+- o servidor Flask é destinado ao desenvolvimento;
+- não existe migração versionada do banco;
+- não há geração nativa de PDF;
+- a cobertura automatizada ainda não contempla toda a interface.
+
+---
+
+## Próximos passos
+
+- ampliar os testes de autenticação e CRUDs;
+- criar testes com banco MySQL isolado;
+- adicionar testes de interface;
+- gerar PDF de forma nativa;
+- criar migrações de banco versionadas;
+- ampliar a observabilidade;
+- validar o MCP com conta MySQL real somente leitura;
+- alinhar completamente as regras financeiras entre dashboard e relatórios;
+- revisar retenção e remoção de uploads;
+- preparar configuração para produção.
+
+---
 
 ## Documentação adicional
 
-- [Visão geral](brain/00-visao-geral.md)
-- [Requisitos](brain/01-requisitos.md)
-- [Arquitetura](brain/02-arquitetura.md)
-- [Modelo de dados](brain/03-modelo-de-dados.md)
-- [Pipeline ETL](brain/04-pipeline-etl.md)
-- [Erros e aprendizados](brain/06-erros-e-aprendizados.md)
-- [Prompts utilizados](brain/07-prompts.md)
-- [Assistente financeiro](docs/agent.md)
-- [Vibe coding](docs/vibe-coding.md)
-- [MCP somente leitura](mcp/README.md)
-- [Documentação detalhada](docs/README.md)
+- [Índice da documentação](d_traceability/docs/README.md)
+- [Visão geral](d_traceability/brain/00-visao-geral.md)
+- [Requisitos](d_traceability/brain/01-requisitos.md)
+- [Arquitetura](d_traceability/brain/02-arquitetura.md)
+- [Modelo de dados](d_traceability/brain/03-modelo-de-dados.md)
+- [Pipeline ETL](d_traceability/brain/04-pipeline-etl.md)
+- [Decisões técnicas](d_traceability/brain/05-decisoes-tecnicas.md)
+- [Erros e aprendizados](d_traceability/brain/06-erros-e-aprendizados.md)
+- [Prompts](d_traceability/brain/07-prompts.md)
+- [Agent financeiro](d_traceability/docs/agent.md)
+- [Vibe Coding](d_traceability/docs/vibe-coding.md)
+- [Skill](d_traceability/skills/financial-csv-analyzer/SKILL.md)
+- [MCP somente leitura](d_traceability/mcp/README.md)
+- [Plano de testes manuais](f_test_execution/manual_test_plan.md)
+
+---
+
+## Segurança
+
+- não envie `.env` ao repositório;
+- não exponha `SECRET_KEY`;
+- não exponha `OPENAI_API_KEY`;
+- utilize consultas parametrizadas;
+- mantenha o MCP somente leitura;
+- utilize um usuário MySQL restrito para o MCP;
+- não utilize o servidor Flask de desenvolvimento em produção;
+- revise permissões antes de publicar o projeto.
+
+---
+
+## Status
+
+O projeto possui:
+
+- pipeline financeiro funcional;
+- CRUDs end-to-end;
+- dashboard;
+- relatórios;
+- Agent;
+- Skill;
+- Brain;
+- MCP;
+- testes automatizados;
+- documentação;
+- estrutura organizada por responsabilidade.
+
+A aplicação foi validada após a reorganização estrutural com compilação, testes, templates, arquivos estáticos e rotas Flask.

@@ -14,7 +14,7 @@ Conflitos que impedem a execução:
 """
 
 import sys
-from src.load import obter_engine
+from c_generate_rpa.load import obter_engine
 from sqlalchemy import text
 
 
