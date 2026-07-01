@@ -43,7 +43,12 @@
 
     botaoRestaurar.addEventListener("click", async function () {
         try {
-            const resposta = await fetch("/api/configuracoes/restaurar", { method: "POST" });
+            const resposta = await fetch("/api/configuracoes/restaurar", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": window.PFF.csrfToken
+                }
+            });
             const resultado = await resposta.json();
             if (!resposta.ok) throw new Error(resultado.erro);
             window.location.reload();
@@ -52,3 +57,84 @@
         }
     });
 })();
+
+function formatarMoedaMeta(valor) {
+    if (window.PFF && typeof window.PFF.formatarMoeda === "function") {
+        return window.PFF.formatarMoeda(valor);
+    }
+
+    return Number(valor || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
+}
+
+async function buscarMetaSidebar() {
+    try {
+        const resposta = await fetch("/api/meta");
+
+        if (!resposta.ok) {
+            if (resposta.status === 404) {
+                exibirMetaSidebarVazia();
+                return;
+            }
+
+            throw new Error("Erro ao buscar meta");
+        }
+
+        const meta = await resposta.json();
+        exibirMetaSidebar(meta);
+    } catch (erro) {
+        console.error("Erro ao carregar meta da sidebar:", erro);
+        exibirMetaSidebarVazia();
+    }
+}
+
+function exibirMetaSidebar(meta) {
+    const valorAtual = document.getElementById("goal-valor-atual");
+    const valorMeta = document.getElementById("goal-valor-meta");
+    const percentual = document.getElementById("goal-percentual");
+    const barra = document.getElementById("goal-progress-bar");
+    const restante = document.getElementById("goal-restante");
+
+    if (!valorAtual || !valorMeta || !percentual || !barra || !restante) {
+        return;
+    }
+
+    const percentualMeta = Math.min(
+        Number(meta.percentual || 0),
+        100
+    );
+
+    valorAtual.textContent = formatarMoedaMeta(meta.valor_atual);
+    valorMeta.textContent = `de ${formatarMoedaMeta(meta.valor_meta)}`;
+    percentual.textContent = `${meta.percentual || 0}%`;
+    barra.style.width = `${percentualMeta}%`;
+
+    if (Number(meta.valor_restante || 0) > 0) {
+        restante.textContent =
+            `Faltam ${formatarMoedaMeta(meta.valor_restante)} para alcançar sua meta.`;
+    } else {
+        restante.textContent = "Parabéns! Você alcançou sua meta!";
+    }
+}
+
+function exibirMetaSidebarVazia() {
+    const valorAtual = document.getElementById("goal-valor-atual");
+    const valorMeta = document.getElementById("goal-valor-meta");
+    const percentual = document.getElementById("goal-percentual");
+    const barra = document.getElementById("goal-progress-bar");
+    const restante = document.getElementById("goal-restante");
+
+    if (!valorAtual || !valorMeta || !percentual || !barra || !restante) {
+        return;
+    }
+
+    valorAtual.textContent = formatarMoedaMeta(0);
+    valorMeta.textContent = `de ${formatarMoedaMeta(0)}`;
+    percentual.textContent = "0%";
+    barra.style.width = "0%";
+    restante.textContent = "Nenhuma meta cadastrada.";
+}
+
+document.addEventListener("DOMContentLoaded", buscarMetaSidebar);

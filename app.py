@@ -1,7 +1,10 @@
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from src.metrics import gerar_metricas_dashboard, buscar_ultimas_transacoes, gerar_insights
-from src.transform import tratar_transacoes
-from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, obter_engine, garantir_colunas_usuario
+from src.transform import processar_upload_csv
+from src.load import carregar_transacoes_mysql, limpar_transacoes_mysql, garantir_colunas_usuario
 from src.transacoes import buscar_todas_transacoes, criar_transacao, editar_transacao, excluir_transacao
 from src.metas import buscar_meta_ativa, criar_meta, atualizar_meta, excluir_meta
 from src.categorias import buscar_todas_categorias, criar_categoria, atualizar_categoria, excluir_categoria, obter_estatisticas_categoria, inicializar_categorias_padrao
@@ -19,14 +22,49 @@ from src.configuracoes import (
 
 
 import os
+import tempfile
 import pandas as pd
 from functools import wraps
+from pandas.errors import EmptyDataError, ParserError
+from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 # Configura Flask para retornar JSON com acentos corretamente
 app.config['JSON_AS_ASCII'] = False
-# Configura secret key para sessões
-app.secret_key = os.getenv('SECRET_KEY', 'chave-secreta-desenvolvimento-pff-2026')
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+
+# Carrega variáveis de ambiente
+from dotenv import load_dotenv
+load_dotenv()
+
+# Configura secret key para sessões (exigida)
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("A variável de ambiente SECRET_KEY é obrigatória")
+app.secret_key = SECRET_KEY
+
+# Configurações de segurança de sessão
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+# SESSION_COOKIE_SECURE: ativo apenas em produção (HTTPS)
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+
+# Configuração de debug
+DEBUG = os.getenv('FLASK_DEBUG', 'false').lower() == 'true' or os.getenv('APP_ENV') == 'development'
+
+# Inicializa proteção CSRF
+csrf = CSRFProtect(app)
+
+# Inicializa rate limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
+
+EXTENSOES_UPLOAD_PERMITIDAS = {".csv"}
 
 # Garante colunas de isolamento por usuário em bancos já existentes
 # antes de processar qualquer rota.
@@ -74,7 +112,20 @@ def disponibilizar_preferencias_usuario():
         'usuario_nome': (
             configuracoes.get('nome') if configuracoes else None
         ) or session.get('usuario_nome'),
+        'csrf_token': generate_csrf(),
     }
+
+# Rota para retornar token CSRF para o frontend
+@app.route('/api/csrf-token', methods=['GET'])
+def get_csrf_token():
+    return jsonify({'csrf_token': generate_csrf()})
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def tratar_upload_muito_grande(_erro):
+    return jsonify({
+        'erro': 'O arquivo excede o limite permitido de 2 MB.'
+    }), 413
 
 # Rota principal - exibe a página inicial
 @app.route('/')
@@ -147,9 +198,9 @@ def api_configuracoes():
     except ValueError as erro:
         return jsonify({"erro": str(erro)}), 400
     except Exception as erro:
+        print(f"[ERRO] Não foi possível salvar as configurações: {erro}")
         return jsonify({
             "erro": "Não foi possível salvar as configurações.",
-            "detalhes": str(erro),
         }), 500
 
 
@@ -164,9 +215,9 @@ def api_restaurar_configuracoes():
             "configuracoes": configuracoes,
         }), 200
     except Exception as erro:
+        print(f"[ERRO] Não foi possível restaurar as configurações: {erro}")
         return jsonify({
             "erro": "Não foi possível restaurar as configurações.",
-            "detalhes": str(erro),
         }), 500
 
 
@@ -182,6 +233,7 @@ def pagina_cadastro():
 
 # Rota de API - cadastro de usuário
 @app.route('/api/cadastro', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_cadastro():
     try:
         dados = request.get_json()
@@ -229,11 +281,13 @@ def api_cadastro():
             return jsonify({'erro': resultado['erro']}), 400
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar usuário', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar usuário: {e}")
+        return jsonify({'erro': 'Falha ao criar usuário'}), 500
 
 
 # Rota de API - login de usuário
 @app.route('/api/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def api_login():
     try:
         dados = request.get_json()
@@ -273,7 +327,8 @@ def api_login():
         }), 200
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao realizar login', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao realizar login: {e}")
+        return jsonify({'erro': 'Falha ao realizar login'}), 500
 
 
 # Rota de API - logout de usuário
@@ -288,7 +343,8 @@ def api_logout():
         return jsonify({'mensagem': 'Logout realizado com sucesso'}), 200
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao realizar logout', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao realizar logout: {e}")
+        return jsonify({'erro': 'Falha ao realizar logout'}), 500
 
 
 # Rota de API - retorna métricas financeiras em JSON
@@ -310,8 +366,10 @@ def api_metricas():
         return jsonify(metricas)
         
     except Exception as e:
-        # Em caso de erro, retorna mensagem de falha
-        return jsonify({'erro': 'Falha ao buscar métricas', 'detalhes': str(e)}), 500
+        import traceback
+        traceback.print_exc()
+        print(f"[ERRO] Falha ao buscar métricas: {e}")
+        return jsonify({'erro': 'Falha ao buscar métricas'}), 500
 
 @app.route("/api/transacoes")
 @login_obrigatorio
@@ -325,9 +383,9 @@ def api_transacoes():
         )
         return jsonify(transacoes)
     except Exception as erro:
+        print(f"[ERRO] Não foi possível buscar as últimas transações: {erro}")
         return jsonify({
-            "erro": "Não foi possível buscar as últimas transações.",
-            "detalhe": str(erro)
+            "erro": "Não foi possível buscar as últimas transações."
         }), 500
 
 # Rota de API - retorna todas as transações em JSON
@@ -357,8 +415,8 @@ def api_transacoes_todas():
         return jsonify(transacoes)
         
     except Exception as e:
-        # Em caso de erro, retorna mensagem de falha
-        return jsonify({'erro': 'Falha ao buscar transações', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao buscar transações: {e}")
+        return jsonify({'erro': 'Falha ao buscar transações'}), 500
 
 # Rota de API - cria uma nova transação
 @app.route('/api/transacoes', methods=['POST'])
@@ -413,7 +471,8 @@ def api_criar_transacao():
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar transação', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar transação: {e}")
+        return jsonify({'erro': 'Falha ao criar transação'}), 500
 
 # Rota de API - edita uma transação existente
 @app.route('/api/transacoes/<int:id>', methods=['PUT'])
@@ -471,7 +530,8 @@ def api_editar_transacao(id):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao editar transação', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao editar transação: {e}")
+        return jsonify({'erro': 'Falha ao editar transação'}), 500
 
 # Rota de API - exclui uma transação
 @app.route('/api/transacoes/<int:id>', methods=['DELETE'])
@@ -490,12 +550,21 @@ def api_excluir_transacao(id):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao excluir transação', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao excluir transação: {e}")
+        return jsonify({'erro': 'Falha ao excluir transação'}), 500
         
 @app.route("/api/upload", methods=["POST"])
 @login_obrigatorio
+@limiter.limit("10 per minute")
 def api_upload():
+    caminho_temporario = None
     try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({
+                "erro": "Autenticação necessária."
+            }), 401
+
         if "arquivo" not in request.files:
             return jsonify({
                 "erro": "Nenhum arquivo foi enviado."
@@ -508,38 +577,88 @@ def api_upload():
                 "erro": "Nenhum arquivo foi selecionado."
             }), 400
 
-        if not arquivo.filename.endswith(".csv"):
+        nome_seguro = secure_filename(arquivo.filename)
+        _, extensao = os.path.splitext(nome_seguro)
+        if extensao.lower() not in EXTENSOES_UPLOAD_PERMITIDAS:
             return jsonify({
                 "erro": "Envie apenas arquivos CSV."
             }), 400
 
-        caminho_uploads = "uploads"
-        os.makedirs(caminho_uploads, exist_ok=True)
+        if request.content_length and request.content_length > app.config['MAX_CONTENT_LENGTH']:
+            return jsonify({
+                "erro": "O arquivo excede o limite permitido de 2 MB."
+            }), 413
 
-        caminho_arquivo = os.path.join(caminho_uploads, arquivo.filename)
-        arquivo.save(caminho_arquivo)
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".csv",
+            prefix="upload_",
+        ) as arquivo_temporario:
+            caminho_temporario = arquivo_temporario.name
 
-        df = pd.read_csv(caminho_arquivo)
-        df_tratado, contador_categorizadas = tratar_transacoes(df)
-        usuario_id = session.get('usuario_id')
+        arquivo.save(caminho_temporario)
+
+        try:
+            df = pd.read_csv(caminho_temporario)
+        except EmptyDataError:
+            return jsonify({
+                "erro": "O arquivo CSV está vazio."
+            }), 400
+        except (ParserError, UnicodeDecodeError):
+            return jsonify({
+                "erro": "Não foi possível ler o CSV enviado."
+            }), 400
+
+        df_tratado, contador_categorizadas, relatorio = processar_upload_csv(
+            df,
+            usuario_id=usuario_id,
+        )
+        if df_tratado.empty:
+            return jsonify({
+                "erro": "Nenhuma linha válida foi encontrada no CSV.",
+                "relatorio": relatorio,
+            }), 400
+
         resultado_carga = carregar_transacoes_mysql(
             df_tratado,
             usuario_id=usuario_id,
         )
 
-        return {
-            "mensagem": "Planilha processada com sucesso.",
-            "recebidos": resultado_carga["recebidos"],
-            "importados": resultado_carga["importados"],
-            "ignorados": resultado_carga["ignorados"],
-            "categorizadas_automaticamente": contador_categorizadas
-        }
+        rejeicoes = list(relatorio["rejeicoes"])
+        for linha in resultado_carga.get("linhas_ignoradas_duplicadas", []):
+            rejeicoes.append({
+                "linha": int(linha),
+                "motivo": "linha já existente para o usuário autenticado",
+            })
 
-    except Exception as erro:
+        relatorio["rejeicoes"] = sorted(
+            rejeicoes,
+            key=lambda item: item["linha"],
+        )
+        relatorio["linhas_aceitas"] = int(resultado_carga["importados"])
+        relatorio["linhas_rejeitadas"] = len(relatorio["rejeicoes"])
+
         return jsonify({
-            "erro": "Não foi possível importar a planilha.",
-            "detalhe": str(erro)
+            "mensagem": "Planilha processada com sucesso.",
+            "recebidos": int(relatorio["total_linhas"]),
+            "importados": int(resultado_carga["importados"]),
+            "ignorados": int(relatorio["linhas_rejeitadas"]),
+            "categorizadas_automaticamente": int(contador_categorizadas),
+            "relatorio": relatorio,
+        }), 200
+
+    except ValueError as erro:
+        return jsonify({
+            "erro": str(erro)
+        }), 400
+    except Exception as erro:
+        print(f"[ERRO] Não foi possível importar a planilha: {erro}")
+        return jsonify({
+            "erro": "Não foi possível importar a planilha."
         }), 500
+    finally:
+        if caminho_temporario and os.path.exists(caminho_temporario):
+            os.remove(caminho_temporario)
 
 
 @app.route("/api/transacoes/limpar", methods=["DELETE"])
@@ -555,9 +674,9 @@ def api_limpar_transacoes():
         })
 
     except Exception as erro:
+        print(f"[ERRO] Não foi possível limpar os dados: {erro}")
         return jsonify({
-            "erro": "Não foi possível limpar os dados.",
-            "detalhe": str(erro)
+            "erro": "Não foi possível limpar os dados."
         }), 500
 
 # Rota de API - retorna a meta ativa
@@ -592,7 +711,8 @@ def api_meta():
         return jsonify(meta)
         
     except Exception as e:
-        return jsonify({'erro': 'Falha ao buscar meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao buscar meta: {e}")
+        return jsonify({'erro': 'Falha ao buscar meta'}), 500
 
 # Rota de API - cria uma nova meta
 @app.route('/api/meta', methods=['POST'])
@@ -646,7 +766,8 @@ def api_criar_meta():
         return jsonify({'mensagem': 'Meta criada com sucesso', 'id': id_meta}), 201
         
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar meta: {e}")
+        return jsonify({'erro': 'Falha ao criar meta'}), 500
 
 # Rota de API - atualiza uma meta existente
 @app.route('/api/meta/<int:id>', methods=['PUT'])
@@ -699,7 +820,8 @@ def api_atualizar_meta(id):
             return jsonify({'erro': 'Meta não encontrada'}), 404
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao atualizar meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao atualizar meta: {e}")
+        return jsonify({'erro': 'Falha ao atualizar meta'}), 500
 
 # Rota de API - exclui uma meta
 @app.route('/api/meta/<int:id>', methods=['DELETE'])
@@ -715,7 +837,8 @@ def api_excluir_meta(id):
             return jsonify({'erro': 'Meta não encontrada'}), 404
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao excluir meta', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao excluir meta: {e}")
+        return jsonify({'erro': 'Falha ao excluir meta'}), 500
 
 # Rota de API - retorna todas as categorias
 @app.route('/api/categorias')
@@ -737,7 +860,8 @@ def api_categorias():
         return jsonify(categorias)
         
     except Exception as e:
-        return jsonify({'erro': 'Falha ao buscar categorias', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao buscar categorias: {e}")
+        return jsonify({'erro': 'Falha ao buscar categorias'}), 500
 
 # Rota de API - cria uma nova categoria
 @app.route('/api/categorias', methods=['POST'])
@@ -766,7 +890,8 @@ def api_criar_categoria():
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao criar categoria', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao criar categoria: {e}")
+        return jsonify({'erro': 'Falha ao criar categoria'}), 500
 
 # Rota de API - atualiza uma categoria
 @app.route('/api/categorias/<nome>', methods=['PUT'])
@@ -793,7 +918,8 @@ def api_atualizar_categoria(nome):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao atualizar categoria', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao atualizar categoria: {e}")
+        return jsonify({'erro': 'Falha ao atualizar categoria'}), 500
 
 # Rota de API - exclui uma categoria
 @app.route('/api/categorias/<nome>', methods=['DELETE'])
@@ -811,11 +937,13 @@ def api_excluir_categoria(nome):
             return jsonify({'erro': resultado['erro']}), 500
             
     except Exception as e:
-        return jsonify({'erro': 'Falha ao excluir categoria', 'detalhes': str(e)}), 500
+        print(f"[ERRO] Falha ao excluir categoria: {e}")
+        return jsonify({'erro': 'Falha ao excluir categoria'}), 500
 
 # Rota de API - processa pergunta do assistente financeiro
 @app.route('/api/assistente', methods=['POST'])
 @login_obrigatorio
+@limiter.limit("30 per minute")
 def api_assistente():
     try:
         dados = request.get_json()
@@ -851,7 +979,7 @@ def api_assistente():
             return jsonify(resultado_local), 200
         
     except Exception as e:
-        print(f"Erro ao processar pergunta do assistente: {e}")
+        print(f"[ERRO] Erro ao processar pergunta do assistente: {e}")
         return jsonify({'erro': 'Erro ao processar pergunta', 'resposta': 'Ocorreu um erro ao processar sua pergunta. Tente novamente.'}), 500
         
 @app.route("/api/relatorios", methods=["GET"])
@@ -876,8 +1004,7 @@ def api_relatorios():
         }), 400
 
     except Exception as erro:
-        print(f"Erro ao gerar relatório: {erro}")
-
+        print(f"[ERRO] Erro ao gerar relatório: {erro}")
         return jsonify({
             "erro": "Não foi possível gerar o relatório."
         }), 500
@@ -903,10 +1030,7 @@ def api_listar_investimentos():
         }), 400
 
     except Exception as erro:
-        print(
-            f"Erro ao listar investimentos: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao listar investimentos: {erro}")
         return jsonify({
             "erro": "Não foi possível listar os investimentos."
         }), 500
@@ -933,10 +1057,7 @@ def api_buscar_investimento(investimento_id):
         return jsonify(investimento), 200
 
     except Exception as erro:
-        print(
-            f"Erro ao buscar investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao buscar investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível buscar o investimento."
         }), 500
@@ -970,10 +1091,7 @@ def api_criar_investimento():
         }), 400
 
     except Exception as erro:
-        print(
-            f"Erro ao criar investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao criar investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível criar o investimento."
         }), 500
@@ -1016,10 +1134,7 @@ def api_atualizar_investimento(investimento_id):
         }), 400
 
     except Exception as erro:
-        print(
-            f"Erro ao atualizar investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao atualizar investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível atualizar o investimento."
         }), 500
@@ -1048,10 +1163,7 @@ def api_excluir_investimento(investimento_id):
         }), 200
 
     except Exception as erro:
-        print(
-            f"Erro ao excluir investimento: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao excluir investimento: {erro}")
         return jsonify({
             "erro": "Não foi possível excluir o investimento."
         }), 500
@@ -1070,10 +1182,7 @@ def api_resumo_investimentos():
         return jsonify(resumo), 200
 
     except Exception as erro:
-        print(
-            f"Erro ao gerar resumo de investimentos: {erro}"
-        )
-
+        print(f"[ERRO] Erro ao gerar resumo de investimentos: {erro}")
         return jsonify({
             "erro": "Não foi possível gerar o resumo dos investimentos."
         }), 500
@@ -1082,5 +1191,5 @@ if __name__ == "__main__":
     app.run(
         host="127.0.0.1",
         port=5001,
-        debug=True,
+        debug=DEBUG,
     )

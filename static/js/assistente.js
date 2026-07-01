@@ -81,7 +81,8 @@ async function enviarPergunta() {
         const resposta = await fetch('/api/assistente', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.PFF.csrfToken
             },
             body: JSON.stringify({ pergunta: pergunta })
         });

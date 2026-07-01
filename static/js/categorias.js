@@ -179,14 +179,20 @@ async function salvarCategoria() {
             // Atualizar categoria existente
             resposta = await fetch(`/api/categorias/${encodeURIComponent(nomeAtual)}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': window.PFF.csrfToken 
+                },
                 body: JSON.stringify(dados)
             });
         } else {
             // Criar nova categoria
             resposta = await fetch('/api/categorias', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': window.PFF.csrfToken 
+                },
                 body: JSON.stringify(dados)
             });
         }
@@ -217,7 +223,10 @@ async function excluirCategoria(nome) {
     
     try {
         const resposta = await fetch(`/api/categorias/${encodeURIComponent(nome)}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: { 
+                'X-CSRFToken': window.PFF.csrfToken 
+            }
         });
         
         const resultado = await resposta.json();

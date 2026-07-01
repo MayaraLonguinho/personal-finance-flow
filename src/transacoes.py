@@ -1,148 +1,308 @@
 # Módulo de transações
-# Responsável por buscar e inserir transações do MySQL
+# Responsável por buscar, inserir, editar e excluir transações do MySQL
 
 import pandas as pd
 from sqlalchemy import text
-from src.load import obter_engine
+
+from src.categorias import (
+    inicializar_categorias_padrao,
+    obter_regras_categorizacao_do_banco,
+)
 from src.categorization import categorizar_transacao
-from src.categorias import obter_regras_categorizacao_do_banco, inicializar_categorias_padrao
+from src.load import obter_engine
 
 
-def buscar_todas_transacoes(filtros=None, usuario_id=None):
+def buscar_todas_transacoes(
+    filtros=None,
+    usuario_id=None,
+):
     """
-    Busca todas as transações da tabela transacoes no MySQL.
-    Retorna ordenadas pelas transações mais recentes.
-    
+    Busca todas as transações do usuário no MySQL.
+
     Args:
-        filtros (dict): Dicionário com filtros opcionais (descricao, categoria, tipo, status)
-        
+        filtros: Filtros opcionais de descrição, categoria,
+            tipo e status.
+        usuario_id: ID do usuário.
+
     Returns:
-        pd.DataFrame: DataFrame com todas as transações ordenadas
+        pd.DataFrame: Transações ordenadas da mais recente
+        para a mais antiga.
     """
-    # Obtém o engine de conexão
     engine = obter_engine()
-    
-    # Query base
-    query = "SELECT * FROM transacoes WHERE 1=1"
-    params = {}
-    
-    # Adiciona filtros se fornecidos
+
+    query = """
+        SELECT *
+        FROM transacoes
+        WHERE 1=1
+    """
+
+    parametros = {}
+
     if filtros:
-        if filtros.get('descricao'):
+        if filtros.get("descricao"):
             query += " AND descricao LIKE :descricao"
-            params['descricao'] = f"%{filtros['descricao']}%"
-        if filtros.get('categoria'):
+            parametros["descricao"] = (
+                f"%{filtros['descricao']}%"
+            )
+
+        if filtros.get("categoria"):
             query += " AND categoria = :categoria"
-            params['categoria'] = filtros['categoria']
-        if filtros.get('tipo'):
+            parametros["categoria"] = (
+                filtros["categoria"]
+            )
+
+        if filtros.get("tipo"):
             query += " AND tipo = :tipo"
-            params['tipo'] = filtros['tipo']
-        if filtros.get('status'):
+            parametros["tipo"] = filtros["tipo"]
+
+        if filtros.get("status"):
             query += " AND status = :status"
-            params['status'] = filtros['status']
-    # Filtra pelo usuário se informado
+            parametros["status"] = (
+                filtros["status"]
+            )
+
     if usuario_id is not None:
         query += " AND usuario_id = :usuario_id"
-        params['usuario_id'] = usuario_id
-    
-    # Ordena por data_transacao de forma decrescente
-    query += " ORDER BY data_transacao DESC"
-    
-    df = pd.read_sql(text(query), engine, params=params)
-    
-    return df
+        parametros["usuario_id"] = usuario_id
 
-
-def criar_transacao(data_transacao, descricao, categoria, tipo, valor, conta, instituicao, status, usuario_id=None):
+    query += """
+        ORDER BY data_transacao DESC, id DESC
     """
-    Insere uma nova transação na tabela transacoes do MySQL.
-    
-    Aplica categorização automática se a categoria estiver vazia ou for "outros".
-    
-    Args:
-        data_transacao (str): Data da transação
-        descricao (str): Descrição da transação
-        categoria (str): Categoria da transação
-        tipo (str): Tipo da transação (entrada, saida, investimento)
-        valor (float): Valor da transação
-        conta (str): Conta da transação
-        instituicao (str): Instituição da transação
-        status (str): Status da transação (confirmado, pendente, cancelado)
-        
-    Returns:
-        dict: Dicionário com sucesso ou erro
+
+    return pd.read_sql(
+        text(query),
+        engine,
+        params=parametros,
+    )
+
+
+def criar_transacao(
+    data_transacao,
+    descricao,
+    categoria,
+    tipo,
+    valor,
+    conta,
+    instituicao,
+    status,
+    usuario_id=None,
+):
+    """
+    Cria uma nova transação.
+
+    Quando a transação for um investimento confirmado,
+    cria também um investimento vinculado por transacao_id.
     """
     try:
-        # Inicializa categorias padrão se necessário
-        inicializar_categorias_padrao()
-        
-        # Aplica categorização automática se categoria estiver vazia ou for "outros"
-        if not categoria or categoria.lower() == 'outros':
-            # Obtém regras de categorização do banco
-            regras_categorizacao = obter_regras_categorizacao_do_banco()
-            categoria_sugerida, _ = categorizar_transacao(descricao, categoria, regras_categorizacao)
-            categoria = categoria_sugerida
-        
-        # Obtém o engine de conexão
-        engine = obter_engine()
-        
-        # Query SQL parametrizada para inserir transação (usuario_id será fornecido pelo chamador)
-        query = text("""
-            INSERT INTO transacoes 
-            (usuario_id, data_transacao, descricao, categoria, tipo, valor, conta, instituicao, status)
-            VALUES (:usuario_id, :data_transacao, :descricao, :categoria, :tipo, :valor, :conta, :instituicao, :status)
-        """)
-        
-        # Executa a query com parâmetros
         if usuario_id is None:
-            raise Exception('usuario_id não fornecido para criar_transacao')
+            raise ValueError(
+                "usuario_id não fornecido "
+                "para criar_transacao"
+            )
 
-        with engine.connect() as conn:
-            conn.execute(query, {
-                'usuario_id': usuario_id,
-                'data_transacao': data_transacao,
-                'descricao': descricao,
-                'categoria': categoria,
-                'tipo': tipo,
-                'valor': valor,
-                'conta': conta,
-                'instituicao': instituicao,
-                'status': status
-            })
-            conn.commit()
-        
-        return {'sucesso': True, 'mensagem': 'Transação criada com sucesso'}
-        
-    except Exception as e:
-        return {'sucesso': False, 'erro': str(e)}
+        inicializar_categorias_padrao()
+
+        if (
+            not categoria
+            or str(categoria).strip().lower()
+            == "outros"
+        ):
+            regras_categorizacao = (
+                obter_regras_categorizacao_do_banco()
+            )
+
+            categoria_sugerida, _ = (
+                categorizar_transacao(
+                    descricao,
+                    categoria,
+                    regras_categorizacao,
+                )
+            )
+
+            categoria = (
+                categoria_sugerida or "Outros"
+            )
+
+        tipo = str(tipo).strip().lower()
+        status = str(status).strip().lower()
+
+        engine = obter_engine()
+
+        query_transacao = text(
+            """
+            INSERT INTO transacoes (
+                usuario_id,
+                data_transacao,
+                descricao,
+                categoria,
+                tipo,
+                valor,
+                conta,
+                instituicao,
+                status
+            )
+            VALUES (
+                :usuario_id,
+                :data_transacao,
+                :descricao,
+                :categoria,
+                :tipo,
+                :valor,
+                :conta,
+                :instituicao,
+                :status
+            )
+            """
+        )
+
+        query_investimento = text(
+            """
+            INSERT INTO investimentos (
+                usuario_id,
+                transacao_id,
+                nome,
+                tipo,
+                instituicao,
+                valor_aplicado,
+                valor_atual,
+                rentabilidade_percentual,
+                data_aplicacao,
+                data_vencimento,
+                status
+            )
+            VALUES (
+                :usuario_id,
+                :transacao_id,
+                :nome,
+                :tipo_investimento,
+                :instituicao,
+                :valor_aplicado,
+                :valor_atual,
+                0,
+                :data_aplicacao,
+                NULL,
+                'ativo'
+            )
+            """
+        )
+
+        with engine.begin() as conexao:
+            resultado_transacao = conexao.execute(
+                query_transacao,
+                {
+                    "usuario_id": usuario_id,
+                    "data_transacao": data_transacao,
+                    "descricao": descricao,
+                    "categoria": categoria,
+                    "tipo": tipo,
+                    "valor": valor,
+                    "conta": conta or None,
+                    "instituicao": (
+                        instituicao or None
+                    ),
+                    "status": status,
+                },
+            )
+
+            transacao_id = (
+                resultado_transacao.lastrowid
+            )
+
+            if (
+                tipo == "investimento"
+                and status == "confirmado"
+            ):
+                conexao.execute(
+                    query_investimento,
+                    {
+                        "usuario_id": usuario_id,
+                        "transacao_id": transacao_id,
+                        "nome": descricao,
+                        "tipo_investimento": (
+                            categoria
+                            or "Investimento"
+                        ),
+                        "instituicao": (
+                            instituicao or None
+                        ),
+                        "valor_aplicado": valor,
+                        "valor_atual": valor,
+                        "data_aplicacao": (
+                            data_transacao
+                        ),
+                    },
+                )
+
+        return {
+            "sucesso": True,
+            "mensagem": (
+                "Transação criada com sucesso"
+            ),
+        }
+
+    except Exception as erro:
+        return {
+            "sucesso": False,
+            "erro": str(erro),
+        }
 
 
-def editar_transacao(id_transacao, data_transacao, descricao, categoria, tipo, valor, conta, instituicao, status, usuario_id=None):
+def editar_transacao(
+    id_transacao,
+    data_transacao,
+    descricao,
+    categoria,
+    tipo,
+    valor,
+    conta,
+    instituicao,
+    status,
+    usuario_id=None,
+):
     """
-    Edita uma transação existente na tabela transacoes do MySQL.
-    
-    Args:
-        id_transacao (int): ID da transação
-        data_transacao (str): Data da transação
-        descricao (str): Descrição da transação
-        categoria (str): Categoria da transação
-        tipo (str): Tipo da transação (entrada, saida, investimento)
-        valor (float): Valor da transação
-        conta (str): Conta da transação
-        instituicao (str): Instituição da transação
-        status (str): Status da transação (confirmado, pendente, cancelado)
-        
-    Returns:
-        dict: Dicionário com sucesso ou erro
+    Edita uma transação e sincroniza o investimento vinculado.
+
+    Regras:
+    - investimento confirmado: cria ou atualiza o investimento;
+    - investimento pendente ou cancelado: remove o investimento;
+    - entrada ou saída: remove o investimento vinculado.
     """
     try:
-        # Obtém o engine de conexão
+        if usuario_id is None:
+            raise ValueError(
+                "usuario_id não fornecido "
+                "para editar_transacao"
+            )
+
+        tipo = str(tipo).strip().lower()
+        status = str(status).strip().lower()
+
+        categoria = (
+            str(categoria).strip()
+            if categoria is not None
+            else ""
+        )
+
+        if not categoria:
+            categoria = "Outros"
+
         engine = obter_engine()
-        
-        # Query SQL parametrizada para atualizar transação (valida usuário)
-        query = text("""
-            UPDATE transacoes 
-            SET data_transacao = :data_transacao,
+
+        query_buscar_transacao = text(
+            """
+            SELECT id
+            FROM transacoes
+            WHERE id = :id
+              AND usuario_id = :usuario_id
+            LIMIT 1
+            """
+        )
+
+        query_atualizar_transacao = text(
+            """
+            UPDATE transacoes
+            SET
+                data_transacao = :data_transacao,
                 descricao = :descricao,
                 categoria = :categoria,
                 tipo = :tipo,
@@ -150,68 +310,276 @@ def editar_transacao(id_transacao, data_transacao, descricao, categoria, tipo, v
                 conta = :conta,
                 instituicao = :instituicao,
                 status = :status
-            WHERE id = :id AND usuario_id = :usuario_id
-        """)
-        
-        # Executa a query com parâmetros
-        if usuario_id is None:
-            raise Exception('usuario_id não fornecido para editar_transacao')
+            WHERE id = :id
+              AND usuario_id = :usuario_id
+            """
+        )
 
-        with engine.connect() as conn:
-            resultado = conn.execute(query, {
-                'id': id_transacao,
-                'usuario_id': usuario_id,
-                'data_transacao': data_transacao,
-                'descricao': descricao,
-                'categoria': categoria,
-                'tipo': tipo,
-                'valor': valor,
-                'conta': conta,
-                'instituicao': instituicao,
-                'status': status
-            })
-            conn.commit()
-        
-        # Verifica se a transação foi encontrada e atualizada
-        if resultado.rowcount == 0:
-            return {'sucesso': False, 'erro': 'Transação não encontrada'}
-        
-        return {'sucesso': True, 'mensagem': 'Transação atualizada com sucesso'}
-        
-    except Exception as e:
-        return {'sucesso': False, 'erro': str(e)}
+        query_buscar_investimento = text(
+            """
+            SELECT id
+            FROM investimentos
+            WHERE transacao_id = :transacao_id
+              AND usuario_id = :usuario_id
+            LIMIT 1
+            """
+        )
+
+        query_criar_investimento = text(
+            """
+            INSERT INTO investimentos (
+                usuario_id,
+                transacao_id,
+                nome,
+                tipo,
+                instituicao,
+                valor_aplicado,
+                valor_atual,
+                rentabilidade_percentual,
+                data_aplicacao,
+                data_vencimento,
+                status
+            )
+            VALUES (
+                :usuario_id,
+                :transacao_id,
+                :nome,
+                :tipo_investimento,
+                :instituicao,
+                :valor_aplicado,
+                :valor_atual,
+                0,
+                :data_aplicacao,
+                NULL,
+                'ativo'
+            )
+            """
+        )
+
+        query_atualizar_investimento = text(
+            """
+            UPDATE investimentos
+            SET
+                nome = :nome,
+                tipo = :tipo_investimento,
+                instituicao = :instituicao,
+                valor_aplicado = :valor_aplicado,
+                valor_atual = :valor_atual,
+                data_aplicacao = :data_aplicacao,
+                status = 'ativo'
+            WHERE transacao_id = :transacao_id
+              AND usuario_id = :usuario_id
+            """
+        )
+
+        query_excluir_investimento = text(
+            """
+            DELETE FROM investimentos
+            WHERE transacao_id = :transacao_id
+              AND usuario_id = :usuario_id
+            """
+        )
+
+        parametros_investimento = {
+            "usuario_id": usuario_id,
+            "transacao_id": id_transacao,
+            "nome": descricao,
+            "tipo_investimento": (
+                categoria or "Investimento"
+            ),
+            "instituicao": (
+                instituicao or None
+            ),
+            "valor_aplicado": valor,
+            "valor_atual": valor,
+            "data_aplicacao": data_transacao,
+        }
+
+        with engine.begin() as conexao:
+            transacao_existente = conexao.execute(
+                query_buscar_transacao,
+                {
+                    "id": id_transacao,
+                    "usuario_id": usuario_id,
+                },
+            ).first()
+
+            if transacao_existente is None:
+                raise ValueError(
+                    "Transação não encontrada"
+                )
+
+            conexao.execute(
+                query_atualizar_transacao,
+                {
+                    "id": id_transacao,
+                    "usuario_id": usuario_id,
+                    "data_transacao": (
+                        data_transacao
+                    ),
+                    "descricao": descricao,
+                    "categoria": categoria,
+                    "tipo": tipo,
+                    "valor": valor,
+                    "conta": conta or None,
+                    "instituicao": (
+                        instituicao or None
+                    ),
+                    "status": status,
+                },
+            )
+
+            deve_possuir_investimento = (
+                tipo == "investimento"
+                and status == "confirmado"
+            )
+
+            investimento_existente = (
+                conexao.execute(
+                    query_buscar_investimento,
+                    {
+                        "transacao_id": (
+                            id_transacao
+                        ),
+                        "usuario_id": usuario_id,
+                    },
+                ).first()
+            )
+
+            if deve_possuir_investimento:
+                if investimento_existente:
+                    conexao.execute(
+                        query_atualizar_investimento,
+                        parametros_investimento,
+                    )
+                else:
+                    conexao.execute(
+                        query_criar_investimento,
+                        parametros_investimento,
+                    )
+
+            elif investimento_existente:
+                conexao.execute(
+                    query_excluir_investimento,
+                    {
+                        "transacao_id": (
+                            id_transacao
+                        ),
+                        "usuario_id": usuario_id,
+                    },
+                )
+
+        return {
+            "sucesso": True,
+            "mensagem": (
+                "Transação atualizada com sucesso"
+            ),
+        }
+
+    except ValueError as erro:
+        return {
+            "sucesso": False,
+            "erro": str(erro),
+        }
+
+    except Exception as erro:
+        return {
+            "sucesso": False,
+            "erro": str(erro),
+        }
 
 
-def excluir_transacao(id_transacao, usuario_id=None):
+def excluir_transacao(
+    id_transacao,
+    usuario_id=None,
+):
     """
-    Exclui uma transação da tabela transacoes do MySQL.
-    
-    Args:
-        id_transacao (int): ID da transação
-        
-    Returns:
-        dict: Dicionário com sucesso ou erro
+    Exclui uma transação e seu investimento vinculado.
+
+    Investimentos criados diretamente na tela de
+    investimentos não são removidos, pois possuem
+    transacao_id igual a NULL.
     """
     try:
-        # Obtém o engine de conexão
-        engine = obter_engine()
-        
-        # Query SQL parametrizada para excluir transação (valida usuário)
-        query = text("DELETE FROM transacoes WHERE id = :id AND usuario_id = :usuario_id")
-
         if usuario_id is None:
-            raise Exception('usuario_id não fornecido para excluir_transacao')
+            raise ValueError(
+                "usuario_id não fornecido "
+                "para excluir_transacao"
+            )
 
-        # Executa a query com parâmetros
-        with engine.connect() as conn:
-            resultado = conn.execute(query, {'id': id_transacao, 'usuario_id': usuario_id})
-            conn.commit()
-        
-        # Verifica se a transação foi encontrada e excluída
-        if resultado.rowcount == 0:
-            return {'sucesso': False, 'erro': 'Transação não encontrada'}
-        
-        return {'sucesso': True, 'mensagem': 'Transação excluída com sucesso'}
-        
-    except Exception as e:
-        return {'sucesso': False, 'erro': str(e)}
+        engine = obter_engine()
+
+        query_buscar_transacao = text(
+            """
+            SELECT id
+            FROM transacoes
+            WHERE id = :id
+              AND usuario_id = :usuario_id
+            LIMIT 1
+            """
+        )
+
+        query_excluir_investimento = text(
+            """
+            DELETE FROM investimentos
+            WHERE transacao_id = :transacao_id
+              AND usuario_id = :usuario_id
+            """
+        )
+
+        query_excluir_transacao = text(
+            """
+            DELETE FROM transacoes
+            WHERE id = :id
+              AND usuario_id = :usuario_id
+            """
+        )
+
+        with engine.begin() as conexao:
+            transacao_existente = conexao.execute(
+                query_buscar_transacao,
+                {
+                    "id": id_transacao,
+                    "usuario_id": usuario_id,
+                },
+            ).first()
+
+            if transacao_existente is None:
+                raise ValueError(
+                    "Transação não encontrada"
+                )
+
+            conexao.execute(
+                query_excluir_investimento,
+                {
+                    "transacao_id": id_transacao,
+                    "usuario_id": usuario_id,
+                },
+            )
+
+            conexao.execute(
+                query_excluir_transacao,
+                {
+                    "id": id_transacao,
+                    "usuario_id": usuario_id,
+                },
+            )
+
+        return {
+            "sucesso": True,
+            "mensagem": (
+                "Transação excluída com sucesso"
+            ),
+        }
+
+    except ValueError as erro:
+        return {
+            "sucesso": False,
+            "erro": str(erro),
+        }
+
+    except Exception as erro:
+        return {
+            "sucesso": False,
+            "erro": str(erro),
+        }

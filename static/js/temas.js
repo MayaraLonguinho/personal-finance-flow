@@ -8,6 +8,7 @@
     ];
 
     const configuracoes = window.PFF_CONFIG || {};
+    const csrfToken = window.PFF_CSRF_TOKEN;
     const locaisMoeda = {
         BRL: "pt-BR",
         USD: "en-US",
@@ -81,7 +82,10 @@
     async function salvarPreferencias(dados) {
         const resposta = await fetch("/api/configuracoes", {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
             body: JSON.stringify(dados)
         });
         const resultado = await resposta.json();
@@ -94,6 +98,7 @@
 
     window.PFF = {
         configuracoes,
+        csrfToken,
         formatarMoeda,
         formatarData,
         confirmarExclusao,

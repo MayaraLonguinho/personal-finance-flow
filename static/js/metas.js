@@ -208,14 +208,20 @@ async function salvarMeta() {
             // Atualizar meta existente
             resposta = await fetch(`/api/meta/${metaId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "X-CSRFToken": window.PFF.csrfToken 
+                },
                 body: JSON.stringify(dados)
             });
         } else {
             // Criar nova meta
             resposta = await fetch("/api/meta", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "X-CSRFToken": window.PFF.csrfToken 
+                },
                 body: JSON.stringify(dados)
             });
         }
@@ -258,7 +264,8 @@ async function excluirMeta() {
         
         // Exclui a meta usando o ID
         const resposta = await fetch(`/api/meta/${meta.id}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: { "X-CSRFToken": window.PFF.csrfToken }
         });
         
         const resultado = await resposta.json();

@@ -70,6 +70,13 @@ body {
 /* Sidebar */
 
 .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    min-height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+    align-self: flex-start;
     background: #ffffff;
     border-right: 1px solid #e5e7eb;
     padding: 14px 12px;
@@ -160,13 +167,13 @@ Isso evita alterar spans internos usados nos valores.
 }
 
 .goal-values strong {
-    font-size: 13px;
+    font-size: 10px;
     color: #0f172a;
 }
 
 .goal-values small {
     color: #64748b;
-    font-size: 11px;
+    font-size: 9px;
 }
 
 .goal-values small span {

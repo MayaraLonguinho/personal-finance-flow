@@ -1,49 +1,67 @@
-# Módulo de carregamento de dados
-# Responsável por salvar os dados tratados no banco de dados MySQL
+import os
 
 import pandas as pd
-from sqlalchemy import create_engine, URL, text
 from dotenv import load_dotenv
-import os
+from sqlalchemy import URL, create_engine, text
+
+from src.categorization import normalizar_texto
 
 
 def obter_engine():
     """
-    Cria e retorna o engine de conexão com o MySQL usando URL.create.
-    
+    Cria e retorna o engine de conexão com o MySQL.
+
     Returns:
-        Engine: Engine do SQLAlchemy para conexão com o banco
+        Engine: Engine do SQLAlchemy.
     """
-    # Carrega variáveis de ambiente
     load_dotenv()
-    
-    # Configurações de conexão
-    db_host = os.getenv('DB_HOST')
-    db_port = os.getenv('DB_PORT')
-    db_user = os.getenv('DB_USER')
-    db_password = os.getenv('DB_PASSWORD')
-    db_name = os.getenv('DB_NAME')
-    
-    # Cria a URL de conexão usando URL.create (lida melhor com caracteres especiais)
+
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
+    db_user = os.getenv("DB_USER")
+    db_password = os.getenv("DB_PASSWORD")
+    db_name = os.getenv("DB_NAME")
+
     connection_url = URL.create(
         drivername="mysql+pymysql",
         username=db_user,
         password=db_password,
         host=db_host,
         port=int(db_port),
-        database=db_name
+        database=db_name,
     )
-    
-    # Cria o engine de conexão
-    engine = create_engine(connection_url)
-    
-    return engine
+
+    return create_engine(connection_url)
+
+
+def _normalizar_texto_livre(valor):
+    if valor is None or pd.isna(valor):
+        return None
+
+    texto = " ".join(str(valor).split()).strip()
+
+    return texto or None
+
+
+def _normalizar_texto_para_comparacao(valor):
+    return normalizar_texto(valor) or ""
+
+
+def _normalizar_categoria_para_armazenamento(
+    valor,
+):
+    categoria = _normalizar_texto_livre(valor)
+
+    if not categoria:
+        return "Outros"
+
+    return categoria
 
 
 def garantir_colunas_usuario():
     """
-    Garante que as tabelas que agora armazenam dados por usuário
-    possuam a coluna `usuario_id`.
+    Garante que as tabelas que armazenam dados por usuário
+    possuam a coluna usuario_id.
     """
     engine = obter_engine()
 
@@ -65,27 +83,44 @@ def garantir_colunas_usuario():
                       AND COLUMN_NAME = :coluna
                     """
                 ),
-                {"tabela": tabela, "coluna": coluna},
+                {
+                    "tabela": tabela,
+                    "coluna": coluna,
+                },
             ).scalar()
 
             if existe == 0:
                 conexao.execute(
-                    text(f"ALTER TABLE {tabela} ADD COLUMN {coluna} INT NULL")
+                    text(
+                        f"""
+                        ALTER TABLE {tabela}
+                        ADD COLUMN {coluna} INT NULL
+                        """
+                    )
                 )
-                print(f"Coluna {coluna} adicionada à tabela {tabela}.")
+
+                print(
+                    f"Coluna {coluna} adicionada "
+                    f"à tabela {tabela}."
+                )
 
 
-def carregar_transacoes_mysql(df, usuario_id):
+def carregar_transacoes_mysql(
+    df,
+    usuario_id,
+):
     """
-    Carrega somente transações que ainda não existem no MySQL,
-    associando os registros ao usuário informado.
+    Carrega somente transações ainda não existentes.
+
+    Investimentos confirmados também são inseridos na
+    tabela investimentos e vinculados por transacao_id.
 
     Args:
         df: DataFrame com as transações tratadas.
         usuario_id: ID do usuário responsável pelos dados.
 
     Returns:
-        dict: quantidades recebidas, importadas e ignoradas.
+        dict: Quantidades recebidas, importadas e ignoradas.
     """
     engine = obter_engine()
 
@@ -113,7 +148,14 @@ def carregar_transacoes_mysql(df, usuario_id):
     ]
 
     try:
+        if usuario_id is None:
+            raise ValueError(
+                "usuario_id não fornecido "
+                "para carregar_transacoes_mysql"
+            )
+
         df = df.copy()
+        linhas_ignoradas_duplicadas = []
 
         if "data" in df.columns:
             df = df.rename(
@@ -122,50 +164,94 @@ def carregar_transacoes_mysql(df, usuario_id):
                 }
             )
 
-        for coluna in colunas_transacao:
+        colunas_processamento = list(
+            colunas_transacao
+        )
+
+        if "_linha_csv" in df.columns:
+            colunas_processamento.append(
+                "_linha_csv"
+            )
+
+        for coluna in colunas_processamento:
             if coluna not in df.columns:
                 df[coluna] = None
 
-        df_para_carregar = df[colunas_transacao].copy()
+        df_para_carregar = df[
+            colunas_processamento
+        ].copy()
 
-        df_para_carregar["usuario_id"] = usuario_id
-
-        df_para_carregar["data_transacao"] = pd.to_datetime(
-            df_para_carregar["data_transacao"],
-            errors="coerce",
-        ).dt.date
-
-        df_para_carregar["valor"] = pd.to_numeric(
-            df_para_carregar["valor"],
-            errors="coerce",
-        ).round(2)
-
-        colunas_texto = [
-            "descricao",
-            "categoria",
-            "tipo",
-            "conta",
-            "instituicao",
-            "status",
-        ]
-
-        for coluna in colunas_texto:
-            df_para_carregar[coluna] = (
-                df_para_carregar[coluna]
-                .fillna("")
-                .astype(str)
-                .str.strip()
-                .str.lower()
-            )
-
-        df_para_carregar = df_para_carregar.dropna(
-            subset=[
-                "data_transacao",
-                "valor",
-            ]
+        df_para_carregar["usuario_id"] = (
+            usuario_id
         )
 
-        quantidade_recebida = len(df_para_carregar)
+        df_para_carregar["data_transacao"] = (
+            pd.to_datetime(
+                df_para_carregar[
+                    "data_transacao"
+                ],
+                errors="coerce",
+            ).dt.date
+        )
+
+        df_para_carregar["valor"] = (
+            pd.to_numeric(
+                df_para_carregar["valor"],
+                errors="coerce",
+            ).round(2)
+        )
+
+        for coluna in [
+            "descricao",
+            "conta",
+            "instituicao",
+        ]:
+            df_para_carregar[coluna] = (
+                df_para_carregar[coluna].apply(
+                    _normalizar_texto_livre
+                )
+            )
+
+        df_para_carregar["categoria"] = (
+            df_para_carregar[
+                "categoria"
+            ].apply(
+                _normalizar_categoria_para_armazenamento
+            )
+        )
+
+        df_para_carregar["tipo"] = (
+            df_para_carregar["tipo"].apply(
+                lambda valor: (
+                    _normalizar_texto_livre(valor)
+                    or ""
+                ).lower()
+            )
+        )
+
+        df_para_carregar["status"] = (
+            df_para_carregar[
+                "status"
+            ].apply(
+                lambda valor: (
+                    _normalizar_texto_livre(valor)
+                    or ""
+                ).lower()
+            )
+        )
+
+        df_para_carregar = (
+            df_para_carregar.dropna(
+                subset=[
+                    "data_transacao",
+                    "valor",
+                ]
+            )
+        )
+
+        quantidade_recebida = len(
+            df_para_carregar
+        )
 
         df_para_carregar = (
             df_para_carregar.drop_duplicates(
@@ -173,7 +259,7 @@ def carregar_transacoes_mysql(df, usuario_id):
             )
         )
 
-        query = text(
+        query_transacoes_existentes = text(
             """
             SELECT
                 usuario_id,
@@ -191,7 +277,7 @@ def carregar_transacoes_mysql(df, usuario_id):
         )
 
         df_existente = pd.read_sql(
-            query,
+            query_transacoes_existentes,
             engine,
             params={
                 "usuario_id": usuario_id,
@@ -199,42 +285,160 @@ def carregar_transacoes_mysql(df, usuario_id):
         )
 
         if not df_existente.empty:
-            df_existente["data_transacao"] = pd.to_datetime(
-                df_existente["data_transacao"],
-                errors="coerce",
-            ).dt.date
+            df_existente["data_transacao"] = (
+                pd.to_datetime(
+                    df_existente[
+                        "data_transacao"
+                    ],
+                    errors="coerce",
+                ).dt.date
+            )
 
-            df_existente["valor"] = pd.to_numeric(
-                df_existente["valor"],
-                errors="coerce",
-            ).round(2)
+            df_existente["valor"] = (
+                pd.to_numeric(
+                    df_existente["valor"],
+                    errors="coerce",
+                ).round(2)
+            )
 
-            for coluna in colunas_texto:
+            for coluna in [
+                "descricao",
+                "conta",
+                "instituicao",
+            ]:
                 df_existente[coluna] = (
-                    df_existente[coluna]
-                    .fillna("")
-                    .astype(str)
-                    .str.strip()
-                    .str.lower()
+                    df_existente[
+                        coluna
+                    ].apply(
+                        _normalizar_texto_livre
+                    )
+                )
+
+            df_existente["categoria"] = (
+                df_existente[
+                    "categoria"
+                ].apply(
+                    _normalizar_categoria_para_armazenamento
+                )
+            )
+
+            df_existente["tipo"] = (
+                df_existente["tipo"].apply(
+                    lambda valor: (
+                        _normalizar_texto_livre(
+                            valor
+                        )
+                        or ""
+                    ).lower()
+                )
+            )
+
+            df_existente["status"] = (
+                df_existente[
+                    "status"
+                ].apply(
+                    lambda valor: (
+                        _normalizar_texto_livre(
+                            valor
+                        )
+                        or ""
+                    ).lower()
+                )
+            )
+
+            colunas_comparacao = [
+                "usuario_id",
+                "data_transacao",
+                "descricao",
+                "categoria",
+                "tipo",
+                "valor",
+                "conta",
+                "instituicao",
+                "status",
+            ]
+
+            df_existente_comparacao = (
+                df_existente[
+                    colunas_comparacao
+                ].copy()
+            )
+
+            df_novo_comparacao = (
+                df_para_carregar[
+                    colunas_comparacao
+                ].copy()
+            )
+
+            for coluna in [
+                "descricao",
+                "categoria",
+                "conta",
+                "instituicao",
+                "tipo",
+                "status",
+            ]:
+                df_existente_comparacao[
+                    coluna
+                ] = (
+                    df_existente_comparacao[
+                        coluna
+                    ].apply(
+                        _normalizar_texto_para_comparacao
+                    )
+                )
+
+                df_novo_comparacao[
+                    coluna
+                ] = (
+                    df_novo_comparacao[
+                        coluna
+                    ].apply(
+                        _normalizar_texto_para_comparacao
+                    )
                 )
 
             chaves_existentes = set(
-                df_existente[colunas_carga]
+                df_existente_comparacao[
+                    colunas_comparacao
+                ]
                 .astype(str)
                 .agg("|".join, axis=1)
             )
 
             chaves_novas = (
-                df_para_carregar[colunas_carga]
+                df_novo_comparacao[
+                    colunas_comparacao
+                ]
                 .astype(str)
                 .agg("|".join, axis=1)
             )
 
-            df_para_carregar = df_para_carregar[
-                ~chaves_novas.isin(
+            mascara_duplicadas_banco = (
+                chaves_novas.isin(
                     chaves_existentes
                 )
-            ]
+            )
+
+            if (
+                "_linha_csv"
+                in df_para_carregar.columns
+            ):
+                linhas_ignoradas_duplicadas = (
+                    df_para_carregar.loc[
+                        mascara_duplicadas_banco,
+                        "_linha_csv",
+                    ]
+                    .dropna()
+                    .astype(int)
+                    .tolist()
+                )
+
+            df_para_carregar = (
+                df_para_carregar.loc[
+                    ~mascara_duplicadas_banco
+                ].copy()
+            )
 
         quantidade_importada = len(
             df_para_carregar
@@ -246,6 +450,10 @@ def carregar_transacoes_mysql(df, usuario_id):
         )
 
         if quantidade_importada > 0:
+            df_para_carregar = (
+                df_para_carregar.copy()
+            )
+
             for coluna in [
                 "conta",
                 "instituicao",
@@ -255,12 +463,167 @@ def carregar_transacoes_mysql(df, usuario_id):
                     .replace("", None)
                 )
 
-            df_para_carregar[colunas_carga].to_sql(
-                "transacoes",
-                engine,
-                if_exists="append",
-                index=False,
+            query_inserir_transacao = text(
+                """
+                INSERT INTO transacoes (
+                    usuario_id,
+                    data_transacao,
+                    descricao,
+                    categoria,
+                    tipo,
+                    valor,
+                    conta,
+                    instituicao,
+                    status
+                )
+                VALUES (
+                    :usuario_id,
+                    :data_transacao,
+                    :descricao,
+                    :categoria,
+                    :tipo,
+                    :valor,
+                    :conta,
+                    :instituicao,
+                    :status
+                )
+                """
             )
+
+            query_inserir_investimento = text(
+                """
+                INSERT INTO investimentos (
+                    usuario_id,
+                    transacao_id,
+                    nome,
+                    tipo,
+                    instituicao,
+                    valor_aplicado,
+                    valor_atual,
+                    rentabilidade_percentual,
+                    data_aplicacao,
+                    data_vencimento,
+                    status
+                )
+                VALUES (
+                    :usuario_id,
+                    :transacao_id,
+                    :nome,
+                    :tipo_investimento,
+                    :instituicao,
+                    :valor_aplicado,
+                    :valor_atual,
+                    0,
+                    :data_aplicacao,
+                    NULL,
+                    'ativo'
+                )
+                """
+            )
+
+            with engine.begin() as conexao:
+                for _, registro in (
+                    df_para_carregar.iterrows()
+                ):
+                    parametros_transacao = {
+                        "usuario_id": int(
+                            registro[
+                                "usuario_id"
+                            ]
+                        ),
+                        "data_transacao": (
+                            registro[
+                                "data_transacao"
+                            ]
+                        ),
+                        "descricao": (
+                            registro["descricao"]
+                        ),
+                        "categoria": (
+                            registro["categoria"]
+                        ),
+                        "tipo": registro["tipo"],
+                        "valor": float(
+                            registro["valor"]
+                        ),
+                        "conta": (
+                            registro["conta"]
+                        ),
+                        "instituicao": (
+                            registro[
+                                "instituicao"
+                            ]
+                        ),
+                        "status": (
+                            registro["status"]
+                        ),
+                    }
+
+                    resultado_transacao = (
+                        conexao.execute(
+                            query_inserir_transacao,
+                            parametros_transacao,
+                        )
+                    )
+
+                    transacao_id = (
+                        resultado_transacao.lastrowid
+                    )
+
+                    if (
+                        registro["tipo"]
+                        == "investimento"
+                        and registro["status"]
+                        == "confirmado"
+                    ):
+                        conexao.execute(
+                            query_inserir_investimento,
+                            {
+                                "usuario_id": int(
+                                    registro[
+                                        "usuario_id"
+                                    ]
+                                ),
+                                "transacao_id": (
+                                    transacao_id
+                                ),
+                                "nome": (
+                                    registro[
+                                        "descricao"
+                                    ]
+                                ),
+                                "tipo_investimento": (
+                                    registro[
+                                        "categoria"
+                                    ]
+                                    or "Investimento"
+                                ),
+                                "instituicao": (
+                                    registro[
+                                        "instituicao"
+                                    ]
+                                ),
+                                "valor_aplicado": (
+                                    float(
+                                        registro[
+                                            "valor"
+                                        ]
+                                    )
+                                ),
+                                "valor_atual": (
+                                    float(
+                                        registro[
+                                            "valor"
+                                        ]
+                                    )
+                                ),
+                                "data_aplicacao": (
+                                    registro[
+                                        "data_transacao"
+                                    ]
+                                ),
+                            },
+                        )
 
         print(
             f"Registros recebidos: "
@@ -281,6 +644,9 @@ def carregar_transacoes_mysql(df, usuario_id):
             "recebidos": quantidade_recebida,
             "importados": quantidade_importada,
             "ignorados": quantidade_ignorada,
+            "linhas_ignoradas_duplicadas": (
+                linhas_ignoradas_duplicadas
+            ),
         }
 
     except Exception as erro:
@@ -290,19 +656,101 @@ def carregar_transacoes_mysql(df, usuario_id):
 
         raise
 
-def limpar_transacoes_mysql(usuario_id=None):
-    """
-    Remove transações cadastradas no banco.
 
-    Se `usuario_id` for informado, remove apenas as transações desse usuário.
-    Caso contrário, remove todas (uso restrito).
+def limpar_transacoes_mysql(
+    usuario_id=None,
+):
     """
+    Remove todos os dados financeiros do usuário.
+
+    São removidos:
+    - investimentos vinculados ou cadastrados diretamente;
+    - transações;
+    - metas;
+    - categorias.
+
+    O usuário, as credenciais e as configurações da conta
+    são preservados.
+    """
+    if usuario_id is None:
+        raise ValueError(
+            "usuario_id não fornecido "
+            "para limpar_transacoes_mysql"
+        )
+
     engine = obter_engine()
 
+    query_excluir_investimentos = text(
+        """
+        DELETE FROM investimentos
+        WHERE usuario_id = :usuario_id
+        """
+    )
+
+    query_excluir_transacoes = text(
+        """
+        DELETE FROM transacoes
+        WHERE usuario_id = :usuario_id
+        """
+    )
+
+    query_excluir_metas = text(
+        """
+        DELETE FROM metas
+        WHERE usuario_id = :usuario_id
+        """
+    )
+
+    query_excluir_categorias = text(
+        """
+        DELETE FROM categorias
+        WHERE usuario_id = :usuario_id
+        """
+    )
+
+    parametros = {
+        "usuario_id": usuario_id,
+    }
+
     with engine.begin() as conexao:
-        if usuario_id is None:
-            conexao.execute(text("DELETE FROM transacoes"))
-            print("Todas as transações foram removidas.")
-        else:
-            conexao.execute(text("DELETE FROM transacoes WHERE usuario_id = :usuario_id"), {'usuario_id': usuario_id})
-            print(f"Transações do usuário {usuario_id} foram removidas.")
+        resultado_investimentos = conexao.execute(
+            query_excluir_investimentos,
+            parametros,
+        )
+
+        resultado_transacoes = conexao.execute(
+            query_excluir_transacoes,
+            parametros,
+        )
+
+        resultado_metas = conexao.execute(
+            query_excluir_metas,
+            parametros,
+        )
+
+        resultado_categorias = conexao.execute(
+            query_excluir_categorias,
+            parametros,
+        )
+
+    resultado = {
+        "investimentos_removidos": (
+            resultado_investimentos.rowcount
+        ),
+        "transacoes_removidas": (
+            resultado_transacoes.rowcount
+        ),
+        "metas_removidas": (
+            resultado_metas.rowcount
+        ),
+        "categorias_removidas": (
+            resultado_categorias.rowcount
+        ),
+    }
+
+    print(
+        "Dados financeiros removidos do usuário "
+        f"{usuario_id}: {resultado}"
+    )
+
+    return resultado

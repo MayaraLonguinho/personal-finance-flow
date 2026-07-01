@@ -1,30 +1,238 @@
 @import url("dashboard.css");
 
-.settings-section { max-width: 920px; }
+/* ==========================
+   LAYOUT DA PÁGINA
+========================== */
+
+.settings-section {
+    width: 100%;
+    max-width: 920px;
+}
+
+/* Garante que a sidebar permaneça fixa
+   na altura visível da tela */
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    min-height: 100vh;
+    overflow-y: auto;
+    align-self: flex-start;
+}
+
+/* ==========================
+   CARD DE CONFIGURAÇÕES
+========================== */
+
 .settings-card {
     padding: 28px;
-    border: 1px solid #e5e7eb;
+
+    background: #ffffff;
+
+    border:
+        1px solid #e5e7eb;
+
     border-radius: 18px;
-    background: #fff;
-    box-shadow: var(--shadow-card, 0 12px 28px rgba(15, 23, 42, .06));
+
+    box-shadow:
+        var(--shadow-card,
+            0 12px 28px rgba(15, 23, 42, 0.06));
 }
-.settings-header { margin-bottom: 24px; }
-.settings-header p { margin: 6px 0 0; color: #64748b; }
-.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-.field { display: grid; gap: 7px; font-weight: 600; }
-.field input, .field select {
+
+/* ==========================
+   CABEÇALHO
+========================== */
+
+.settings-header {
+    margin-bottom: 24px;
+}
+
+.settings-header h3 {
+    color: #0f172a;
+}
+
+.settings-header p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* ==========================
+   FORMULÁRIO
+========================== */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+.field {
+    display: grid;
+    gap: 7px;
+
+    font-weight: 600;
+    color: #334155;
+}
+
+.field input,
+.field select {
+    width: 100%;
     padding: 11px 12px;
-    border: 1px solid #cbd5e1;
+
+    background: #ffffff;
+    color: #0f172a;
+
+    border:
+        1px solid #cbd5e1;
+
     border-radius: 9px;
-    background: #fff;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    transition: 0.2s;
 }
-.checkbox-field { display: flex; align-items: center; align-self: end; padding: 12px 0; }
-.cards-section { margin-top: 26px; }
-.checkbox-list { display: flex; flex-wrap: wrap; gap: 14px 24px; }
-.actions { display: flex; gap: 12px; align-items: center; margin-top: 28px; }
-.settings-message { margin-top: 16px; color: #15803d; }
-.settings-message.erro { color: #b91c1c; }
-body.theme-dark .settings-card,
+
+.field input:focus,
+.field select:focus {
+    outline: none;
+
+    border-color:
+        var(--primary);
+
+    box-shadow:
+        0 0 0 3px var(--primary-light);
+}
+
+/* ==========================
+   CAMPOS DE SELEÇÃO
+========================== */
+
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    align-self: end;
+    gap: 8px;
+
+    padding: 12px 0;
+}
+
+.checkbox-field input {
+    width: auto;
+    cursor: pointer;
+}
+
+/* ==========================
+   CARDS VISÍVEIS
+========================== */
+
+.cards-section {
+    margin-top: 26px;
+}
+
+.cards-section h3 {
+    margin-bottom: 12px;
+    color: #0f172a;
+    font-size: 15px;
+}
+
+.checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+}
+
+.checkbox-list label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    color: #334155;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.checkbox-list input {
+    cursor: pointer;
+}
+
+/* ==========================
+   AÇÕES
+========================== */
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-top: 28px;
+}
+
+/* ==========================
+   MENSAGENS
+========================== */
+
+.settings-message {
+    margin-top: 16px;
+
+    color: #15803d;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.settings-message.erro {
+    color: #b91c1c;
+}
+
+/* ==========================
+   TEMA ESCURO
+========================== */
+
+body.theme-dark .settings-card {
+    background: #172033;
+    border-color: #334155;
+}
+
+body.theme-dark .settings-header h3,
+body.theme-dark .cards-section h3 {
+    color: #f8fafc;
+}
+
+body.theme-dark .field,
+body.theme-dark .checkbox-list label {
+    color: #e2e8f0;
+}
+
 body.theme-dark .field input,
-body.theme-dark .field select { background: #172033; color: #f8fafc; border-color: #334155; }
-@media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } }
+body.theme-dark .field select {
+    background: #172033;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+/* ==========================
+   RESPONSIVO
+========================== */
+
+@media (max-width: 760px) {
+    .settings-card {
+        padding: 20px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .actions button {
+        width: 100%;
+    }
+}
