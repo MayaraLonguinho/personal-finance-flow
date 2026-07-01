@@ -50,6 +50,7 @@ atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 CREATE TABLE investimentos (
 id INT AUTO_INCREMENT PRIMARY KEY,
 usuario_id INT NOT NULL,
+transacao_id INT NULL,
 nome VARCHAR(150) NOT NULL,
 tipo VARCHAR(80) NOT NULL,
 instituicao VARCHAR(120),
@@ -58,9 +59,14 @@ valor_atual DECIMAL(12,2) NOT NULL,
 rentabilidade_percentual DECIMAL(8,2) DEFAULT 0.00,
 data_aplicacao DATE NOT NULL,
 data_vencimento DATE,
-status ENUM('ativo','resgatado','cancelado') DEFAULT 'ativo',
+status ENUM(
+    'ativo',
+    'resgatado',
+    'cancelado'
+) DEFAULT 'ativo',
 criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE configuracoes_usuario (
