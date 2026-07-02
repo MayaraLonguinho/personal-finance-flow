@@ -68,7 +68,7 @@ csrf = CSRFProtect(app)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["2000 per day", "500 per hour"],
     storage_uri="memory://"
 )
 
@@ -690,6 +690,7 @@ def api_limpar_transacoes():
 # Rota de API - retorna a meta ativa
 @app.route('/api/meta')
 @login_obrigatorio
+@limiter.exempt
 def api_meta():
     try:
         usuario_id = session.get('usuario_id')
