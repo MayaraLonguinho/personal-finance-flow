@@ -84,6 +84,38 @@ input {
     gap: 16px;
 }
 
+/* Override do botão Sair para acompanhar o tema (var por página)
+   Usa variáveis: --primary, --accent, --color-white, --shadow-card */
+#logout-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 14px;
+    border: none;
+    border-radius: 9px;
+    background: var(--primary);
+    color: var(--color-white);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.06s;
+    box-shadow: var(--shadow-card, 0 6px 18px rgba(0,0,0,0.06));
+}
+
+#logout-sidebar:hover {
+    background: var(--accent);
+    color: var(--color-white);
+    transform: translateY(-1px);
+}
+
+#logout-sidebar .logout-icon {
+    color: inherit;
+}
+
 .main-content {
     min-width: 0;
     padding: 12px 14px;

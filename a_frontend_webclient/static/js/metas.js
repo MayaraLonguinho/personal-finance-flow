@@ -13,12 +13,17 @@ async function buscarMeta() {
         const resposta = await fetch("/api/meta");
 
         if (!resposta.ok) {
+            if (resposta.status === 429) {
+                 throw new Error("Muitas requisições. Aguarde alguns segundos.");
+        }
+
             if (resposta.status === 404) {
                 exibirMetaVazia();
                 return;
-            }
-            throw new Error("Erro ao buscar meta");
         }
+
+        throw new Error("Erro ao buscar meta");
+    }
 
         const meta = await resposta.json();
         exibirMeta(meta);

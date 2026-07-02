@@ -8,6 +8,7 @@
 
     <title>Personal Finance Flow - Visão Geral</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 
@@ -102,6 +103,11 @@
                     </span>
                 </div>
             </div>
+
+            <a id="logout-sidebar" href="/" class="menu-item logout-item sidebar-logout" onclick="logoutSidebar(event)">
+                <span class="logout-icon">⏻</span>
+                Sair
+            </a>
         </aside>
 
         <main class="main-content">
@@ -284,7 +290,7 @@
                 <div class="panel panel-tipos">
                     <div class="panel-header">
                         <h3>
-                            Top Categorias de Gastos
+                            Top 5 Categorias de Gastos
                         </h3>
 
                         <span>
@@ -304,7 +310,7 @@
                         </h3>
 
                         <span>
-                            Entradas, saídas e saldo
+                            Entradas, saídas e saldo dos últimos 5 meses
                         </span>
                     </div>
 
