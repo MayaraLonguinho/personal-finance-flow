@@ -42,6 +42,10 @@ function prepararTopCategorias(dados) {
         .slice(0, 5);
 }
 
+function valorSeguro(valor) {
+    return Math.max(0, Number(valor) || 0);
+}
+
 function renderizarEstadoVazioGrafico(canvasId, mensagem) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
@@ -353,7 +357,7 @@ function criarGraficoEvolucao(dados) {
                     label: "Entradas",
 
                     data: dados.map(
-                        item => Number(item.entrada) || 0
+                        item => valorSeguro(item.entrada)
                     ),
 
                     backgroundColor:
@@ -364,8 +368,8 @@ function criarGraficoEvolucao(dados) {
 
                     borderWidth: 2,
                     borderRadius: 7,
-                    barThickness: 18,
-                    maxBarThickness: 22
+                    barThickness: 10,
+                    maxBarThickness: 14
                 },
 
                 {
@@ -373,7 +377,7 @@ function criarGraficoEvolucao(dados) {
                     label: "Saídas",
 
                     data: dados.map(
-                        item => Number(item.saida) || 0
+                        item => valorSeguro(item.saida)
                     ),
 
                     backgroundColor:
@@ -384,8 +388,8 @@ function criarGraficoEvolucao(dados) {
 
                     borderWidth: 2,
                     borderRadius: 7,
-                    barThickness: 18,
-                    maxBarThickness: 22
+                    barThickness: 10,
+                    maxBarThickness: 14
                 },
 
                 {
@@ -393,7 +397,7 @@ function criarGraficoEvolucao(dados) {
                     label: "Saldo",
 
                     data: dados.map(
-                        item => Number(item.saldo) || 0
+                        item => valorSeguro(item.saldo)
                     ),
 
                     backgroundColor:
@@ -404,8 +408,8 @@ function criarGraficoEvolucao(dados) {
 
                     borderWidth: 2,
                     borderRadius: 7,
-                    barThickness: 18,
-                    maxBarThickness: 22
+                    barThickness: 10,
+                    maxBarThickness: 14
                 }
             ]
         },
@@ -443,7 +447,8 @@ function criarGraficoEvolucao(dados) {
                 },
 
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    min: 0
                 }
             }
         }
@@ -618,198 +623,198 @@ async function carregarUltimasTransacoes() {
 }
 
 function configurarUploadPlanilha() {
-        const inputPlanilha = document.getElementById(
-            "input-planilha"
+    const inputPlanilha = document.getElementById(
+        "input-planilha"
+    );
+
+    const botaoImportar = document.getElementById(
+        "btn-importar-planilha"
+    );
+
+    if (!inputPlanilha || !botaoImportar) {
+        console.error(
+            "Botão ou campo de upload não encontrado."
         );
 
-        const botaoImportar = document.getElementById(
-            "btn-importar-planilha"
-        );
+        return;
+    }
 
-        if (!inputPlanilha || !botaoImportar) {
-            console.error(
-                "Botão ou campo de upload não encontrado."
+    botaoImportar.addEventListener(
+        "click",
+        function () {
+            inputPlanilha.click();
+        }
+    );
+
+    inputPlanilha.addEventListener(
+        "change",
+        async function () {
+            const arquivo = inputPlanilha.files[0];
+
+            if (!arquivo) {
+                return;
+            }
+
+            if (
+                !arquivo.name
+                    .toLowerCase()
+                    .endsWith(".csv")
+            ) {
+                alert("Selecione um arquivo CSV.");
+
+                inputPlanilha.value = "";
+
+                return;
+            }
+
+            const formData = new FormData();
+
+            formData.append(
+                "arquivo",
+                arquivo
+            );
+            formData.append(
+                "csrf_token",
+                window.PFF.csrfToken
             );
 
-            return;
-        }
+            const textoOriginal =
+                botaoImportar.textContent;
 
-        botaoImportar.addEventListener(
-            "click",
-            function () {
-                inputPlanilha.click();
-            }
-        );
+            botaoImportar.textContent =
+                "Importando...";
 
-        inputPlanilha.addEventListener(
-            "change",
-            async function () {
-                const arquivo = inputPlanilha.files[0];
+            botaoImportar.disabled = true;
 
-                if (!arquivo) {
-                    return;
-                }
-
-                if (
-                    !arquivo.name
-                        .toLowerCase()
-                        .endsWith(".csv")
-                ) {
-                    alert("Selecione um arquivo CSV.");
-
-                    inputPlanilha.value = "";
-
-                    return;
-                }
-
-                const formData = new FormData();
-
-                formData.append(
-                    "arquivo",
-                    arquivo
-                );
-                formData.append(
-                    "csrf_token",
-                    window.PFF.csrfToken
+            try {
+                const resposta = await fetch(
+                    "/api/upload",
+                    {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": window.PFF.csrfToken
+                        },
+                        body: formData
+                    }
                 );
 
-                const textoOriginal =
-                    botaoImportar.textContent;
+                const resultado =
+                    await resposta.json();
 
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.detalhe ||
+                        resultado.erro ||
+                        "Não foi possível importar a planilha."
+                    );
+                }
+
+                alert(
+                    `${resultado.mensagem}\n\n` +
+                    `Registros recebidos: ${resultado.recebidos}\n` +
+                    `Novos registros: ${resultado.importados}\n` +
+                    `Duplicados ignorados: ${resultado.ignorados}`
+                );
+
+                window.location.reload();
+
+            } catch (erro) {
+                console.error(
+                    "Erro no upload:",
+                    erro
+                );
+
+                alert(
+                    `Erro ao importar planilha: ${erro.message}`
+                );
+
+            } finally {
                 botaoImportar.textContent =
-                    "Importando...";
+                    textoOriginal;
 
-                botaoImportar.disabled = true;
-
-                try {
-                    const resposta = await fetch(
-                        "/api/upload",
-                        {
-                            method: "POST",
-                            headers: {
-                                "X-CSRFToken": window.PFF.csrfToken
-                            },
-                            body: formData
-                        }
-                    );
-
-                    const resultado =
-                        await resposta.json();
-
-                    if (!resposta.ok) {
-                        throw new Error(
-                            resultado.detalhe ||
-                            resultado.erro ||
-                            "Não foi possível importar a planilha."
-                        );
-                    }
-
-                    alert(
-                        `${resultado.mensagem}\n\n` +
-                        `Registros recebidos: ${resultado.recebidos}\n` +
-                        `Novos registros: ${resultado.importados}\n` +
-                        `Duplicados ignorados: ${resultado.ignorados}`
-                    );
-
-                    window.location.reload();
-
-                } catch (erro) {
-                    console.error(
-                        "Erro no upload:",
-                        erro
-                    );
-
-                    alert(
-                        `Erro ao importar planilha: ${erro.message}`
-                    );
-
-                } finally {
-                    botaoImportar.textContent =
-                        textoOriginal;
-
-                    botaoImportar.disabled = false;
-                    inputPlanilha.value = "";
-                }
+                botaoImportar.disabled = false;
+                inputPlanilha.value = "";
             }
-        );
+        }
+    );
+}
+
+function configurarLimpezaDeDados() {
+    const botaoLimpar = document.getElementById(
+        "btn-limpar-dados"
+    );
+
+    if (!botaoLimpar) {
+        return;
     }
 
-    function configurarLimpezaDeDados() {
-        const botaoLimpar = document.getElementById(
-            "btn-limpar-dados"
-        );
+    botaoLimpar.addEventListener(
+        "click",
+        async function () {
+            const confirmou = window.PFF.confirmarExclusao(
+                "Tem certeza de que deseja apagar todas as transações? Essa ação não poderá ser desfeita."
+            );
 
-        if (!botaoLimpar) {
-            return;
-        }
+            if (!confirmou) {
+                return;
+            }
 
-        botaoLimpar.addEventListener(
-            "click",
-            async function () {
-                const confirmou = window.PFF.confirmarExclusao(
-                    "Tem certeza de que deseja apagar todas as transações? Essa ação não poderá ser desfeita."
+            const textoOriginal =
+                botaoLimpar.textContent;
+
+            botaoLimpar.textContent =
+                "Limpando...";
+
+            botaoLimpar.disabled = true;
+
+            try {
+                const resposta = await fetch(
+                    "/api/transacoes/limpar",
+                    {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRFToken": window.PFF.csrfToken
+                        }
+                    }
                 );
 
-                if (!confirmou) {
-                    return;
+                const resultado =
+                    await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        resultado.detalhe ||
+                        resultado.erro ||
+                        "Não foi possível limpar os dados."
+                    );
                 }
 
-                const textoOriginal =
-                    botaoLimpar.textContent;
+                alert(
+                    resultado.mensagem ||
+                    "Dados removidos com sucesso."
+                );
 
+                window.location.reload();
+
+            } catch (erro) {
+                console.error(
+                    "Erro ao limpar dados:",
+                    erro
+                );
+
+                alert(
+                    `Erro ao limpar dados: ${erro.message}`
+                );
+
+            } finally {
                 botaoLimpar.textContent =
-                    "Limpando...";
+                    textoOriginal;
 
-                botaoLimpar.disabled = true;
-
-                try {
-                    const resposta = await fetch(
-                        "/api/transacoes/limpar",
-                        {
-                            method: "DELETE",
-                            headers: {
-                                "X-CSRFToken": window.PFF.csrfToken
-                            }
-                        }
-                    );
-
-                    const resultado =
-                        await resposta.json();
-
-                    if (!resposta.ok) {
-                        throw new Error(
-                            resultado.detalhe ||
-                            resultado.erro ||
-                            "Não foi possível limpar os dados."
-                        );
-                    }
-
-                    alert(
-                        resultado.mensagem ||
-                        "Dados removidos com sucesso."
-                    );
-
-                    window.location.reload();
-
-                } catch (erro) {
-                    console.error(
-                        "Erro ao limpar dados:",
-                        erro
-                    );
-
-                    alert(
-                        `Erro ao limpar dados: ${erro.message}`
-                    );
-
-                } finally {
-                    botaoLimpar.textContent =
-                        textoOriginal;
-
-                    botaoLimpar.disabled = false;
-                }
+                botaoLimpar.disabled = false;
             }
-        );
-    }
+        }
+    );
+}
 
 async function buscarMeta() {
     try {
