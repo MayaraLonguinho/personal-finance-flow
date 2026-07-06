@@ -104,6 +104,7 @@
             cursor: pointer;
             transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 8px 18px rgba(190, 24, 93, 0.16);
+            font-family: Georgia, "Times New Roman", serif;
         }
 
         .btn-submit:hover {
@@ -202,11 +203,11 @@
 
 <body>
     <div class="auth-container">
-        <a href="/" class="back-link">← Voltar para a página inicial</a>
-        
+        <a href="/" class="back-link">← VOLTAR</a>
+
         <div class="auth-header">
-            <h1>Crie sua conta</h1>
-            <p>Comece a organizar suas <span class="highlight">finanças</span> hoje</p>
+            <h1>CRIE SUA CONTA</h1>
+            <p>COMECE A ORGANIZAR SUAS <span class="highlight">FINANÇAS</span> HOJE</p>
         </div>
 
         <div class="error-message" id="errorMessage"></div>
@@ -216,66 +217,35 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="form-group">
                 <label for="nome">Nome completo</label>
-                <input 
-                    type="text" 
-                    id="nome" 
-                    name="nome" 
-                    placeholder="Seu nome completo" 
-                    required
-                    minlength="3"
-                >
+                <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required minlength="3">
             </div>
 
             <div class="form-group">
                 <label for="email">E-mail</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="seu@email.com" 
-                    required
-                >
+                <input type="email" id="email" name="email" placeholder="seu@email.com" required>
             </div>
 
             <div class="form-group">
                 <label for="telefone">Telefone (opcional)</label>
-                <input 
-                    type="tel" 
-                    id="telefone" 
-                    name="telefone" 
-                    placeholder="(00) 00000-0000"
-                >
+                <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000">
             </div>
 
             <div class="form-group">
                 <label for="senha">Senha</label>
-                <input 
-                    type="password" 
-                    id="senha" 
-                    name="senha" 
-                    placeholder="Mínimo 6 caracteres" 
-                    required
-                    minlength="6"
-                >
+                <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required minlength="6">
             </div>
 
             <div class="form-group">
                 <label for="confirmacao_senha">Confirme sua senha</label>
-                <input 
-                    type="password" 
-                    id="confirmacao_senha" 
-                    name="confirmacao_senha" 
-                    placeholder="Digite a senha novamente" 
-                    required
-                    minlength="6"
-                >
+                <input type="password" id="confirmacao_senha" name="confirmacao_senha"
+                    placeholder="Digite a senha novamente" required minlength="6">
             </div>
 
-            <button type="submit" class="btn-submit" id="submitBtn">Cadastrar</button>
+            <button type="submit" class="btn-submit" id="submitBtn">CADASTRAR</button>
         </form>
 
         <div class="auth-footer">
-            <p>Já tem uma conta? <a href="/login">Faça login</a></p>
+            <p>Já tem uma conta? <a href="/login">FAÇA LOGIN</a></p>
         </div>
     </div>
 

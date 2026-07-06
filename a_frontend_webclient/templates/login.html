@@ -51,7 +51,7 @@
 
         .auth-header p {
             color: #4e4e4f;
-            font-size: 14px;
+            font-size: 11px;
         }
 
         .auth-header .highlight {
@@ -104,6 +104,7 @@
             cursor: pointer;
             transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 8px 18px rgba(190, 24, 93, 0.16);
+            font-family: Georgia, "Times New Roman", serif;
         }
 
         .btn-submit:hover {
@@ -202,11 +203,11 @@
 
 <body>
     <div class="auth-container">
-        <a href="/" class="back-link">← Voltar para a página inicial</a>
-        
+        <a href="/" class="back-link">← VOLTAR</a>
+
         <div class="auth-header">
-            <h1>Entre na sua conta</h1>
-            <p>Continue organizando suas <span class="highlight">finanças</span></p>
+            <h1>BEM-VINDO!</h1>
+            <p>ENTRE NA SUA CONTA E CONTINUE ORGANIZANDO SUAS <span class="highlight">FINANÇAS</span></p>
         </div>
 
         <div class="error-message" id="errorMessage"></div>
@@ -216,31 +217,19 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="form-group">
                 <label for="email">E-mail</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="seu@email.com" 
-                    required
-                >
+                <input type="email" id="email" name="email" placeholder="seu@email.com" required>
             </div>
 
             <div class="form-group">
                 <label for="senha">Senha</label>
-                <input 
-                    type="password" 
-                    id="senha" 
-                    name="senha" 
-                    placeholder="Digite sua senha" 
-                    required
-                >
+                <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
             </div>
 
-            <button type="submit" class="btn-submit" id="submitBtn">Entrar</button>
+            <button type="submit" class="btn-submit" id="submitBtn">ENTRAR</button>
         </form>
 
         <div class="auth-footer">
-            <p>Não tem uma conta? <a href="/cadastro">Cadastre-se</a></p>
+            <p>Não tem uma conta? <a href="/cadastro">CADASTRE-SE</a></p>
         </div>
     </div>
 
