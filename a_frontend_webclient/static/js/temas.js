@@ -63,6 +63,72 @@
         return window.confirm(mensagem);
     }
 
+    let toastTimeout = null;
+
+    function mostrarNotificacao(titulo, mensagem, tipo = 'success', duracao = 5000) {
+        const toast = document.getElementById('toast-notification');
+        const toastTitle = document.getElementById('toast-title');
+        const toastBody = document.getElementById('toast-body');
+        const toastIcon = document.getElementById('toast-icon');
+
+        if (!toast || !toastTitle || !toastBody || !toastIcon) {
+            console.warn('Elementos do toast não encontrados');
+            return;
+        }
+
+        // Remove classes anteriores
+        toast.classList.remove('success', 'error', 'warning', 'info');
+        toast.classList.add(tipo);
+
+        // Define conteúdo
+        toastTitle.textContent = titulo;
+        toastBody.textContent = mensagem;
+
+        // Define ícone
+        switch (tipo) {
+            case 'success':
+                toastIcon.textContent = '✓';
+                break;
+            case 'error':
+                toastIcon.textContent = '✕';
+                break;
+            case 'warning':
+                toastIcon.textContent = '⚠';
+                break;
+            case 'info':
+                toastIcon.textContent = 'ℹ';
+                break;
+            default:
+                toastIcon.textContent = '✓';
+        }
+
+        // Mostra toast
+        toast.classList.add('show');
+
+        // Limpa timeout anterior se existir
+        if (toastTimeout) {
+            clearTimeout(toastTimeout);
+        }
+
+        // Auto-dismiss após duração especificada
+        if (duracao > 0) {
+            toastTimeout = setTimeout(() => {
+                fecharNotificacao();
+            }, duracao);
+        }
+    }
+
+    function fecharNotificacao() {
+        const toast = document.getElementById('toast-notification');
+        if (toast) {
+            toast.classList.remove('show');
+        }
+        if (toastTimeout) {
+            clearTimeout(toastTimeout);
+            toastTimeout = null;
+        }
+    }
+
     function aplicarTema(tema) {
         const temaEscolhido = temas.includes(tema) ? tema : "theme-blue";
         document.body.classList.remove(...temas);
@@ -82,7 +148,7 @@
     async function salvarPreferencias(dados) {
         const resposta = await fetch("/api/configuracoes", {
             method: "PUT",
-            headers: { 
+            headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfToken
             },
@@ -104,7 +170,9 @@
         confirmarExclusao,
         aplicarTema,
         aplicarCardsVisiveis,
-        salvarPreferencias
+        salvarPreferencias,
+        mostrarNotificacao,
+        fecharNotificacao
     };
 
     aplicarTema(configuracoes.tema);

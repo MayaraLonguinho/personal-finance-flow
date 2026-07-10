@@ -501,7 +501,7 @@ async function editarInvestimento(investimentoId) {
             erro
         );
 
-        alert(erro.message);
+        window.PFF.mostrarNotificacao("Erro", erro.message, "error");
     }
 }
 
@@ -640,9 +640,10 @@ async function salvarInvestimento() {
             );
         }
 
-        alert(
-            resultado.mensagem ||
-            "Investimento salvo com sucesso."
+        window.PFF.mostrarNotificacao(
+            "Sucesso",
+            resultado.mensagem || "Investimento salvo com sucesso.",
+            "success"
         );
 
         fecharModalInvestimento();
@@ -692,9 +693,10 @@ async function excluirInvestimento(
             );
         }
 
-        alert(
-            resultado.mensagem ||
-            "Investimento excluído com sucesso."
+        window.PFF.mostrarNotificacao(
+            "Sucesso",
+            resultado.mensagem || "Investimento excluído com sucesso.",
+            "success"
         );
 
         await carregarPaginaInvestimentos();
@@ -705,7 +707,7 @@ async function excluirInvestimento(
             erro
         );
 
-        alert(erro.message);
+        window.PFF.mostrarNotificacao("Erro", erro.message, "error");
     }
 }
 

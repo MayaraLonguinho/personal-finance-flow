@@ -10,7 +10,7 @@ function formatarData(data) {
 }
 
 function getStatusClass(status) {
-    switch(status) {
+    switch (status) {
         case "confirmado":
             return "status-confirmado";
         case "pendente":
@@ -23,7 +23,7 @@ function getStatusClass(status) {
 }
 
 function getTipoClass(tipo) {
-    switch(tipo) {
+    switch (tipo) {
         case "entrada":
             return "entrada-text";
         case "saida":
@@ -54,16 +54,16 @@ async function buscarTransacoes() {
         const filtroCategoria = document.getElementById("filtro-categoria").value;
         const filtroTipo = document.getElementById("filtro-tipo").value;
         const filtroStatus = document.getElementById("filtro-status").value;
-        
+
         // Constrói URL com filtros
         const params = new URLSearchParams();
         if (filtroDescricao) params.append('descricao', filtroDescricao);
         if (filtroCategoria) params.append('categoria', filtroCategoria);
         if (filtroTipo) params.append('tipo', filtroTipo);
         if (filtroStatus) params.append('status', filtroStatus);
-        
+
         const url = `/api/transacoes/todas?${params.toString()}`;
-        
+
         const resposta = await fetch(url);
 
         if (!resposta.ok) {
@@ -92,7 +92,7 @@ function limparFiltros() {
 }
 
 // Adiciona eventos para aplicar filtros quando os campos mudarem
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("filtro-descricao").addEventListener("input", buscarTransacoes);
     document.getElementById("filtro-categoria").addEventListener("change", buscarTransacoes);
     document.getElementById("filtro-tipo").addEventListener("change", buscarTransacoes);
@@ -130,7 +130,7 @@ function exibirMeta(meta) {
     document.getElementById("goal-valor-meta").textContent = `de ${formatarMoeda(meta.valor_meta)}`;
     document.getElementById("goal-percentual").textContent = `${meta.percentual}%`;
     document.getElementById("goal-progress-bar").style.width = `${meta.percentual}%`;
-    
+
     const valorRestante = meta.valor_restante;
     if (valorRestante > 0) {
         document.getElementById("goal-restante").textContent = `Faltam ${formatarMoeda(valorRestante)} para alcançar sua meta.`;
@@ -199,19 +199,19 @@ function editarTransacao(id) {
                 document.getElementById("conta").value = transacao.conta || '';
                 document.getElementById("instituicao").value = transacao.instituicao || '';
                 document.getElementById("status").value = transacao.status || '';
-                
+
                 // Muda o título do modal
                 document.getElementById("modal-titulo").textContent = "Editar Transação";
-                
+
                 // Abre o modal
                 abrirModalNovaTransacao();
             } else {
-                alert("Transação não encontrada.");
+                window.PFF.mostrarNotificacao("Erro", "Transação não encontrada.", "error");
             }
         })
         .catch(erro => {
             console.error("Erro ao buscar transação:", erro);
-            alert("Não foi possível carregar a transação.");
+            window.PFF.mostrarNotificacao("Erro", "Não foi possível carregar a transação.", "error");
         });
 }
 
@@ -224,23 +224,23 @@ function excluirTransacao(id) {
                 "X-CSRFToken": window.PFF.csrfToken
             }
         })
-        .then(resposta => {
-            if (resposta.ok) {
-                return resposta.json();
-            } else if (resposta.status === 404) {
-                throw new Error("Transação não encontrada");
-            } else {
-                throw new Error("Erro ao excluir transação");
-            }
-        })
-        .then(resultado => {
-            alert(resultado.mensagem);
-            buscarTransacoes(); // Atualiza a tabela
-        })
-        .catch(erro => {
-            console.error("Erro ao excluir transação:", erro);
-            alert("Erro: " + erro.message);
-        });
+            .then(resposta => {
+                if (resposta.ok) {
+                    return resposta.json();
+                } else if (resposta.status === 404) {
+                    throw new Error("Transação não encontrada");
+                } else {
+                    throw new Error("Erro ao excluir transação");
+                }
+            })
+            .then(resultado => {
+                window.PFF.mostrarNotificacao("Sucesso", resultado.mensagem, "success");
+                buscarTransacoes(); // Atualiza a tabela
+            })
+            .catch(erro => {
+                console.error("Erro ao excluir transação:", erro);
+                window.PFF.mostrarNotificacao("Erro ao excluir transação", "Erro: " + erro.message, "error");
+            });
     }
 }
 
@@ -248,7 +248,7 @@ function excluirTransacao(id) {
 function abrirModalNovaTransacao() {
     const modal = document.getElementById("modal-nova-transacao");
     modal.style.display = "flex";
-    
+
     // Se não tiver ID, é criação nova - define data atual
     const idTransacao = document.getElementById("transacao-id").value;
     if (!idTransacao) {
@@ -260,7 +260,7 @@ function abrirModalNovaTransacao() {
 function fecharModalNovaTransacao() {
     const modal = document.getElementById("modal-nova-transacao");
     modal.style.display = "none";
-    
+
     // Limpa o formulário e reseta o título
     document.getElementById("form-nova-transacao").reset();
     document.getElementById("transacao-id").value = "";
@@ -269,12 +269,12 @@ function fecharModalNovaTransacao() {
 
 async function salvarNovaTransacao(event) {
     event.preventDefault();
-    
+
     const form = document.getElementById("form-nova-transacao");
     const formData = new FormData(form);
-    
+
     const idTransacao = document.getElementById("transacao-id").value;
-    
+
     const dados = {
         data: formData.get("data"),
         descricao: formData.get("descricao"),
@@ -285,10 +285,10 @@ async function salvarNovaTransacao(event) {
         instituicao: formData.get("instituicao") || "",
         status: formData.get("status")
     };
-    
+
     try {
         let resposta;
-        
+
         if (idTransacao) {
             // Edição - PUT
             resposta = await fetch(`/api/transacoes/${idTransacao}`, {
@@ -310,24 +310,24 @@ async function salvarNovaTransacao(event) {
                 body: JSON.stringify(dados)
             });
         }
-        
+
         if (resposta.ok) {
             const resultado = await resposta.json();
-            alert(resultado.mensagem);
+            window.PFF.mostrarNotificacao("Sucesso", resultado.mensagem, "success");
             fecharModalNovaTransacao();
             buscarTransacoes(); // Atualiza a tabela
         } else {
             const erro = await resposta.json();
-            alert("Erro: " + erro.erro);
+            window.PFF.mostrarNotificacao("Erro", "Erro: " + erro.erro, "error");
         }
     } catch (erro) {
         console.error("Erro ao salvar transação:", erro);
-        alert("Não foi possível salvar a transação.");
+        window.PFF.mostrarNotificacao("Erro ao salvar transação", "Não foi possível salvar a transação.", "error");
     }
 }
 
 // Fecha o modal ao clicar fora dele
-window.onclick = function(event) {
+window.onclick = function (event) {
     const modal = document.getElementById("modal-nova-transacao");
     if (event.target === modal) {
         fecharModalNovaTransacao();

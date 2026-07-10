@@ -6,16 +6,16 @@ async function buscarCategorias() {
     try {
         const resposta = await fetch('/api/categorias');
         const categorias = await resposta.json();
-        
+
         if (!resposta.ok) {
             throw new Error('Erro ao buscar categorias');
         }
-        
+
         exibirCategorias(categorias);
-        
+
     } catch (erro) {
         console.error('Erro ao buscar categorias:', erro);
-        alert('Erro ao buscar categorias');
+        window.PFF.mostrarNotificacao("Erro", "Erro ao buscar categorias", "error");
     }
 }
 
@@ -23,17 +23,17 @@ async function buscarCategorias() {
 function exibirCategorias(categorias) {
     const grid = document.getElementById('categorias-grid');
     const empty = document.getElementById('categorias-empty');
-    
+
     if (!categorias || categorias.length === 0) {
         if (empty) empty.style.display = 'flex';
         return;
     }
-    
+
     if (empty) empty.style.display = 'none';
-    
+
     // Limpa grid
     grid.innerHTML = '';
-    
+
     // Adiciona cada categoria
     categorias.forEach(categoria => {
         const card = criarCardCategoria(categoria);
@@ -45,9 +45,9 @@ function exibirCategorias(categorias) {
 function criarCardCategoria(categoria) {
     const card = document.createElement('div');
     card.className = 'categoria-card';
-    
+
     const cor = categoria.cor || '#e5e7eb';
-    
+
     card.innerHTML = `
         <div class="categoria-header">
             <h4>${categoria.nome}</h4>
@@ -57,9 +57,9 @@ function criarCardCategoria(categoria) {
         <div class="categoria-palavras-chave">
             <span>Palavras-chave</span>
             <ul>
-                ${categoria.palavras_chave.length > 0 
-                    ? categoria.palavras_chave.map(palavra => `<li>${palavra}</li>`).join('') 
-                    : '<li>Nenhuma palavra-chave</li>'}
+                ${categoria.palavras_chave.length > 0
+            ? categoria.palavras_chave.map(palavra => `<li>${palavra}</li>`).join('')
+            : '<li>Nenhuma palavra-chave</li>'}
             </ul>
         </div>
         
@@ -76,12 +76,12 @@ function criarCardCategoria(categoria) {
         
         <div class="categoria-actions">
             <button class="btn-outline" onclick="abrirModalCategoria('${categoria.nome}')">Editar</button>
-            ${categoria.nome.toLowerCase() !== 'outros' 
-                ? `<button class="btn-outline btn-danger" onclick="excluirCategoria('${categoria.nome}')">Excluir</button>` 
-                : ''}
+            ${categoria.nome.toLowerCase() !== 'outros'
+            ? `<button class="btn-outline btn-danger" onclick="excluirCategoria('${categoria.nome}')">Excluir</button>`
+            : ''}
         </div>
     `;
-    
+
     return card;
 }
 
@@ -93,17 +93,17 @@ function abrirModalCategoria(nomeCategoria = null) {
     const palavrasChaveInput = document.getElementById('categoria-palavras-chave');
     const corInput = document.getElementById('categoria-cor');
     const nomeAtualInput = document.getElementById('categoria-nome-atual');
-    
+
     if (!modal || !titulo || !nomeInput || !palavrasChaveInput || !corInput || !nomeAtualInput) {
-        alert('Erro ao acessar modal de categoria');
+        window.PFF.mostrarNotificacao("Erro", "Erro ao acessar modal de categoria", "error");
         return;
     }
-    
+
     if (nomeCategoria) {
         // Modo edição
         titulo.textContent = 'Editar Categoria';
         nomeAtualInput.value = nomeCategoria;
-        
+
         // Busca categoria para preencher campos
         fetch(`/api/categorias`)
             .then(res => res.json())
@@ -126,7 +126,7 @@ function abrirModalCategoria(nomeCategoria = null) {
         corInput.value = '';
         nomeAtualInput.value = '';
     }
-    
+
     modal.style.display = 'flex';
 }
 
@@ -142,46 +142,46 @@ async function salvarCategoria() {
     const palavrasChaveInput = document.getElementById('categoria-palavras-chave');
     const corInput = document.getElementById('categoria-cor');
     const nomeAtualInput = document.getElementById('categoria-nome-atual');
-    
+
     if (!nomeInput || !palavrasChaveInput || !corInput || !nomeAtualInput) {
-        alert('Erro ao acessar campos do formulário');
+        window.PFF.mostrarNotificacao("Erro", "Erro ao acessar campos do formulário", "error");
         return;
     }
-    
+
     const nome = nomeInput.value.trim();
     const palavrasChaveTexto = palavrasChaveInput.value.trim();
     const cor = corInput.value;
     const nomeAtual = nomeAtualInput.value;
-    
+
     // Validações
     if (!nome) {
-        alert('Por favor, informe o nome da categoria');
+        window.PFF.mostrarNotificacao("Validação", "Por favor, informe o nome da categoria", "warning");
         return;
     }
-    
+
     // Converte palavras-chave para array
-    const palavrasChave = palavrasChaveTexto 
-        ? palavrasChaveTexto.split(',').map(p => p.trim()).filter(p => p) 
+    const palavrasChave = palavrasChaveTexto
+        ? palavrasChaveTexto.split(',').map(p => p.trim()).filter(p => p)
         : [];
-    
+
     const dados = {
         nome: nome,
         palavras_chave: palavrasChave
     };
-    
+
     if (cor) {
         dados.cor = cor;
     }
-    
+
     try {
         let resposta;
         if (nomeAtual) {
             // Atualizar categoria existente
             resposta = await fetch(`/api/categorias/${encodeURIComponent(nomeAtual)}`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': window.PFF.csrfToken 
+                    'X-CSRFToken': window.PFF.csrfToken
                 },
                 body: JSON.stringify(dados)
             });
@@ -189,58 +189,58 @@ async function salvarCategoria() {
             // Criar nova categoria
             resposta = await fetch('/api/categorias', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': window.PFF.csrfToken 
+                    'X-CSRFToken': window.PFF.csrfToken
                 },
                 body: JSON.stringify(dados)
             });
         }
-        
+
         const resultado = await resposta.json();
-        
+
         if (!resposta.ok) {
             throw new Error(resultado.erro || 'Erro ao salvar categoria');
         }
-        
-        alert(resultado.mensagem || 'Categoria salva com sucesso!');
+
+        window.PFF.mostrarNotificacao("Sucesso", resultado.mensagem || 'Categoria salva com sucesso!', "success");
         fecharModalCategoria();
         buscarCategorias();
-        
+
     } catch (erro) {
         console.error('Erro ao salvar categoria:', erro);
-        alert(`Erro ao salvar categoria: ${erro.message}`);
+        window.PFF.mostrarNotificacao("Erro ao salvar categoria", `Erro ao salvar categoria: ${erro.message}`, "error");
     }
 }
 
 // Exclui categoria
 async function excluirCategoria(nome) {
     const confirmou = window.PFF.confirmarExclusao(`Tem certeza que deseja excluir a categoria "${nome}"? As transações desta categoria serão movidas para "outros".`);
-    
+
     if (!confirmou) {
         return;
     }
-    
+
     try {
         const resposta = await fetch(`/api/categorias/${encodeURIComponent(nome)}`, {
             method: 'DELETE',
-            headers: { 
-                'X-CSRFToken': window.PFF.csrfToken 
+            headers: {
+                'X-CSRFToken': window.PFF.csrfToken
             }
         });
-        
+
         const resultado = await resposta.json();
-        
+
         if (!resposta.ok) {
             throw new Error(resultado.erro || 'Erro ao excluir categoria');
         }
-        
-        alert(resultado.mensagem || 'Categoria excluída com sucesso!');
+
+        window.PFF.mostrarNotificacao("Sucesso", resultado.mensagem || 'Categoria excluída com sucesso!', "success");
         buscarCategorias();
-        
+
     } catch (erro) {
         console.error('Erro ao excluir categoria:', erro);
-        alert(`Erro ao excluir categoria: ${erro.message}`);
+        window.PFF.mostrarNotificacao("Erro ao excluir categoria", `Erro ao excluir categoria: ${erro.message}`, "error");
     }
 }
 

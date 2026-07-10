@@ -177,6 +177,18 @@
         </div>
     </div>
 
+    <!-- Toast de notificação -->
+    <div id="toast-notification" class="toast-notification">
+        <div class="toast-content">
+            <div class="toast-icon" id="toast-icon">✓</div>
+            <div class="toast-message">
+                <strong id="toast-title">Sucesso</strong>
+                <p id="toast-body">Mensagem da notificação</p>
+            </div>
+            <button class="toast-close" onclick="window.PFF.fecharNotificacao()">✕</button>
+        </div>
+    </div>
+
     {% include '_preferencias_usuario.html' %}
     <script src="{{ url_for('static', filename='js/metas.js') }}"></script>
 </body>

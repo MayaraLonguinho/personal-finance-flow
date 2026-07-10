@@ -408,6 +408,51 @@
         </main>
     </div>
 
+    <!-- Toast de notificação -->
+    <div id="toast-notification" class="toast-notification">
+        <div class="toast-content">
+            <div class="toast-icon" id="toast-icon">✓</div>
+            <div class="toast-message">
+                <strong id="toast-title">Sucesso</strong>
+                <p id="toast-body">Mensagem da notificação</p>
+            </div>
+            <button class="toast-close" onclick="window.PFF.fecharNotificacao()">✕</button>
+        </div>
+    </div>
+
+    <!-- Modal de mensagem detalhada -->
+    <div id="modal-mensagem" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-mensagem-titulo">Título</h3>
+                <button class="modal-close" onclick="fecharModalMensagem()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-mensagem-conteudo"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="fecharModalMensagem()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação -->
+    <div id="modal-confirmacao" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-confirmacao-titulo">Confirmação</h3>
+                <button class="modal-close" onclick="fecharModalConfirmacao(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-confirmacao-mensagem">Mensagem de confirmação</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="fecharModalConfirmacao(false)">Cancelar</button>
+                <button class="btn-primary" id="modal-confirmacao-btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     {% include '_preferencias_usuario.html' %}

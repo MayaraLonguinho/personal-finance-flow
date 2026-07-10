@@ -7,6 +7,66 @@ function formatarData(dataTexto) {
     return window.PFF.formatarData(dataTexto);
 }
 
+let confirmacaoCallback = null;
+let modalMensagemCallback = null;
+
+function mostrarModalMensagem(titulo, conteudoHTML, onFechar = null) {
+    const modal = document.getElementById('modal-mensagem');
+    const modalTitulo = document.getElementById('modal-mensagem-titulo');
+    const modalConteudo = document.getElementById('modal-mensagem-conteudo');
+
+    if (!modal || !modalTitulo || !modalConteudo) {
+        return;
+    }
+
+    modalTitulo.textContent = titulo;
+    modalConteudo.innerHTML = conteudoHTML;
+    modalMensagemCallback = onFechar;
+    modal.classList.add('show');
+}
+
+function fecharModalMensagem() {
+    const modal = document.getElementById('modal-mensagem');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    if (modalMensagemCallback) {
+        modalMensagemCallback();
+        modalMensagemCallback = null;
+    }
+}
+
+function mostrarModalConfirmacao(titulo, mensagem, onConfirm) {
+    const modal = document.getElementById('modal-confirmacao');
+    const modalTitulo = document.getElementById('modal-confirmacao-titulo');
+    const modalMensagem = document.getElementById('modal-confirmacao-mensagem');
+    const btnConfirmar = document.getElementById('modal-confirmacao-btn-confirmar');
+
+    if (!modal || !modalTitulo || !modalMensagem || !btnConfirmar) {
+        return;
+    }
+
+    modalTitulo.textContent = titulo;
+    modalMensagem.textContent = mensagem;
+    confirmacaoCallback = onConfirm;
+    modal.classList.add('show');
+}
+
+function fecharModalConfirmacao(confirmado) {
+    const modal = document.getElementById('modal-confirmacao');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    if (confirmado && confirmacaoCallback) {
+        confirmacaoCallback();
+    }
+    confirmacaoCallback = null;
+}
+
+document.getElementById('modal-confirmacao-btn-confirmar').addEventListener('click', function () {
+    fecharModalConfirmacao(true);
+});
+
 function obterCorCss(nomeVariavel, fallback) {
     const valor = getComputedStyle(document.body)
         .getPropertyValue(nomeVariavel)
@@ -85,7 +145,11 @@ async function buscarMetricas() {
 
     } catch (erro) {
         console.error("Erro ao carregar visão geral:", erro);
-        alert("Não foi possível carregar os dados da Visão Geral.");
+        window.PFF.mostrarNotificacao(
+            "Erro ao carregar visão geral",
+            "Não foi possível carregar os dados da Visão Geral.",
+            "error"
+        );
     }
 }
 
@@ -108,9 +172,9 @@ function preencherCards(resumo) {
     }
 
     if (saldoFinal) {
-        saldoFinal.textContent = formatarMoeda(
-            resumo.saldo_final ?? resumo.saldo
-        );
+        const valorSaldo = Number(resumo.saldo_final ?? resumo.saldo) || 0;
+        saldoFinal.textContent = formatarMoeda(valorSaldo);
+        atualizarAparenciaCardSaldo(valorSaldo);
     }
 
     if (quantidadeTransacoes) {
@@ -119,6 +183,22 @@ function preencherCards(resumo) {
             resumo.quantidade_transacoes ??
             0;
     }
+}
+
+function atualizarAparenciaCardSaldo(valorSaldo) {
+    const cardSaldo = document.querySelector(".summary-card.saldo");
+    if (!cardSaldo) return;
+
+    // Remove classes anteriores
+    cardSaldo.classList.remove("saldo-positivo", "saldo-negativo");
+
+    // Aplica classe baseada no valor
+    if (valorSaldo > 0) {
+        cardSaldo.classList.add("saldo-positivo");
+    } else if (valorSaldo < 0) {
+        cardSaldo.classList.add("saldo-negativo");
+    }
+    // Se valor == 0, mantém estilo neutro (sem classe adicional)
 }
 
 function preencherInsights(insights) {
@@ -479,7 +559,11 @@ function configurarTrocaDeTema() {
             } catch (erro) {
                 window.PFF.aplicarTema(temaAnterior);
                 this.value = temaAnterior;
-                alert(erro.message);
+                window.PFF.mostrarNotificacao(
+                    "Erro",
+                    erro.message,
+                    "error"
+                );
             }
         }
     );
@@ -660,7 +744,7 @@ function configurarUploadPlanilha() {
                     .toLowerCase()
                     .endsWith(".csv")
             ) {
-                alert("Selecione um arquivo CSV.");
+                mostrarToast("Erro", "Selecione um arquivo CSV.", "error");
 
                 inputPlanilha.value = "";
 
@@ -709,14 +793,24 @@ function configurarUploadPlanilha() {
                     );
                 }
 
-                alert(
-                    `${resultado.mensagem}\n\n` +
-                    `Registros recebidos: ${resultado.recebidos}\n` +
-                    `Novos registros: ${resultado.importados}\n` +
-                    `Duplicados ignorados: ${resultado.ignorados}`
-                );
+                let conteudoHTML = '<p><strong>Planilha processada com sucesso</strong></p>';
 
-                window.location.reload();
+                if (resultado.recebidos !== undefined) {
+                    conteudoHTML += `<p>Registros recebidos: ${resultado.recebidos}</p>`;
+                }
+                if (resultado.importados !== undefined) {
+                    conteudoHTML += `<p>Registros inseridos: ${resultado.importados}</p>`;
+                }
+                if (resultado.tratados !== undefined) {
+                    conteudoHTML += `<p>Registros tratados: ${resultado.tratados}</p>`;
+                }
+                if (resultado.ignorados !== undefined) {
+                    conteudoHTML += `<p>Duplicados ignorados: ${resultado.ignorados}</p>`;
+                }
+
+                mostrarModalMensagem("Importação Concluída", conteudoHTML, function () {
+                    window.location.reload();
+                });
 
             } catch (erro) {
                 console.error(
@@ -724,8 +818,10 @@ function configurarUploadPlanilha() {
                     erro
                 );
 
-                alert(
-                    `Erro ao importar planilha: ${erro.message}`
+                window.PFF.mostrarNotificacao(
+                    "Erro ao importar planilha",
+                    erro.message,
+                    "error"
                 );
 
             } finally {
@@ -751,67 +847,72 @@ function configurarLimpezaDeDados() {
     botaoLimpar.addEventListener(
         "click",
         async function () {
-            const confirmou = window.PFF.confirmarExclusao(
-                "Tem certeza de que deseja apagar todas as transações? Essa ação não poderá ser desfeita."
-            );
+            mostrarModalConfirmacao(
+                "Limpar dados financeiros?",
+                "Esta ação removerá todas as transações, investimentos, metas e categorias. Esta ação não poderá ser desfeita.",
+                async function () {
+                    const textoOriginal =
+                        botaoLimpar.textContent;
 
-            if (!confirmou) {
-                return;
-            }
+                    botaoLimpar.textContent =
+                        "Limpando...";
 
-            const textoOriginal =
-                botaoLimpar.textContent;
+                    botaoLimpar.disabled = true;
 
-            botaoLimpar.textContent =
-                "Limpando...";
+                    try {
+                        const resposta = await fetch(
+                            "/api/transacoes/limpar",
+                            {
+                                method: "DELETE",
+                                headers: {
+                                    "X-CSRFToken": window.PFF.csrfToken
+                                }
+                            }
+                        );
 
-            botaoLimpar.disabled = true;
+                        const resultado =
+                            await resposta.json();
 
-            try {
-                const resposta = await fetch(
-                    "/api/transacoes/limpar",
-                    {
-                        method: "DELETE",
-                        headers: {
-                            "X-CSRFToken": window.PFF.csrfToken
+                        if (!resposta.ok) {
+                            throw new Error(
+                                resultado.detalhe ||
+                                resultado.erro ||
+                                "Não foi possível limpar os dados."
+                            );
                         }
+
+                        const conteudoHTML = `
+                            <p><strong>Dados removidos com sucesso</strong></p>
+                            ${resultado.transacoes_removidas ? `<p>Transações removidas: ${resultado.transacoes_removidas}</p>` : ''}
+                            ${resultado.investimentos_removidos ? `<p>Investimentos removidos: ${resultado.investimentos_removidos}</p>` : ''}
+                            ${resultado.metas_removidas ? `<p>Metas removidas: ${resultado.metas_removidas}</p>` : ''}
+                            ${resultado.categorias_removidas ? `<p>Categorias removidas: ${resultado.categorias_removidas}</p>` : ''}
+                            ${resultado.mensagem ? `<p>${resultado.mensagem}</p>` : ''}
+                        `;
+                        mostrarModalMensagem("Limpeza Concluída", conteudoHTML);
+
+                        window.location.reload();
+
+                    } catch (erro) {
+                        console.error(
+                            "Erro ao limpar dados:",
+                            erro
+                        );
+
+                        window.PFF.mostrarNotificacao(
+                            "Erro ao limpar dados",
+                            `Erro ao limpar dados: ${erro.message}`,
+                            "error"
+                        );
+
+                    } finally {
+                        botaoLimpar.textContent =
+                            textoOriginal;
+
+                        botaoLimpar.disabled = false;
                     }
-                );
-
-                const resultado =
-                    await resposta.json();
-
-                if (!resposta.ok) {
-                    throw new Error(
-                        resultado.detalhe ||
-                        resultado.erro ||
-                        "Não foi possível limpar os dados."
-                    );
                 }
-
-                alert(
-                    resultado.mensagem ||
-                    "Dados removidos com sucesso."
-                );
-
-                window.location.reload();
-
-            } catch (erro) {
-                console.error(
-                    "Erro ao limpar dados:",
-                    erro
-                );
-
-                alert(
-                    `Erro ao limpar dados: ${erro.message}`
-                );
-
-            } finally {
-                botaoLimpar.textContent =
-                    textoOriginal;
-
-                botaoLimpar.disabled = false;
-            }
+            );
         }
     );
 }
