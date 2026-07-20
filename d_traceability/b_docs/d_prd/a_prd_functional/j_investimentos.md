@@ -4,6 +4,34 @@
 
 Gestão de carteira de investimentos.
 
+## Estados de Investimento
+
+```mermaid
+stateDiagram-v2
+    [*] --> ativo: Criação
+    ativo --> resgatado: Resgate
+    ativo --> cancelado: Cancelamento
+    resgatado --> [*]
+    cancelado --> [*]
+    
+    note right of ativo
+        Investimento vigente
+        Incluído nos cálculos
+    end note
+    
+    note right of resgatado
+        Investimento resgatado
+        Valor realizado
+    end note
+    
+    note right of cancelado
+        Investimento cancelado
+        Não afeta carteira
+    end note
+```
+
+**Explicação:** O diagrama mostra os estados possíveis de um investimento: ativo (investimento vigente), resgatado (valor realizado) e cancelado (investimento cancelado). Investimentos ativos podem ser resgatados ou cancelados pelo usuário.
+
 ## Funcionalidades
 
 ### CRUD de Investimentos

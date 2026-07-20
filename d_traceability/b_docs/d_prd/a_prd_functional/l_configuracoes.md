@@ -4,6 +4,41 @@
 
 Permitir usuário personalizar sua experiência no app.
 
+## Fluxo de Configurações do Usuário
+
+```mermaid
+flowchart TD
+    A[Usuário acessa /configuracoes] --> B[Verificar autenticação]
+    B -->|Não autenticado| C[Redirecionar para /login]
+    B -->|Autenticado| D[Carregar configuracoes_usuario]
+    
+    D --> E[Exibir formulário com valores atuais]
+    E --> F[Usuário altera preferências]
+    
+    F --> G{Botão clicado?}
+    G -->|Salvar| H[Validar alterações]
+    G -->|Restaurar padrão| I[Resetar para valores padrão]
+    
+    H --> J{Validações}
+    J -->|qtd_transacoes_recentes fora de range| K[Erro: 3-20]
+    J -->|Válido| L[Atualizar no MySQL]
+    
+    I --> M[Atualizar no MySQL]
+    L --> N[Aplicar em todas as páginas]
+    M --> N
+    
+    N --> O[Tema aplicado via CSS]
+    N --> P[Moeda formatada em todas views]
+    N --> Q[Data formatada em todas views]
+    N --> R[Dashboard atualizado]
+    
+    style C fill:#ffcccc
+    style K fill:#ffcccc
+    style N fill:#ccffcc
+```
+
+**Explicação:** O diagrama mostra o fluxo de configurações do usuário, desde o acesso à página até a aplicação das preferências. O usuário pode salvar alterações específicas ou restaurar os padrões. As configurações são aplicadas globalmente: tema via CSS, moeda e data formatadas em todas as views, e dashboard atualizado com as novas preferências.
+
 ## Funcionalidades
 
 ### Preferências Disponíveis

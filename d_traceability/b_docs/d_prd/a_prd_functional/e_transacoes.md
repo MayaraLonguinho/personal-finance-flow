@@ -4,6 +4,35 @@
 
 CRUD completo de transações financeiras.
 
+## Estados de Transação
+
+```mermaid
+stateDiagram-v2
+    [*] --> pendente: Criação
+    pendente --> confirmado: Confirmação
+    pendente --> cancelado: Cancelamento
+    confirmado --> cancelado: Cancelamento
+    cancelado --> [*]
+    confirmado --> [*]
+    
+    note right of pendente
+        Estado inicial
+        Aguardando confirmação
+    end note
+    
+    note right of confirmado
+        Transação válida
+        Incluída nos cálculos
+    end note
+    
+    note right of cancelado
+        Transação invalidada
+        Não afeta saldo
+    end note
+```
+
+**Explicação:** O diagrama mostra os estados possíveis de uma transação: pendente (estado inicial), confirmado (transação válida) e cancelado (transação invalidada). Transações podem ser confirmadas ou canceladas a partir do estado pendente, e transações confirmadas podem ser canceladas.
+
 ## Funcionalidades
 
 ### Listagem

@@ -4,6 +4,73 @@
 
 Criar e manter um vault técnico com documentação detalhada do projeto.
 
+## Sequência Técnica do Assistente Financeiro com Ferramentas e Banco
+
+```mermaid
+sequenceDiagram
+    participant U as Usuário
+    participant F as Flask Backend
+    participant A as j_ai_financial_agent.py
+    participant O as OpenAI API
+    participant D as Módulos Domínio
+    participant M as MySQL
+    
+    U->>F: POST /api/agent/pergunta
+    F->>A: responder_pergunta_openai(pergunta)
+    
+    A->>A: Verificar OPENAI_API_KEY
+    alt API Key disponível
+        A->>O: Chat completion com tools
+        O->>O: Analisar intenção
+        O-->>A: Solicitar tool call
+        
+        loop Para cada ferramenta necessária
+            alt consultar_saldo
+                A->>D: calcular_resumo_financeiro(usuario_id)
+                D->>M: SELECT SUM(entradas - saidas - investimentos)
+                M-->>D: Resultado
+                D-->>A: Dados do saldo
+                A-->>O: Resultado da ferramenta
+            end
+            
+            alt consultar_entradas
+                A->>D: calcular_resumo_financeiro(usuario_id)
+                D->>M: SELECT SUM(entradas)
+                M-->>D: Resultado
+                D-->>A: Total de entradas
+                A-->>O: Resultado da ferramenta
+            end
+            
+            alt consultar_categorias
+                A->>D: buscar_todas_categorias(usuario_id)
+                D->>M: SELECT categorias
+                M-->>D: Categorias do usuário
+                D-->>A: Lista de categorias
+                A-->>O: Resultado da ferramenta
+            end
+            
+            alt consultar_meta_ativa
+                A->>D: buscar_meta_ativa(usuario_id)
+                D->>M: SELECT meta WHERE status = 'ativa'
+                M-->>D: Meta ativa
+                D-->>A: Dados da meta
+                A-->>O: Resultado da ferramenta
+            end
+        end
+        
+        O-->>A: Resposta formatada
+        A-->>F: JSON com resposta
+    else API Key indisponível
+        A->>F: Erro ou fallback
+        F->>F: Chamar i_financial_agent.py (fallback local)
+        F-->>U: Resposta determinística
+    end
+    
+    F-->>U: JSON com resposta
+```
+
+**Explicação:** O diagrama mostra a sequência técnica do assistente financeiro quando usando OpenAI. O backend chama o módulo j_ai_financial_agent.py, que interage com a OpenAI API usando function calling. A IA solicita chamadas de ferramentas específicas, que consultam os módulos de domínio, que por sua vez executam queries SELECT no MySQL. Os resultados são retornados à OpenAI, que formata a resposta final.
+
 ## Estrutura do Brain
 
 ```

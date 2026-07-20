@@ -1,4 +1,4 @@
-@import url("dashboard.css");
+@import url("c_dashboard.css");
 
 /* ==========================
    LAYOUT DA PÁGINA
@@ -39,7 +39,7 @@
     text-decoration: none;
     cursor: pointer;
     transition: background 0.2s, transform 0.06s;
-    box-shadow: var(--shadow-card, 0 6px 18px rgba(0,0,0,0.06));
+    box-shadow: var(--shadow-card, 0 6px 18px rgba(0, 0, 0, 0.06));
 }
 
 #logout-sidebar:hover {

@@ -4,6 +4,45 @@
 
 Garantir qualidade do código através de testes automatizados.
 
+## Fluxo da Suíte de Testes
+
+```mermaid
+flowchart TD
+    A[Executar pytest] --> B[Descobrir testes]
+    B --> C{Tipo de teste}
+    
+    C -->|Unitários| D[e_verify/a_unit/]
+    C -->|Integração| E[e_verify/b_integration/]
+    C -->|Segurança| F[e_verify/c_security/]
+    
+    D --> G[Testar módulos isolados]
+    G --> H[Mockar banco quando necessário]
+    H --> I[Verificar lógica de negócio]
+    
+    E --> J[Testar APIs Flask]
+    J --> K[Testar pipeline ETL completo]
+    K --> L[Verificar integração entre componentes]
+    
+    F --> M[Testar isolamento por usuário]
+    M --> N[Tentar SQL Injection]
+    N --> O[Verificar rotas protegidas]
+    O --> P[Verificar apenas SELECT no MCP]
+    
+    I --> Q[Coletar resultados]
+    L --> Q
+    P --> Q
+    
+    Q --> R{Todos passaram?}
+    R -->|Sim| S[Sucesso: código pronto]
+    R -->|Não| T[Falha: corrigir bugs]
+    T --> A
+    
+    style S fill:#ccffcc
+    style T fill:#ffcccc
+```
+
+**Explicação:** O diagrama mostra o fluxo de execução da suíte de testes. O pytest descobre os testes e os executa por tipo: unitários (módulos isolados com mocks), integração (APIs Flask e pipeline ETL) e segurança (isolamento, SQL injection, rotas protegidas, MCP readonly). Os resultados são coletados e, se todos passarem, o código está pronto; caso contrário, bugs são corrigidos e os testes são reexecutados.
+
 ## Estado Atual
 
 A pasta `tests/` contém os seguintes testes automatizados:

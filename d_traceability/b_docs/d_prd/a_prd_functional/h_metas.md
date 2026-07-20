@@ -4,6 +4,34 @@
 
 Permitir usuário definir e acompanhar metas financeiras.
 
+## Estados de Meta
+
+```mermaid
+stateDiagram-v2
+    [*] --> ativa: Criação
+    ativa --> concluida: Valor alvo atingido
+    ativa --> cancelada: Cancelamento
+    concluida --> [*]
+    cancelada --> [*]
+    
+    note right of ativa
+        Meta em progresso
+        Apenas uma ativa por vez
+    end note
+    
+    note right of concluida
+        Meta alcançada
+        Valor atual >= valor alvo
+    end note
+    
+    note right of cancelada
+        Meta descontinuada
+        Não afeta outras metas
+    end note
+```
+
+**Explicação:** O diagrama mostra os estados possíveis de uma meta: ativa (meta em progresso), concluída (valor alvo atingido) e cancelada (meta descontinuada). Apenas uma meta pode estar ativa por vez. Metas ativas podem ser concluídas ao atingir o valor alvo ou canceladas pelo usuário.
+
 ## Funcionalidades
 
 ### CRUD de Metas
