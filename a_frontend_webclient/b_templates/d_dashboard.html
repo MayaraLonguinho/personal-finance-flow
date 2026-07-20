@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Personal Finance Flow - Visão Geral</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/a_global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/c_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/l_dark_mode.css') }}">
+    <script src="{{ url_for('static', filename='b_js/j_accessibility.js') }}"></script>
+</head>
+
+<body class="theme-blue">
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    ↗
+                </div>
+
+                <div>
+                    <h1>Personal</h1>
+                    <h1>Finance Flow</h1>
+                </div>
+            </div>
+
+            <nav class="menu">
+                <a href="/dashboard" class="menu-item active">
+                    Visão Geral
+                </a>
+
+                <a href="/transacoes" class="menu-item">
+                    Transações
+                </a>
+
+                <a href="/categorias" class="menu-item">
+                    Categorias
+                </a>
+
+                <a href="/relatorios" class="menu-item">
+                    Relatórios
+                </a>
+
+                <a href="/metas" class="menu-item">
+                    Metas
+                </a>
+
+                <a href="/investimentos" class="menu-item">
+                    Investimentos
+                </a>
+
+                <a href="/assistente" class="menu-item">
+                    Assistente
+                </a>
+
+                <a href="/configuracoes" class="menu-item">
+                    Configurações
+                </a>
+            </nav>
+
+            <div class="goal-card" data-config-card="meta_economia">
+                <span>
+                    Meta de Economia
+                </span>
+
+                <div class="goal-values" id="goal-values">
+                    <strong id="goal-valor-atual">
+                        R$ 0,00
+                    </strong>
+
+                    <small id="goal-valor-meta">
+                        de R$ 0,00
+                    </small>
+                </div>
+
+                <div class="progress">
+                    <div class="progress-bar" id="goal-progress-bar" style="width: 0%;"></div>
+                </div>
+
+                <strong class="progress-text" id="goal-percentual">
+                    0%
+                </strong>
+
+                <p id="goal-restante">
+                    Nenhuma meta cadastrada.
+                </p>
+            </div>
+
+            <div class="user-card">
+                <div class="avatar">
+                    {{ (usuario_nome or 'U')[:1].upper() }}
+                </div>
+
+                <div>
+                    <strong>
+                        {{ usuario_nome or 'Usuário' }}
+                    </strong>
+
+                    <span>
+                        Usuária local
+                    </span>
+                </div>
+            </div>
+
+            <a id="logout-sidebar" href="/" class="menu-item logout-item sidebar-logout" onclick="logoutSidebar(event)">
+                <span class="logout-icon">⏻</span>
+                Sair
+            </a>
+        </aside>
+
+        <main class="main-content">
+            <section class="hero">
+                <div>
+
+
+                    <h2>
+                        Olá, {{ usuario_nome or 'Usuário' }}!
+                    </h2>
+
+                    <p>
+                        Acompanhe seus gastos, receitas, investimentos
+                        e saldo.
+                    </p>
+                </div>
+
+                <div class="hero-actions">
+                    {% include 'm_accessibility_controls.html' %}
+
+                    <select id="theme-selector" class="theme-selector">
+                        <option value="theme-blue">
+                            Azul
+                        </option>
+
+                        <option value="theme-pink">
+                            Rosa
+                        </option>
+
+                        <option value="theme-green">
+                            Verde
+                        </option>
+
+                        <option value="theme-red">
+                            Vermelho
+                        </option>
+
+                        <option value="theme-dark">
+                            Preto
+                        </option>
+                    </select>
+
+                    <input type="file" id="input-planilha" accept=".csv" hidden>
+
+                    <button class="btn-outline" id="btn-importar-planilha" type="button">
+                        Importar planilha
+                    </button>
+
+                    <button class="btn-danger" id="btn-limpar-dados" type="button">
+                        Limpar dados
+                    </button>
+
+                    <button class="btn-primary" type="button" onclick="window.location.reload()">
+                        Atualizar dados
+                    </button>
+                </div>
+            </section>
+
+            <section class="summary-grid">
+                <div class="summary-card entrada" data-config-card="resumo_financeiro">
+                    <div class="summary-icon">
+                        ↓
+                    </div>
+
+                    <div>
+                        <span>
+                            TOTAL DE ENTRADAS
+                        </span>
+
+                        <strong id="total-entradas">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Receitas Confirmadas
+                        </small>
+                    </div>
+                </div>
+
+                <div class="summary-card saida" data-config-card="resumo_financeiro">
+                    <div class="summary-icon">
+                        ↑
+                    </div>
+
+                    <div>
+                        <span>
+                            TOTAL DE SAÍDAS
+                        </span>
+
+                        <strong id="total-saidas">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Gastos Confirmados
+                        </small>
+                    </div>
+                </div>
+
+                <div class="summary-card saldo" data-config-card="resumo_financeiro">
+                    <div class="summary-icon">
+                        ◼
+                    </div>
+
+                    <div>
+                        <span>
+                            SALDO FINAL
+                        </span>
+
+                        <strong id="saldo-final">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Entradas menos Saídas
+                        </small>
+                    </div>
+                </div>
+
+                <div class="summary-card investimento" data-config-card="investimentos">
+                    <div class="summary-icon">
+                        ↗
+                    </div>
+
+                    <div>
+                        <span>
+                            CARTEIRA DE INVESTIMENTOS
+                        </span>
+
+                        <strong id="total-investido">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Valor Atual dos Investimentos Ativos
+                        </small>
+                    </div>
+                </div>
+
+                <div class="summary-card transacoes" data-config-card="resumo_financeiro">
+                    <div class="summary-icon">
+                        #
+                    </div>
+
+                    <div>
+                        <span>
+                            TOTAL DE TRANSAÇÕES
+                        </span>
+
+                        <strong id="qtd-transacoes">
+                            0
+                        </strong>
+
+                        <small>
+                            Registros Importados e Analisados
+                        </small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-grid">
+                <div class="panel panel-categorias">
+                    <div class="panel-header">
+                        <h3>
+                            Gastos por Categoria
+                        </h3>
+
+                        <span>
+                            Distribuição das saídas
+                        </span>
+                    </div>
+
+                    <div class="chart-with-list">
+                        <div class="chart-box small-chart">
+                            <canvas id="grafico-categorias"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-tipos">
+                    <div class="panel-header">
+                        <h3>
+                            Top 5 Categorias de Gastos
+                        </h3>
+
+                        <span>
+                            Ranking por valor gasto
+                        </span>
+                    </div>
+
+                    <div class="chart-box">
+                        <canvas id="grafico-tipos"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel panel-evolucao">
+                    <div class="panel-header">
+                        <h3>
+                            Evolução Mensal
+                        </h3>
+
+                        <span>
+                            Entradas, saídas e saldo dos últimos 5 meses
+                        </span>
+                    </div>
+
+                    <div class="chart-box">
+                        <canvas id="grafico-evolucao"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel panel-insights">
+                    <div class="panel-header">
+                        <h3>
+                            Insights do Mês
+                        </h3>
+
+                        <span>
+                            Análises geradas a partir dos dados
+                        </span>
+                    </div>
+
+                    <div class="insights-list" id="lista-insights">
+                        <div class="insight-item">
+                            <div class="insight-icon neutral">
+                                ↗
+                            </div>
+
+                            <div>
+                                <strong>
+                                    Carregando insights...
+                                </strong>
+
+                                <p>
+                                    Aguarde enquanto analisamos
+                                    seus dados.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-transacoes" data-config-card="transacoes_recentes">
+                    <div class="panel-header row">
+                        <div>
+                            <h3>
+                                Últimas Transações
+                            </h3>
+
+                            <span>
+                                Acompanhe suas movimentações
+                                mais recentes
+                            </span>
+                        </div>
+
+                        <a href="/transacoes" class="link-action">
+                            Ver todas
+                        </a>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        Data
+                                    </th>
+
+                                    <th>
+                                        Descrição
+                                    </th>
+
+                                    <th>
+                                        Categoria
+                                    </th>
+
+                                    <th>
+                                        Tipo
+                                    </th>
+
+                                    <th>
+                                        Valor
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tabela-transacoes">
+                                <tr>
+                                    <td colspan="5">
+                                        Carregando transações...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast de notificação -->
+    <div id="toast-notification" class="toast-notification">
+        <div class="toast-content">
+            <div class="toast-icon" id="toast-icon">✓</div>
+            <div class="toast-message">
+                <strong id="toast-title">Sucesso</strong>
+                <p id="toast-body">Mensagem da notificação</p>
+            </div>
+            <button class="toast-close" onclick="window.PFF.fecharNotificacao()">✕</button>
+        </div>
+    </div>
+
+    <!-- Modal de mensagem detalhada -->
+    <div id="modal-mensagem" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-mensagem-titulo">Título</h3>
+                <button class="modal-close" onclick="fecharModalMensagem()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-mensagem-conteudo"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="fecharModalMensagem()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação -->
+    <div id="modal-confirmacao" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-confirmacao-titulo">Confirmação</h3>
+                <button class="modal-close" onclick="fecharModalConfirmacao(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-confirmacao-mensagem">Mensagem de confirmação</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="fecharModalConfirmacao(false)">Cancelar</button>
+                <button class="btn-primary" id="modal-confirmacao-btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% include 'l_preferencias_usuario.html' %}
+    <script src="{{ url_for('static', filename='b_js/b_dashboard.js') }}?v=3"></script>
+</body>
+
+</html>

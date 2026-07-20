@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Personal Finance Flow</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/a_global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/b_index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/l_dark_mode.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/k_accessibility_bar.css') }}">
+    <script src="{{ url_for('static', filename='b_js/j_accessibility.js') }}"></script>
+</head>
+
+<body>
+
+
+    <main class="home-page">
+        <header class="home-header">
+            <a href="/" class="header-brand" aria-label="Página inicial">
+                <div class="brand-icon">
+                    ↗
+                </div>
+
+                <span>
+                    Personal Finance Flow
+                </span>
+            </a>
+
+            <nav class="header-actions">
+                <a href="/login" class="btn btn-login"> ENTRAR </a>
+
+                <a href="/cadastro" class="btn btn-register"> CADASTRAR </a>
+            </nav>
+        </header>
+
+        <section class="home-hero">
+            <div class="home-content">
+                <h1>
+                    SUA VIDA FINANCEIRA,
+                    <span style="color: #b81567;">ORGANIZADA</span> EM <br>
+                    UM SÓ LUGAR.
+                </h1>
+
+                <p>
+                    Acompanhe receitas, despesas, investimentos e metas em uma plataforma intuitiva que facilita suas
+                    decisões financeiras.
+                </p>
+
+                <div class="home-actions">
+                    <a href="/login" class="btn btn-primary">
+                        ACESSAR PLATAFORMA
+                    </a>
+                </div>
+            </div>
+
+            <div class="preview-container">
+                <div class="preview-glow"></div>
+
+                <img src="{{ url_for('static', filename='c_images/a_dashboard.png') }}" class="dashboard-preview"
+                    alt="Demonstração animada da dashboard">
+            </div>
+        </section>
+
+        <section class="benefits" id="beneficios">
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    💰 <h3>ORGANIZE SEUS GASTOS</h3>
+                </div>
+
+
+                <br>
+                <p>
+                    Veja suas despesas e entenda para onde seu dinheiro está indo.
+                </p>
+            </article>
+
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    📊 <h3> VISUALIZE SUAS FINANÇAS</h3>
+                </div>
+
+                <br>
+                <p>
+                    Acompanhe entradas, saídas e saldo final
+                    em cards claros e objetivos.
+                </p>
+            </article>
+
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    🎯 <h3> ACOMPANHE SUAS METAS</h3>
+                </div>
+
+
+                <br>
+                <p>
+                    Tenha uma visão simples do progresso
+                    das suas metas financeiras.
+                </p>
+            </article>
+
+            <article class="benefit-card">
+                <div class="benefit-icon">
+                    🏆 <h3>MELHORE SUAS DECISÕES</h3>
+                </div>
+                <br>
+
+                <p>
+                    Use os indicadores da dashboard para
+                    melhorar seu controle financeiro.
+                </p>
+            </article>
+        </section>
+
+        <footer class="footer">
+            <p>
+                © 2026 Personal Finance Flow
+            </p>
+        </footer>
+    </main>
+</body>
+
+</html>

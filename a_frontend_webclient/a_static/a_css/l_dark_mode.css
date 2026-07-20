@@ -1,0 +1,325 @@
+/* ===========================
+   Dark Mode (Tema Escuro)
+   Sobrescreve os estilos claros
+   =========================== */
+
+/* Corpo */
+[data-theme="dark"] body {
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+/* Sidebar */
+[data-theme="dark"] .sidebar {
+    background: var(--color-white);
+    border-right-color: var(--color-border);
+}
+
+/* Marca do sidebar */
+[data-theme="dark"] .brand-icon {
+    background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .brand h1 {
+    color: var(--color-text);
+}
+
+/* Menu */
+[data-theme="dark"] .menu-item {
+    color: var(--color-muted);
+}
+
+[data-theme="dark"] .menu-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] .menu-item.active {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+}
+
+/* Cards de objetivo */
+[data-theme="dark"] .goal-card {
+    background: linear-gradient(180deg, var(--color-white), rgba(31, 41, 55, 0.5));
+    border-color: var(--color-border);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .goal-card span {
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] .goal-card strong,
+[data-theme="dark"] .goal-card p {
+    color: var(--color-text);
+}
+
+/* Cards de usuário */
+[data-theme="dark"] .user-card {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05));
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .user-card strong {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .user-card span {
+    color: var(--color-muted);
+}
+
+/* Avatar */
+[data-theme="dark"] .avatar {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-purple));
+    color: #ffffff;
+}
+
+/* Main content */
+[data-theme="dark"] .main-content {
+    background: var(--color-background);
+}
+
+/* Hero section */
+[data-theme="dark"] .hero {
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom-color: var(--color-border);
+}
+
+[data-theme="dark"] .hero h2,
+[data-theme="dark"] .hero p {
+    color: var(--color-text);
+}
+
+/* Theme selector */
+[data-theme="dark"] .theme-selector {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .theme-selector option {
+    color: var(--color-text);
+    background: var(--color-white);
+}
+
+/* Summary cards */
+[data-theme="dark"] .summary-grid {
+    gap: 1rem;
+}
+
+[data-theme="dark"] .summary-card {
+    background: var(--color-white);
+    border-color: var(--color-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .summary-card span {
+    color: var(--color-muted);
+}
+
+[data-theme="dark"] .summary-card strong {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .summary-card small {
+    color: var(--color-muted);
+}
+
+/* Ícones de summary */
+[data-theme="dark"] .summary-icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] .summary-card.saldo-positivo .summary-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+}
+
+[data-theme="dark"] .summary-card.saldo-negativo .summary-icon {
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--color-danger);
+}
+
+/* Panels */
+[data-theme="dark"] .panel {
+    background: var(--color-white);
+    border-color: var(--color-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .panel-header h3 {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .panel-header span {
+    color: var(--color-muted);
+}
+
+/* Charts */
+[data-theme="dark"] .chart-box {
+    background: var(--color-white);
+}
+
+[data-theme="dark"] .empty-chart-state {
+    background: var(--color-background);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .empty-text {
+    color: var(--color-muted);
+}
+
+/* Inputs e formulários */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background: var(--color-white);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] input::placeholder {
+    color: var(--color-muted);
+}
+
+/* Buttons */
+[data-theme="dark"] .btn-primary {
+    background: var(--color-primary);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background: var(--color-primary-dark);
+}
+
+[data-theme="dark"] .btn-outline {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .btn-danger {
+    background: var(--color-danger);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .btn-danger:hover {
+    background: #f87171;
+}
+
+/* Tabelas */
+[data-theme="dark"] table {
+    background: var(--color-white);
+}
+
+[data-theme="dark"] table thead {
+    background: rgba(0, 0, 0, 0.05);
+    border-bottom-color: var(--color-border);
+}
+
+[data-theme="dark"] table th {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] table td {
+    border-bottom-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* Modals */
+[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--color-white);
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .modal-header h3 {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .modal-body p {
+    color: var(--color-text);
+}
+
+/* Toast */
+[data-theme="dark"] .toast-content {
+    background: var(--color-white);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .toast-message strong {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .toast-message p {
+    color: var(--color-muted);
+}
+
+[data-theme="dark"] .toast-close:hover {
+    background: var(--color-border);
+    color: var(--color-text);
+}
+
+/* Links */
+[data-theme="dark"] a {
+    color: var(--color-primary);
+}
+
+[data-theme="dark"] a:hover {
+    color: var(--color-primary-dark);
+}
+
+/* Insights */
+[data-theme="dark"] .insight-item {
+    background: var(--color-white);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .insight-item strong {
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .insight-item p {
+    color: var(--color-muted);
+}
+
+/* Progress bar */
+[data-theme="dark"] .progress {
+    background: var(--color-border);
+}
+
+[data-theme="dark"] .progress-bar {
+    background: var(--color-primary);
+}
+
+/* Reticências (search input dentro de modals) */
+[data-theme="dark"] .search-input {
+    background: var(--color-background);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+[data-theme="dark"] .search-input::placeholder {
+    color: var(--color-muted);
+}

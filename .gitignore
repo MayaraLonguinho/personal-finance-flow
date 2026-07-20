@@ -46,5 +46,5 @@ g_output/test_results/*
 !g_output/test_results/.gitkeep
 
 # Relatórios de teste gerados
-f_test_execution/reports/*
-!f_test_execution/reports/.gitkeep
+f_test_execution/e_reports/*
+!f_test_execution/e_reports/.gitkeep

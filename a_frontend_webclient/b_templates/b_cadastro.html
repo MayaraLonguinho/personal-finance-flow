@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Personal Finance Flow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/a_global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/l_dark_mode.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/b_index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/k_accessibility_bar.css') }}">
+    <script src="{{ url_for('static', filename='b_js/j_accessibility.js') }}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Georgia, "Times New Roman", serif;
+            background:
+                radial-gradient(circle at 85% 14%,
+                    rgba(236, 72, 153, 0.04),
+                    transparent 30%),
+                #ffffff;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid #f1f5f9;
+            border-radius: 18px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-header h1 {
+            color: #0b1830;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            color: #4e4e4f;
+            font-size: 14px;
+        }
+
+        .auth-header .highlight {
+            color: #b81567;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 16px;
+            border: 2px solid #f1f5f9;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: Georgia, "Times New Roman", serif;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        .btn-submit {
+            width: 100%;
+            min-height: 46px;
+            padding: 11px 24px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #d70a70, #a80055);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 18px rgba(190, 24, 93, 0.16);
+            font-family: Georgia, "Times New Roman", serif;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            color: #c21869;
+            border: 2px solid #c21869;
+            background: #ffffff;
+            box-shadow: 0 8px 18px rgba(236, 72, 153, 0.18);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #fbcfe8;
+        }
+
+        .auth-footer p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .auth-footer a {
+            color: #c21869;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.2s ease;
+        }
+
+        .auth-footer a:hover {
+            color: #a80055;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #c21869;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #a80055;
+        }
+
+        @media (max-width: 650px) {
+            .auth-container {
+                width: calc(100% - 32px);
+                padding: 32px 24px;
+            }
+
+            .auth-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="accessibility-bar" role="toolbar" aria-label="Controles de acessibilidade">
+        {% include 'm_accessibility_controls.html' %}
+    </div>
+
+    <div class="auth-container">
+        <a href="/" class="back-link">← VOLTAR</a>
+
+        <div class="auth-header">
+            <h1>CRIE SUA CONTA</h1>
+            <p>COMECE A ORGANIZAR SUAS <span class="highlight">FINANÇAS</span> HOJE</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <form id="cadastroForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="form-group">
+                <label for="nome">Nome completo</label>
+                <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required minlength="3">
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="telefone">Telefone (opcional)</label>
+                <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label for="confirmacao_senha">Confirme sua senha</label>
+                <input type="password" id="confirmacao_senha" name="confirmacao_senha"
+                    placeholder="Digite a senha novamente" required minlength="6">
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">CADASTRAR</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Já tem uma conta? <a href="/login">FAÇA LOGIN</a></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('cadastroForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const csrfToken = "{{ csrf_token }}";
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            successMessage.classList.remove('show');
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
+            errorMessage.classList.remove('show');
+        }
+
+        function hideMessages() {
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessages();
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            // Remove o csrf_token do data que enviamos no JSON
+            delete data.csrf_token;
+
+            // Validações adicionais no frontend
+            if (data.nome.length < 3) {
+                showError('Nome deve ter pelo menos 3 caracteres');
+                return;
+            }
+
+            if (!data.email.includes('@') || !data.email.includes('.')) {
+                showError('Email inválido');
+                return;
+            }
+
+            if (data.senha.length < 6) {
+                showError('Senha deve ter pelo menos 6 caracteres');
+                return;
+            }
+
+            if (data.senha !== data.confirmacao_senha) {
+                showError('Senhas não conferem');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Cadastrando...';
+
+            try {
+                const response = await fetch('/api/cadastro', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showSuccess(result.mensagem);
+                    form.reset();
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    showError(result.erro || 'Erro ao cadastrar usuário');
+                }
+            } catch (error) {
+                showError('Erro de conexão. Tente novamente.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Cadastrar';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Personal Finance Flow - Relatórios
+    </title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/a_global.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/f_relatorios.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='a_css/l_dark_mode.css') }}">
+    <script src="{{ url_for('static', filename='b_js/j_accessibility.js') }}"></script>
+</head>
+
+<body class="theme-blue">
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    ↗
+                </div>
+
+                <div>
+                    <h1>Personal</h1>
+                    <h1>Finance Flow</h1>
+                </div>
+            </div>
+
+            <nav class="menu">
+                <a href="/dashboard" class="menu-item">
+                    Visão Geral
+                </a>
+
+                <a href="/transacoes" class="menu-item">
+                    Transações
+                </a>
+
+                <a href="/categorias" class="menu-item">
+                    Categorias
+                </a>
+
+                <a href="/relatorios" class="menu-item active">
+                    Relatórios
+                </a>
+
+                <a href="/metas" class="menu-item">
+                    Metas
+                </a>
+
+                <a href="/investimentos" class="menu-item">
+                    Investimentos
+                </a>
+
+                <a href="/assistente" class="menu-item">
+                    Assistente
+                </a>
+
+                <a href="/configuracoes" class="menu-item">
+                    Configurações
+                </a>
+            </nav>
+
+            <div class="goal-card" data-config-card="meta_economia">
+                <span>
+                    Meta de Economia
+                </span>
+
+                <div class="goal-values">
+                    <strong id="goal-valor-atual">
+                        R$ 0,00
+                    </strong>
+
+                    <small id="goal-valor-meta">
+                        de R$ 0,00
+                    </small>
+                </div>
+
+                <div class="progress">
+                    <div class="progress-bar" id="goal-progress-bar" style="width: 0%;"></div>
+                </div>
+
+                <strong class="progress-text" id="goal-percentual">
+                    0%
+                </strong>
+
+                <p id="goal-restante">
+                    Nenhuma meta cadastrada.
+                </p>
+            </div>
+
+            <div class="user-card">
+                <div class="avatar">
+                    {{ (usuario_nome or 'U')[:1].upper() }}
+                </div>
+
+                <div>
+                    <strong>
+                        {{ usuario_nome or 'Usuário' }}
+                    </strong>
+
+                    <span>
+                        Usuária local
+                    </span>
+                </div>
+            </div>
+
+            <a id="logout-sidebar" href="/" class="menu-item logout-item sidebar-logout" onclick="logoutSidebar(event)">
+                <span class="logout-icon">⏻</span>
+                Sair
+            </a>
+        </aside>
+
+        <main class="main-content">
+            <section class="hero">
+                <div>
+
+                    <h2>
+                        Relatórios
+                    </h2>
+
+                    <p>
+                        Analise entradas, saídas, categorias,
+                        investimentos e movimentações por período.
+                    </p>
+                </div>
+
+                <div class="hero-actions">
+                    {% include 'm_accessibility_controls.html' %}
+
+                    <button class="btn-outline" type="button" onclick="limparFiltros()">
+                        Limpar filtros
+                    </button>
+
+                    <button class="btn-primary" type="button" onclick="imprimirRelatorio()">
+                        Exportar PDF
+                    </button>
+                </div>
+            </section>
+
+            <section class="relatorios-section">
+                <div class="panel filtros-panel">
+                    <div class="panel-header">
+                        <h3>
+                            Filtros do relatório
+                        </h3>
+
+                        <span>
+                            Escolha o período que deseja analisar
+                        </span>
+                    </div>
+
+                    <div class="filtros-grid">
+                        <div class="form-group">
+                            <label for="data-inicio">
+                                Data inicial
+                            </label>
+
+                            <input type="date" id="data-inicio">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="data-fim">
+                                Data final
+                            </label>
+
+                            <input type="date" id="data-fim">
+                        </div>
+
+                        <div class="filtro-acao">
+                            <button class="btn-primary" type="button" id="btn-gerar-relatorio"
+                                onclick="buscarRelatorio()">
+                                Gerar relatório
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="filtro-erro" id="filtro-erro" hidden></p>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-card entrada">
+                        <span>
+                            Entradas
+                        </span>
+
+                        <strong id="relatorio-entradas">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Receitas do período
+                        </small>
+                    </div>
+
+                    <div class="summary-card saida">
+                        <span>
+                            Saídas
+                        </span>
+
+                        <strong id="relatorio-saidas">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Despesas do período
+                        </small>
+                    </div>
+
+                    <div class="summary-card saldo">
+                        <span>
+                            Saldo
+                        </span>
+
+                        <strong id="relatorio-saldo">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Entradas menos saídas
+                        </small>
+                    </div>
+
+                    <div class="summary-card investimento">
+                        <span>
+                            Aportes no período
+                        </span>
+
+                        <strong id="relatorio-investimentos">
+                            R$ 0,00
+                        </strong>
+
+                        <small>
+                            Transações do tipo investimento
+                        </small>
+                    </div>
+
+                    <div class="summary-card transacoes">
+                        <span>
+                            Transações
+                        </span>
+
+                        <strong id="relatorio-quantidade">
+                            0
+                        </strong>
+
+                        <small>
+                            Movimentações encontradas
+                        </small>
+                    </div>
+                </div>
+
+                <div class="panel patrimonio-panel">
+                    <div class="panel-header row">
+                        <div>
+                            <h3>
+                                Carteira de investimentos
+                            </h3>
+
+                            <span>
+                                Posição atual dos investimentos ativos
+                            </span>
+                        </div>
+
+                        <a href="/investimentos" class="link-action">
+                            Gerenciar carteira
+                        </a>
+                    </div>
+
+                    <div class="patrimonio-grid">
+                        <div class="patrimonio-item">
+                            <span>
+                                Total aplicado
+                            </span>
+
+                            <strong id="relatorio-carteira-aplicado">
+                                R$ 0,00
+                            </strong>
+                        </div>
+
+                        <div class="patrimonio-item">
+                            <span>
+                                Valor atual
+                            </span>
+
+                            <strong id="relatorio-carteira-atual">
+                                R$ 0,00
+                            </strong>
+                        </div>
+
+                        <div class="patrimonio-item">
+                            <span>
+                                Lucro ou prejuízo
+                            </span>
+
+                            <strong id="relatorio-carteira-resultado">
+                                R$ 0,00
+                            </strong>
+                        </div>
+
+                        <div class="patrimonio-item">
+                            <span>
+                                Rentabilidade total
+                            </span>
+
+                            <strong id="relatorio-carteira-rentabilidade">
+                                0,00%
+                            </strong>
+                        </div>
+
+                        <div class="patrimonio-item">
+                            <span>
+                                Investimentos ativos
+                            </span>
+
+                            <strong id="relatorio-carteira-ativos">
+                                0
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relatorios-grid">
+                    <div class="panel categorias-panel">
+                        <div class="panel-header">
+                            <h3>
+                                Gastos por categoria
+                            </h3>
+
+                            <span>
+                                Distribuição das despesas do período
+                            </span>
+                        </div>
+
+                        <div class="categorias-lista" id="relatorio-categorias">
+                            <p class="empty-text">
+                                Carregando categorias...
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="panel informacoes-panel">
+                        <div class="panel-header">
+                            <h3>
+                                Informações do relatório
+                            </h3>
+
+                            <span>
+                                Período selecionado
+                            </span>
+                        </div>
+
+                        <div class="informacoes-lista">
+                            <div class="informacao-item">
+                                <span>
+                                    Data inicial
+                                </span>
+
+                                <strong id="periodo-data-inicio">
+                                    Todas
+                                </strong>
+                            </div>
+
+                            <div class="informacao-item">
+                                <span>
+                                    Data final
+                                </span>
+
+                                <strong id="periodo-data-fim">
+                                    Todas
+                                </strong>
+                            </div>
+
+                            <div class="informacao-item">
+                                <span>
+                                    Gerado em
+                                </span>
+
+                                <strong id="relatorio-gerado-em">
+                                    -
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel transacoes-panel">
+                    <div class="panel-header row">
+                        <div>
+                            <h3>
+                                Transações do período
+                            </h3>
+
+                            <span id="relatorio-periodo">
+                                Todos os registros
+                            </span>
+                        </div>
+
+                        <strong class="contador-registros" id="contador-registros">
+                            0 registros
+                        </strong>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Tipo</th>
+                                    <th>Conta</th>
+                                    <th>Instituição</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="relatorio-transacoes">
+                                <tr>
+                                    <td colspan="7">
+                                        Carregando transações...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    {% include 'l_preferencias_usuario.html' %}
+
+    <script src="{{ url_for('static', filename='b_js/e_relatorios.js') }}?v=2"></script>
+</body>
+
+</html>

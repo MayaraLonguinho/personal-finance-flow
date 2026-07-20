@@ -216,15 +216,15 @@ g_output/
 
 ## Componentes principais
 
-- `b_backend/app.py`: inicialização Flask, páginas, APIs e orquestração;
-- `b_backend/src/`: domínio financeiro, autenticação, métricas, relatórios e Agents;
+- `b_backend/a_app.py`: inicialização Flask, páginas, APIs e orquestração;
+- `b_backend/b_src/`: domínio financeiro, autenticação, métricas, relatórios e Agents;
 - `c_generate_rpa/`: pipeline de importação de CSV;
-- `a_frontend_webclient/templates/`: páginas Jinja;
-- `a_frontend_webclient/static/`: CSS, JavaScript e imagens;
-- `database/schema.sql`: estrutura do banco;
-- `d_traceability/brain/`: memória técnica do projeto;
-- `d_traceability/skills/`: Skill de análise financeira;
-- `d_traceability/mcp/`: servidor MCP;
+- `a_frontend_webclient/b_templates/`: páginas Jinja;
+- `a_frontend_webclient/a_static/`: CSS, JavaScript e imagens;
+- `h_database/a_schema.sql`: estrutura do banco;
+- `d_traceability/a_brain/`: memória técnica do projeto;
+- `d_traceability/d_skills/`: Skill de análise financeira;
+- `d_traceability/c_mcp/`: servidor MCP;
 - `e_verify/`: testes automatizados;
 - `f_test_execution/`: scripts e relatórios de teste.
 
@@ -232,9 +232,9 @@ O Flask é configurado para localizar os diretórios de templates e arquivos est
 
 Mais detalhes:
 
-- [Arquitetura técnica](d_traceability/brain/02-arquitetura.md)
-- [Modelo de dados](d_traceability/brain/03-modelo-de-dados.md)
-- [Pipeline ETL](d_traceability/brain/04-pipeline-etl.md)
+- [Arquitetura técnica](d_traceability/a_brain/c_arquitetura.md)
+- [Modelo de dados](d_traceability/a_brain/d_modelo_de_dados.md)
+- [Pipeline ETL](d_traceability/a_brain/e_pipeline_etl.md)
 
 ---
 
@@ -294,7 +294,7 @@ A regra é aplicada pelo código da aplicação. Não existe um índice único e
 
 Mais detalhes:
 
-- [Pipeline técnico](d_traceability/brain/04-pipeline-etl.md)
+- [Pipeline técnico](d_traceability/a_brain/e_pipeline_etl.md)
 - [Documentação do RPA](c_generate_rpa/README.md)
 
 ---
@@ -417,7 +417,7 @@ A pergunta enviada possui limite de 500 caracteres.
 O arquivo:
 
 ```text
-b_backend/src/ai_financial_agent.py
+b_backend/b_src/j_ai_financial_agent.py
 ```
 
 utiliza o SDK da OpenAI e ferramentas controladas para consultar os dados financeiros.
@@ -460,7 +460,7 @@ Quais são minhas últimas transações?
 Caso a OpenAI não esteja configurada ou ocorra uma falha, o sistema utiliza:
 
 ```text
-b_backend/src/financial_agent.py
+b_backend/b_src/i_financial_agent.py
 ```
 
 O fallback:
@@ -475,7 +475,7 @@ A aplicação continua funcional sem `OPENAI_API_KEY`.
 
 Mais detalhes:
 
-- [Documentação do Agent](d_traceability/docs/agent.md)
+- [Documentação do Agent](d_traceability/b_docs/a_general/b_agent.md)
 
 ---
 
@@ -492,7 +492,7 @@ Ele interpreta perguntas em linguagem natural e utiliza funções controladas pa
 A Skill está em:
 
 ```text
-d_traceability/skills/financial-csv-analyzer/SKILL.md
+d_traceability/d_skills/a_financial_csv_analyzer/a_skill.md
 ```
 
 Ela orienta agentes sobre como:
@@ -511,7 +511,7 @@ A Skill reutiliza o pipeline existente e não duplica sua implementação.
 O Brain está em:
 
 ```text
-d_traceability/brain/
+d_traceability/a_brain/
 ```
 
 Ele funciona como uma memória técnica compatível com Obsidian e reúne:
@@ -530,7 +530,7 @@ Ele funciona como uma memória técnica compatível com Obsidian e reúne:
 O servidor MCP está em:
 
 ```text
-d_traceability/mcp/
+d_traceability/c_mcp/
 ```
 
 Ele oferece consultas financeiras somente leitura para ferramentas externas compatíveis.
@@ -562,7 +562,7 @@ As decisões e validações permaneceram sob controle humano.
 
 Mais detalhes:
 
-- [Vibe Coding](d_traceability/docs/vibe-coding.md)
+- [Vibe Coding](d_traceability/b_docs/a_general/d_vibe_coding.md)
 
 ---
 
@@ -570,10 +570,10 @@ Mais detalhes:
 
 A Skill referencia como fontes de verdade:
 
-- `c_generate_rpa/extract.py`;
-- `c_generate_rpa/transform.py`;
-- `c_generate_rpa/categorization.py`;
-- `c_generate_rpa/load.py`.
+- `c_generate_rpa/a_extract.py`;
+- `c_generate_rpa/b_transform.py`;
+- `c_generate_rpa/c_categorization.py`;
+- `c_generate_rpa/d_load.py`.
 
 Ela:
 
@@ -641,7 +641,7 @@ O MCP requer:
 
 Mais detalhes:
 
-- [Instalação e configuração do MCP](d_traceability/mcp/README.md)
+- [Instalação e configuração do MCP](d_traceability/c_mcp/f_readme.md)
 
 ---
 
@@ -792,7 +792,7 @@ mysql -u root -p -e \
 Aplicar o schema:
 
 ```bash
-mysql -u root -p personal_finance_flow < database/schema.sql
+mysql -u root -p personal_finance_flow < h_database/a_schema.sql
 ```
 
 Tabelas:
@@ -817,7 +817,7 @@ source .venv/bin/activate
 set -a
 source .env
 set +a
-python -m b_backend.app
+python -m b_backend.a_app
 ```
 
 A aplicação fica disponível em:
@@ -843,7 +843,7 @@ http://127.0.0.1:5001
 - `/assistente`;
 - `/configuracoes`.
 
-> Evite entrar na pasta `b_backend` e executar `python app.py`. O comando oficial é `python -m b_backend.app`, executado a partir da raiz.
+> Evite entrar na pasta `b_backend` e executar o arquivo diretamente. O comando oficial é `python -m b_backend.a_app`, executado a partir da raiz.
 
 O servidor Flask utilizado é destinado ao desenvolvimento local.
 
@@ -852,7 +852,7 @@ O servidor Flask utilizado é destinado ao desenvolvimento local.
 ## Estrutura de pastas
 
 ```text
-personal_finance_flow/
+personal-finance-flow/
 ├── README.md
 ├── requirements.txt
 ├── requirements-mcp.txt
@@ -860,77 +860,53 @@ personal_finance_flow/
 ├── .gitignore
 │
 ├── a_frontend_webclient/
-│   ├── templates/
-│   └── static/
-│       ├── css/
-│       ├── js/
-│       └── images/
+│   ├── a_static/
+│   │   ├── a_css/
+│   │   ├── b_js/
+│   │   └── c_images/
+│   └── b_templates/
 │
 ├── b_backend/
-│   ├── __init__.py
-│   ├── app.py
-│   └── src/
+│   ├── a_app.py
+│   └── b_src/
 │       ├── __init__.py
-│       ├── auth.py
-│       ├── transacoes.py
-│       ├── investimentos.py
-│       ├── categorias.py
-│       ├── metas.py
-│       ├── configuracoes.py
-│       ├── metrics.py
-│       ├── relatorios.py
-│       ├── financial_agent.py
-│       ├── ai_financial_agent.py
-│       ├── usuario_contexto.py
-│       └── utils.py
+│       ├── a_auth.py
+│       ├── b_usuario_contexto.py
+│       ├── c_transacoes.py
+│       └── ...
 │
 ├── c_generate_rpa/
-│   ├── __init__.py
-│   ├── extract.py
-│   ├── transform.py
-│   ├── categorization.py
-│   ├── load.py
-│   ├── samples/
-│   │   ├── raw/
-│   │   └── processed/
-│   └── README.md
+│   ├── a_extract.py
+│   ├── b_transform.py
+│   ├── c_categorization.py
+│   ├── d_load.py
+│   └── e_samples/
 │
 ├── d_traceability/
 │   ├── __init__.py
-│   ├── docs/
-│   │   ├── README.md
-│   │   ├── agent.md
-│   │   ├── vibe-coding.md
-│   │   ├── product/
-│   │   ├── prd/
-│   │   ├── adr/
-│   │   └── prompts/
-│   ├── brain/
-│   ├── logs/
-│   ├── skills/
-│   │   └── financial-csv-analyzer/
-│   │       └── SKILL.md
-│   └── mcp/
-│       ├── __init__.py
-│       ├── server.py
-│       ├── readonly_service.py
-│       ├── allowed_resources.py
-│       ├── schemas.py
-│       └── README.md
+│   ├── a_brain/
+│   ├── b_docs/
+│   │   ├── a_general/
+│   │   ├── b_adr/
+│   │   ├── c_product/
+│   │   ├── d_prd/
+│   │   ├── e_prompts/
+│   │   └── f_screenshots/
+│   ├── c_mcp/
+│   └── d_skills/
 │
 ├── e_verify/
 │   ├── __init__.py
-│   ├── unit/
-│   ├── integration/
-│   ├── security/
-│   └── fixtures/
+│   ├── a_unit/
+│   ├── b_integration/
+│   └── c_security/
 │
 ├── f_test_execution/
-│   ├── run_all_tests.py
-│   ├── run_unit_tests.sh
-│   ├── run_integration_tests.sh
-│   ├── manual_test_plan.md
-│   └── reports/
+│   ├── a_run_unit_tests.sh
+│   ├── b_run_integration_tests.sh
+│   ├── c_run_all_tests.py
+│   ├── d_manual_test_plan.md
+│   └── e_reports/
 │
 ├── g_output/
 │   ├── reports/
@@ -939,15 +915,12 @@ personal_finance_flow/
 │   ├── test_results/
 │   └── README.md
 │
-├── database/
-│   └── schema.sql
-│
 ├── g_uploads/
 │   └── .gitkeep
 │
-└── presentation/
-    ├── roteiro.md
-    └── slides/
+└── h_database/
+    ├── a_schema.sql
+    └── b_migrations/
 ```
 
 ---
@@ -981,7 +954,7 @@ A suíte atual cobre:
 ### Executar todos os testes
 
 ```bash
-python f_test_execution/run_all_tests.py
+python f_test_execution/c_run_all_tests.py
 ```
 
 O executor:
@@ -993,7 +966,7 @@ O executor:
 - cria relatório timestampado em:
 
 ```text
-f_test_execution/reports/
+f_test_execution/e_reports/
 ```
 
 Exemplo:
@@ -1005,13 +978,13 @@ test_report_2026-07-01_051055.txt
 ### Executar somente testes unitários
 
 ```bash
-bash f_test_execution/run_unit_tests.sh
+bash f_test_execution/a_run_unit_tests.sh
 ```
 
 ### Executar testes de integração
 
 ```bash
-bash f_test_execution/run_integration_tests.sh
+bash f_test_execution/b_run_integration_tests.sh
 ```
 
 Na última validação da reorganização estrutural:
@@ -1096,20 +1069,20 @@ O banco MySQL e os templates da dashboard não ficam em `g_output`.
 
 ## Documentação adicional
 
-- [Índice da documentação](d_traceability/docs/README.md)
-- [Visão geral](d_traceability/brain/00-visao-geral.md)
-- [Requisitos](d_traceability/brain/01-requisitos.md)
-- [Arquitetura](d_traceability/brain/02-arquitetura.md)
-- [Modelo de dados](d_traceability/brain/03-modelo-de-dados.md)
-- [Pipeline ETL](d_traceability/brain/04-pipeline-etl.md)
-- [Decisões técnicas](d_traceability/brain/05-decisoes-tecnicas.md)
-- [Erros e aprendizados](d_traceability/brain/06-erros-e-aprendizados.md)
-- [Prompts](d_traceability/brain/07-prompts.md)
-- [Agent financeiro](d_traceability/docs/agent.md)
-- [Vibe Coding](d_traceability/docs/vibe-coding.md)
-- [Skill](d_traceability/skills/financial-csv-analyzer/SKILL.md)
-- [MCP somente leitura](d_traceability/mcp/README.md)
-- [Plano de testes manuais](f_test_execution/manual_test_plan.md)
+- [Índice da documentação](d_traceability/b_docs/a_general/a_readme.md)
+- [Visão geral](d_traceability/a_brain/a_visao_geral.md)
+- [Requisitos](d_traceability/a_brain/b_requisitos.md)
+- [Arquitetura](d_traceability/a_brain/c_arquitetura.md)
+- [Modelo de dados](d_traceability/a_brain/d_modelo_de_dados.md)
+- [Pipeline ETL](d_traceability/a_brain/e_pipeline_etl.md)
+- [Decisões técnicas](d_traceability/a_brain/f_decisoes_tecnicas.md)
+- [Erros e aprendizados](d_traceability/a_brain/g_erros_e_aprendizados.md)
+- [Prompts](d_traceability/a_brain/h_prompts.md)
+- [Agent financeiro](d_traceability/b_docs/a_general/b_agent.md)
+- [Vibe Coding](d_traceability/b_docs/a_general/d_vibe_coding.md)
+- [Skill](d_traceability/d_skills/a_financial_csv_analyzer/a_skill.md)
+- [MCP somente leitura](d_traceability/c_mcp/f_readme.md)
+- [Plano de testes manuais](f_test_execution/d_manual_test_plan.md)
 
 ---
 
