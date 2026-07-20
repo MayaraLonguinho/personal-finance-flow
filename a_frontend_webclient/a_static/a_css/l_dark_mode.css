@@ -323,3 +323,104 @@
 [data-theme="dark"] .search-input::placeholder {
     color: var(--color-muted);
 }
+
+/* =========================================================
+   CORREÇÕES DO MODO NOTURNO — PÁGINA INICIAL
+   ========================================================= */
+
+[data-theme="dark"] body {
+    background: #0f1a2b;
+    color: #f8fafc;
+}
+
+/* Cabeçalho */
+[data-theme="dark"] .home-header {
+    background: #f8fafc;
+    border-bottom-color: #334155;
+}
+
+/* Mantém o nome da marca visível no cabeçalho claro */
+[data-theme="dark"] .header-brand,
+[data-theme="dark"] .header-brand span {
+    color: #10213d;
+}
+
+/* Área principal */
+[data-theme="dark"] .hero-section,
+[data-theme="dark"] .home-main {
+    background: #0f1a2b;
+}
+
+/* Título principal */
+[data-theme="dark"] .hero-title,
+[data-theme="dark"] .hero-title span,
+[data-theme="dark"] .hero-content h1 {
+    color: #f8fafc;
+    opacity: 1;
+}
+
+/* Palavra destacada */
+[data-theme="dark"] .hero-title .highlight,
+[data-theme="dark"] .hero-content .highlight {
+    color: #db2777;
+}
+
+/* Texto explicativo */
+[data-theme="dark"] .hero-description,
+[data-theme="dark"] .hero-content p {
+    color: #cbd5e1;
+    opacity: 1;
+}
+
+/* Botão principal */
+[data-theme="dark"] .hero-button,
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .access-platform-button {
+    background: #c6005c;
+    color: #ffffff;
+    border-color: #c6005c;
+}
+
+[data-theme="dark"] .hero-button:hover,
+[data-theme="dark"] .btn-primary:hover,
+[data-theme="dark"] .access-platform-button:hover {
+    background: #a9004e;
+    border-color: #a9004e;
+}
+
+/* Cards informativos */
+[data-theme="dark"] .feature-card {
+    background: #172337;
+    border-color: #db2777;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .feature-card h2,
+[data-theme="dark"] .feature-card h3,
+[data-theme="dark"] .feature-card .feature-title {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .feature-card p {
+    color: #cbd5e1;
+}
+
+/* Cabeçalho interno dos cards */
+[data-theme="dark"] .feature-card-header,
+[data-theme="dark"] .feature-card-title {
+    background: #243247;
+    color: #f8fafc;
+}
+
+/* Rodapé */
+[data-theme="dark"] .home-footer,
+[data-theme="dark"] footer {
+    background: #172337;
+    border-top-color: #334155;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .home-footer p,
+[data-theme="dark"] footer p {
+    color: #cbd5e1;
+}

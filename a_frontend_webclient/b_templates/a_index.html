@@ -30,10 +30,18 @@
                 </span>
             </a>
 
-            <nav class="header-actions">
-                <a href="/login" class="btn btn-login"> ENTRAR </a>
+            <nav class="header-actions" aria-label="Ações do cabeçalho">
+                <div class="header-accessibility" role="toolbar" aria-label="Controles de acessibilidade">
+                    {% include 'm_accessibility_controls.html' %}
+                </div>
 
-                <a href="/cadastro" class="btn btn-register"> CADASTRAR </a>
+                <a href="/login" class="btn btn-login">
+                    ENTRAR
+                </a>
+
+                <a href="/cadastro" class="btn btn-register">
+                    CADASTRAR
+                </a>
             </nav>
         </header>
 
@@ -45,9 +53,9 @@
                     UM SÓ LUGAR.
                 </h1>
 
-                <p>
-                    Acompanhe receitas, despesas, investimentos e metas em uma plataforma intuitiva que facilita suas
-                    decisões financeiras.
+                .
+                Acompanhe receitas, despesas, investimentos e metas em uma plataforma intuitiva que facilita suas
+                decisões financeiras.
                 </p>
 
                 <div class="home-actions">

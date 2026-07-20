@@ -98,8 +98,87 @@ body {
 .header-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 12px;
+    margin-left: auto;
+    flex-wrap: nowrap;
 }
+
+.header-accessibility {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+/*
+   Remove o aspecto de barra flutuante quando os controles
+   estão dentro do cabeçalho.
+*/
+.header-accessibility .accessibility-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    padding: 0.35rem;
+
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.header-accessibility .accessibility-btn {
+    width: 2.2rem;
+    height: 2.2rem;
+
+    padding: 0.25rem;
+
+    border: 1px solid #dbe2ea;
+    border-radius: 8px;
+
+    background: #f8fafc;
+    color: #0f172a;
+
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.header-accessibility .accessibility-btn:hover:not(:disabled) {
+    background: #fce7f3;
+    border-color: #c21869;
+    color: #9d0b54;
+}
+
+.header-accessibility .accessibility-separator {
+    width: 1px;
+    height: 1.5rem;
+    margin: 0 0.15rem;
+
+    background: #dbe2ea;
+}
+
+[data-theme="dark"] .header-accessibility .accessibility-controls {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+[data-theme="dark"] .header-accessibility .accessibility-btn {
+    background: var(--color-background);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .header-accessibility .accessibility-btn:hover:not(:disabled) {
+    background: var(--color-border);
+    border-color: var(--color-muted);
+}
+
+[data-theme="dark"] .header-accessibility .accessibility-separator {
+    background: var(--color-border);
+}
+
+
 
 /* ==========================
    BOTÕES
@@ -376,180 +455,103 @@ body {
     border-top: 1px solid #fbcfe8;
 }
 
+/* =========================================================
+   ACESSIBILIDADE NO HEADER DO INDEX
+   ========================================================= */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-left: auto;
+    flex-wrap: nowrap;
+}
+
+.header-accessibility {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+/*
+ * Neutraliza o posicionamento flutuante do componente
+ * somente quando ele está dentro do header do index.
+ */
+.header-accessibility .accessibility-bar,
+.header-accessibility .accessibility-controls {
+    position: static;
+    inset: auto;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    transform: none;
+
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    margin: 0;
+    padding: 0.35rem;
+
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.header-accessibility .accessibility-btn {
+    flex: 0 0 auto;
+}
+
 /* ==========================
    RESPONSIVO
 ========================== */
 
-@media (max-width: 1180px) {
-    .home-header {
-        width: calc(100% - 32px);
-    }
-
-    .home-hero {
-        padding-left: 38px;
-        padding-right: 38px;
-
-        grid-template-columns:
-            minmax(320px, 0.9fr) minmax(430px, 1.1fr);
-
-        gap: 36px;
-    }
-
-
-
-    .preview-container {
-        max-width: 650px;
-    }
-
-    .benefits {
-        padding-left: 38px;
-        padding-right: 38px;
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-}
-
 @media (max-width: 900px) {
-    .home-header {
-        min-height: auto;
-
-        padding: 10px 18px;
-
-        border-radius: 0 0 16px 16px;
+    .header-actions {
+        gap: 8px;
     }
 
-    .header-brand {
-        font-size: 1rem;
+    .header-accessibility .accessibility-bar,
+    .header-accessibility .accessibility-controls {
+        gap: 0.2rem;
+        padding: 0.2rem;
     }
 
-    .brand-icon {
-        width: 36px;
-        height: 36px;
-
-        font-size: 1rem;
-    }
-
-    .home-hero {
-        padding: 24px 28px 38px;
-
-        grid-template-columns: 1fr;
-
-        gap: 34px;
-
-        text-align: center;
-    }
-
-    .home-content h1,
-    .home-content p {
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .home-actions {
-        justify-content: center;
-    }
-
-    .preview-container {
-        max-width: 680px;
-        justify-self: center;
-    }
-
-    .dashboard-preview {
-        max-height: none;
+    .header-accessibility .accessibility-btn {
+        width: 2rem;
+        height: 2rem;
+        padding: 0.2rem;
+        font-size: 0.78rem;
     }
 }
 
 @media (max-width: 650px) {
-    .home-header {
-        width: 100%;
-
-        margin-bottom: 10px;
-        padding: 10px 14px;
-
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .header-brand {
-        justify-content: center;
-
-        font-size: 0.95rem;
-    }
-
     .header-actions {
         width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 8px;
     }
 
+    .header-accessibility {
+        grid-column: 1 / -1;
+        justify-content: center;
+    }
+
     .header-actions .btn {
-        flex: 1;
-
-        min-height: 38px;
-
-        padding-left: 10px;
-        padding-right: 10px;
-
-        font-size: 0.82rem;
-    }
-
-    .home-hero {
-        padding: 22px 18px 32px;
-
-        gap: 30px;
-    }
-
-
-
-    .home-content p {
-        font-size: 0.94rem;
-
-        margin-bottom: 24px;
-    }
-
-    .home-actions {
         width: 100%;
-    }
-
-    .home-actions .btn {
-        width: 100%;
-    }
-
-    .dashboard-preview {
-        border-radius: 13px;
-    }
-
-    .benefits {
-        padding: 0 18px 40px;
-
-        grid-template-columns: 1fr;
-    }
-
-    .benefit-card {
-        min-height: auto;
-
-        padding: 20px;
-    }
-
-    .footer {
-        padding: 14px 16px;
-
-        font-size: 0.75rem;
+        text-align: center;
     }
 }
 
 @media (max-width: 390px) {
     .header-actions {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 
-    .header-actions .btn {
-        width: 100%;
-    }
-
-
-
-    .home-content p {
-        font-size: 0.9rem;
+    .header-accessibility {
+        grid-column: 1;
     }
 }
